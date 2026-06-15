@@ -1,0 +1,3 @@
+class FvsCalculator {
+  const FvsCalculator();
+}

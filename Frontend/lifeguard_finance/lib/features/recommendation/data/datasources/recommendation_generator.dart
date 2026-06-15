@@ -1,0 +1,3 @@
+class RecommendationGenerator {
+  const RecommendationGenerator();
+}

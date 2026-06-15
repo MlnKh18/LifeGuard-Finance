@@ -1,0 +1,3 @@
+class SimulationCalculator {
+  const SimulationCalculator();
+}
