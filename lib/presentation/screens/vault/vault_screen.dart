@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:intl/intl.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_styles.dart';
 import '../../../providers/app_providers.dart';
 
 class VaultScreen extends ConsumerStatefulWidget {
-  const VaultScreen({Key? key}) : super(key: key);
+  const VaultScreen({super.key});
 
   @override
   ConsumerState<VaultScreen> createState() => _VaultScreenState();
@@ -15,6 +16,10 @@ class VaultScreen extends ConsumerStatefulWidget {
 class _VaultScreenState extends ConsumerState<VaultScreen> {
   final _targetController = TextEditingController();
   String _selectedGoalType = 'Emergency';
+
+  String _formatCurrency(double amount) {
+    return NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(amount);
+  }
 
   @override
   void dispose() {
@@ -34,12 +39,9 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                 borderRadius: AppStyles.radiusMedium,
                 side: const BorderSide(color: AppColors.surfaceCard, width: 1),
               ),
-              title: Text(
+              title: const Text(
                 'Buat Kantong Tabungan',
-                style: GoogleFonts.outfit(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -47,10 +49,10 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                   DropdownButtonFormField<String>(
                     dropdownColor: AppColors.surface,
                     value: _selectedGoalType,
-                    style: GoogleFonts.outfit(color: AppColors.textPrimary),
+                    style: const TextStyle(color: AppColors.textPrimary),
                     decoration: AppStyles.inputDecoration(
                       labelText: 'Jenis Tujuan',
-                      prefixIcon: const Icon(Icons.flag, color: AppColors.accent),
+                      prefixIcon: const Icon(LucideIcons.flag, color: AppColors.accent),
                     ),
                     items: const [
                       DropdownMenuItem(value: 'Emergency', child: Text('Dana Darurat')),
@@ -66,14 +68,14 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                       }
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppStyles.m),
                   TextFormField(
                     controller: _targetController,
                     keyboardType: TextInputType.number,
-                    style: GoogleFonts.inter(color: AppColors.textPrimary),
+                    style: const TextStyle(color: AppColors.textPrimary),
                     decoration: AppStyles.inputDecoration(
                       labelText: 'Target Nominal (Rp)',
-                      prefixIcon: const Icon(Icons.monetization_on, color: AppColors.accent),
+                      prefixIcon: const Icon(LucideIcons.coins, color: AppColors.accent),
                     ),
                   ),
                 ],
@@ -81,17 +83,13 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text(
-                    'Batal',
-                    style: GoogleFonts.outfit(color: AppColors.textSecondary),
-                  ),
+                  child: const Text('Batal', style: TextStyle(color: AppColors.textSecondary)),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.accent,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: AppStyles.radiusSmall,
-                    ),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: AppStyles.radiusSmall),
                   ),
                   onPressed: () {
                     final target = double.tryParse(_targetController.text) ?? 0.0;
@@ -115,13 +113,7 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                       );
                     }
                   },
-                  child: Text(
-                    'Simpan',
-                    style: GoogleFonts.outfit(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  child: const Text('Simpan', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ],
             );
@@ -144,34 +136,27 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
           ),
           title: Text(
             'Isi Saldo $goalName',
-            style: GoogleFonts.outfit(
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
           ),
           content: TextFormField(
             controller: amountController,
             keyboardType: TextInputType.number,
-            style: GoogleFonts.inter(color: AppColors.textPrimary),
+            style: const TextStyle(color: AppColors.textPrimary),
             decoration: AppStyles.inputDecoration(
               labelText: 'Jumlah Setoran (Rp)',
-              prefixIcon: const Icon(Icons.add_circle, color: AppColors.accent),
+              prefixIcon: const Icon(LucideIcons.plusCircle, color: AppColors.accent),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(
-                'Batal',
-                style: GoogleFonts.outfit(color: AppColors.textSecondary),
-              ),
+              child: const Text('Batal', style: TextStyle(color: AppColors.textSecondary)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.accent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: AppStyles.radiusSmall,
-                ),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: AppStyles.radiusSmall),
               ),
               onPressed: () {
                 final amt = double.tryParse(amountController.text) ?? 0.0;
@@ -179,17 +164,11 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                   ref.read(vaultsProvider.notifier).addFunds(vaultId, amt);
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Setoran Rp ${amt.toStringAsFixed(0)} berhasil ditambahkan!')),
+                    SnackBar(content: Text('Setoran ${_formatCurrency(amt)} berhasil ditambahkan!')),
                   );
                 }
               },
-              child: Text(
-                'Tambah',
-                style: GoogleFonts.outfit(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              child: const Text('Tambah', style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         );
@@ -215,15 +194,15 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
   IconData _getGoalIcon(String type) {
     switch (type) {
       case 'Emergency':
-        return Icons.emergency;
+        return LucideIcons.shieldAlert;
       case 'Education':
-        return Icons.school;
+        return LucideIcons.graduationCap;
       case 'Health':
-        return Icons.local_hospital;
+        return LucideIcons.heartPulse;
       case 'Retirement':
-        return Icons.elderly;
+        return LucideIcons.piggyBank;
       default:
-        return Icons.help_outline;
+        return LucideIcons.helpCircle;
     }
   }
 
@@ -232,7 +211,7 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
     final vaults = ref.watch(vaultsProvider);
     final score = ref.watch(fvsStateProvider);
 
-    String smartRoutingAdvice = 'Lengkapi profil keuangan terlebih dahulu untuk mengaktifkan Smart Routing.';
+    String smartRoutingAdvice = 'Lengkapi profil keuangan terlebih dahulu untuk mengaktifkan Alokasi Dana Cerdas.';
     if (score != null) {
       final emergencyScore = score.emergencyFundScore;
       final debtScore = score.debtBurdenScore;
@@ -241,7 +220,7 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
       if (emergencyScore < 40) {
         smartRoutingAdvice = 'Alokasi Pendapatan: Prioritaskan 25% dari pendapatan bersih bulanan untuk membangun Dana Darurat Anda terlebih dahulu (Skor saat ini Kritis: $emergencyScore).';
       } else if (debtScore < 40) {
-        smartRoutingAdvice = 'Alokasi Pendapatan: Alokasikan 20% pendapatan untuk percepatan pelunasan utang pokok/cicilan guna menurunkan Debt Burden Ratio.';
+        smartRoutingAdvice = 'Alokasi Pendapatan: Alokasikan 20% pendapatan untuk percepatan pelunasan utang pokok/cicilan guna menurunkan rasio beban utang.';
       } else if (protectionScore < 40) {
         smartRoutingAdvice = 'Alokasi Pendapatan: Sisihkan 10% pendapatan untuk mengaktifkan BPJS Kesehatan atau asuransi jiwa dasar agar terlindung dari risiko guncangan medis.';
       } else {
@@ -250,24 +229,18 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(
-          'Savings Vault',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: AppColors.background,
-        elevation: 0,
+        title: const Text('Kantong Simpanan'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_circle_outline, color: AppColors.accent),
+            icon: const Icon(LucideIcons.plusCircle, color: AppColors.accent),
             onPressed: _showAddVaultDialog,
-          )
+          ),
         ],
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(AppStyles.m),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -282,17 +255,17 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                   borderRadius: AppStyles.radiusMedium,
                   border: Border.all(color: AppColors.primaryLight.withOpacity(0.5), width: 1.5),
                 ),
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(AppStyles.m),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.route, color: AppColors.accent, size: 24),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Goal-Driven Smart Routing',
-                          style: GoogleFonts.outfit(
+                        const Icon(LucideIcons.navigation, color: AppColors.accent, size: 24),
+                        const SizedBox(width: AppStyles.s),
+                        const Text(
+                          'Alokasi Dana Cerdas',
+                          style: TextStyle(
                             color: AppColors.textPrimary,
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -300,10 +273,10 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppStyles.s),
                     Text(
                       smartRoutingAdvice,
-                      style: GoogleFonts.outfit(
+                      style: const TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: 14,
                         height: 1.4,
@@ -312,13 +285,13 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppStyles.l),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
+                  const Text(
                     'Kantong Tabungan Virtual',
-                    style: GoogleFonts.outfit(
+                    style: TextStyle(
                       color: AppColors.textPrimary,
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
@@ -326,26 +299,23 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                   ),
                   TextButton.icon(
                     onPressed: _showAddVaultDialog,
-                    icon: const Icon(Icons.add, size: 16, color: AppColors.accent),
-                    label: Text(
-                      'Tambah',
-                      style: GoogleFonts.outfit(color: AppColors.accent),
-                    ),
-                  )
+                    icon: const Icon(LucideIcons.plus, size: 16, color: AppColors.accent),
+                    label: const Text('Tambah', style: TextStyle(color: AppColors.accent)),
+                  ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppStyles.s),
               if (vaults.isEmpty)
                 Center(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 40.0),
-                    child: Column(
+                    padding: const EdgeInsets.symmetric(vertical: AppStyles.xxl),
+                    child: const Column(
                       children: [
-                        Icon(Icons.folder_open, size: 48, color: AppColors.textMuted),
-                        const SizedBox(height: 12),
+                        Icon(LucideIcons.folderOpen, size: 48, color: AppColors.textMuted),
+                        SizedBox(height: AppStyles.s),
                         Text(
                           'Belum ada kantong tabungan virtual.',
-                          style: GoogleFonts.outfit(color: AppColors.textSecondary),
+                          style: TextStyle(color: AppColors.textSecondary),
                         ),
                       ],
                     ),
@@ -365,10 +335,10 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                     final double percent = target > 0 ? (current / target).clamp(0.0, 1.0) : 0.0;
 
                     return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
+                      margin: const EdgeInsets.only(bottom: AppStyles.s),
                       decoration: AppStyles.cardDecoration,
                       child: Padding(
-                        padding: const EdgeInsets.all(16.0),
+                        padding: const EdgeInsets.all(AppStyles.m),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -381,13 +351,13 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                                       backgroundColor: AppColors.accent.withOpacity(0.1),
                                       child: Icon(_getGoalIcon(type), color: AppColors.accent),
                                     ),
-                                    const SizedBox(width: 12),
+                                    const SizedBox(width: AppStyles.s),
                                     Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           _getGoalLabel(type),
-                                          style: GoogleFonts.outfit(
+                                          style: const TextStyle(
                                             color: AppColors.textPrimary,
                                             fontWeight: FontWeight.bold,
                                             fontSize: 16,
@@ -395,7 +365,7 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                                         ),
                                         Text(
                                           'Prioritas: ${vault['priority']}',
-                                          style: GoogleFonts.outfit(
+                                          style: const TextStyle(
                                             color: AppColors.textMuted,
                                             fontSize: 12,
                                           ),
@@ -405,27 +375,27 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                                   ],
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.delete_outline, color: AppColors.critical, size: 20),
+                                  icon: const Icon(LucideIcons.trash2, color: AppColors.critical, size: 20),
                                   onPressed: () {
                                     ref.read(vaultsProvider.notifier).deleteVault(id);
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(content: Text('Kantong tabungan dihapus.')),
                                     );
                                   },
-                                )
+                                ),
                               ],
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: AppStyles.m),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
+                                const Text(
                                   'Progres Terkumpul',
-                                  style: GoogleFonts.outfit(color: AppColors.textSecondary, fontSize: 13),
+                                  style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
                                 ),
                                 Text(
                                   '${(percent * 100).toStringAsFixed(0)}%',
-                                  style: GoogleFonts.inter(
+                                  style: const TextStyle(
                                     color: AppColors.accent,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 14,
@@ -433,7 +403,7 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 6),
+                            const SizedBox(height: AppStyles.xs),
                             ClipRRect(
                               borderRadius: BorderRadius.circular(4),
                               child: LinearProgressIndicator(
@@ -443,24 +413,24 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                                 minHeight: 8,
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: AppStyles.s),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  'Rp ${current.toStringAsFixed(0)}',
-                                  style: GoogleFonts.inter(
+                                  _formatCurrency(current),
+                                  style: const TextStyle(
                                     color: AppColors.textPrimary,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 Text(
-                                  'Target: Rp ${target.toStringAsFixed(0)}',
-                                  style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 12),
+                                  'Target: ${_formatCurrency(target)}',
+                                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: AppStyles.s),
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton.icon(
@@ -472,13 +442,13 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                                   ),
                                 ),
                                 onPressed: () => _showAddFundsDialog(id, _getGoalLabel(type)),
-                                icon: const Icon(Icons.add, size: 16, color: AppColors.textPrimary),
-                                label: Text(
+                                icon: const Icon(LucideIcons.plus, size: 16, color: AppColors.textPrimary),
+                                label: const Text(
                                   'Isi Setoran Tabungan',
-                                  style: GoogleFonts.outfit(color: AppColors.textPrimary),
+                                  style: TextStyle(color: AppColors.textPrimary),
                                 ),
                               ),
-                            )
+                            ),
                           ],
                         ),
                       ),
