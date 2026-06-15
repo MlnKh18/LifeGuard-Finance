@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'dashboard/dashboard_screen.dart';
 import 'simulation/simulation_screen.dart';
-import 'action_plan/action_plan_screen.dart';
-import 'settings/settings_screen.dart';
+import 'vault/vault_screen.dart';
+import 'insights/insights_screen.dart';
+import 'community/community_screen.dart';
 import '../../constants/app_colors.dart';
 
 class MainNavigation extends StatefulWidget {
@@ -19,8 +20,9 @@ class _MainNavigationState extends State<MainNavigation> {
   final List<Widget> _screens = [
     const DashboardScreen(),
     const SimulationScreen(),
-    const ActionPlanScreen(),
-    const SettingsScreen(),
+    const VaultScreen(),
+    const InsightsScreen(),
+    const CommunityScreen(),
   ];
 
   @override
@@ -49,14 +51,19 @@ class _MainNavigationState extends State<MainNavigation> {
             label: 'Simulasi',
           ),
           NavigationDestination(
-            icon: Icon(LucideIcons.clipboardList),
-            selectedIcon: Icon(LucideIcons.clipboardList, color: AppColors.primaryLight),
-            label: 'Rencana Aksi',
+            icon: Icon(LucideIcons.piggyBank),
+            selectedIcon: Icon(LucideIcons.piggyBank, color: AppColors.primaryLight),
+            label: 'Vault',
           ),
           NavigationDestination(
-            icon: Icon(LucideIcons.settings),
-            selectedIcon: Icon(LucideIcons.settings, color: AppColors.primaryLight),
-            label: 'Pengaturan',
+            icon: Icon(LucideIcons.barChart2),
+            selectedIcon: Icon(LucideIcons.barChart2, color: AppColors.primaryLight),
+            label: 'Insights',
+          ),
+          NavigationDestination(
+            icon: Icon(LucideIcons.users),
+            selectedIcon: Icon(LucideIcons.users, color: AppColors.primaryLight),
+            label: 'Komunitas',
           ),
         ],
       ),
