@@ -33,8 +33,8 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
             return AlertDialog(
               backgroundColor: AppColors.surface,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppStyles.radiusMedium),
-                side: BorderSide(color: AppColors.surfaceCard, width: 1),
+                borderRadius: AppStyles.radiusMedium,
+                side: const BorderSide(color: AppColors.surfaceCard, width: 1),
               ),
               title: Text(
                 'Buat Diskusi Baru',
@@ -101,7 +101,7 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.accent,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppStyles.radiusSmall),
+                      borderRadius: AppStyles.radiusSmall,
                     ),
                   ),
                   onPressed: () {
@@ -111,7 +111,6 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                             _selectedCategory,
                             _contentController.text,
                           );
-                      // Award points for sharing post!
                       ref.read(rewardPointsProvider.notifier).addPoints(15);
                       _titleController.clear();
                       _contentController.clear();
@@ -143,7 +142,6 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
     final posts = ref.watch(communityProvider);
     final rewards = ref.watch(rewardPointsProvider);
 
-    // Dynamic literacy mini-module selection based on weakest indicator
     String literacyTitle = 'Modul: Pentingnya Diversifikasi Finansial';
     String literacyDesc = 'Memiliki lebih dari satu sumber pendapatan membantu keluarga menyerap guncangan PHK mendadak dengan lebih baik. Mulailah membangun side-gig atau skill digital baru.';
     if (score != null) {
@@ -186,14 +184,12 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
         ),
         body: TabBarView(
           children: [
-            // TAB 1: Financial Literacy Modules
             SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Gamified Badge Banner
                     Container(
                       width: double.infinity,
                       decoration: BoxDecoration(
@@ -202,8 +198,8 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
-                        borderRadius: BorderRadius.circular(AppStyles.radiusMedium),
-                        border: BorderSide(color: AppColors.accent.withOpacity(0.4), width: 1),
+                        borderRadius: AppStyles.radiusMedium,
+                        border: Border.all(color: AppColors.accent.withOpacity(0.4), width: 1),
                       ),
                       padding: const EdgeInsets.all(16),
                       child: Row(
@@ -250,7 +246,6 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    // Dynamic Module Card
                     Container(
                       width: double.infinity,
                       decoration: AppStyles.cardDecoration,
@@ -259,7 +254,7 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, py: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
                               color: AppColors.accent.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(4),
@@ -304,7 +299,6 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    // Glossary items
                     _buildGlossaryItem('Financial Vulnerability Score (FVS)', 'Skor indeks 0-100 untuk menilai kesiapan dan ketahanan finansial keluarga menghadapi krisis.'),
                     _buildGlossaryItem('Generasi Sandwich', 'Kondisi individu yang menanggung beban finansial tiga generasi sekaligus: orang tua, diri sendiri, dan anak.'),
                     _buildGlossaryItem('Emergency Fund Runway', 'Jumlah bulan tabungan likuid yang mampu menutupi pengeluaran rutin keluarga jika pendapatan berhenti total.'),
@@ -312,7 +306,6 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                 ),
               ),
             ),
-            // TAB 2: Family Community Forum
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -333,9 +326,9 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.accent,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppStyles.radiusSmall),
+                            borderRadius: AppStyles.radiusSmall,
                           ),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, py: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         ),
                         onPressed: _showAddPostDialog,
                         icon: const Icon(Icons.add, size: 16, color: AppColors.textPrimary),
@@ -383,7 +376,7 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                                   ),
                                   const Spacer(),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, py: 2),
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                     decoration: BoxDecoration(
                                       color: AppColors.primaryLight.withOpacity(0.15),
                                       borderRadius: BorderRadius.circular(4),
@@ -426,7 +419,6 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                                     ),
                                     onPressed: () {
                                       ref.read(communityProvider.notifier).supportPost(post.postId);
-                                      // Award points for supporting
                                       ref.read(rewardPointsProvider.notifier).addPoints(5);
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         const SnackBar(content: Text('Anda menyukai diskusi ini. +5 Poin Kontribusi diberikan!')),
@@ -479,8 +471,8 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppStyles.radiusSmall),
-        border: BorderSide(color: AppColors.surfaceCard, width: 1),
+        borderRadius: AppStyles.radiusSmall,
+        border: Border.all(color: AppColors.surfaceCard, width: 1),
       ),
       padding: const EdgeInsets.all(12),
       child: Column(
