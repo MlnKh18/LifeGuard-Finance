@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import '../data/models/finance_profile.dart';
 import '../data/models/fvs_score.dart';
 import '../data/models/simulation.dart';
