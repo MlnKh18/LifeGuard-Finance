@@ -121,7 +121,7 @@ class DashboardScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(12),
                 child: Row(
                   children: [
-                    const Icon(Icons.warning_amber_rounded, color: AppColors.critical, size: 24),
+                    const Icon(LucideIcons.alertTriangle, color: AppColors.critical, size: 24),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Column(
@@ -146,7 +146,7 @@ class DashboardScreen extends ConsumerWidget {
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.check_circle_outline, color: AppColors.accent, size: 20),
+                      icon: const Icon(LucideIcons.checkCircle2, color: AppColors.accent, size: 20),
                       onPressed: () {
                         ref.read(notificationsProvider.notifier).markAsRead(unreadNotifs.first['notification_id']);
                       },
@@ -167,14 +167,14 @@ class DashboardScreen extends ConsumerWidget {
             Row(
               children: [
                 _buildStatWidget(
-                  label: 'Savings Rate',
+                  label: 'Tingkat Tabungan',
                   value: '${savingsRate.toStringAsFixed(0)}%',
                   icon: LucideIcons.trendingUp,
                   color: savingsRate >= 20 ? AppColors.safe : AppColors.warning,
                 ),
                 const SizedBox(width: AppStyles.s),
                 _buildStatWidget(
-                  label: 'Debt Ratio (DTI)',
+                  label: 'Rasio Utang (DTI)',
                   value: '${debtRatio.toStringAsFixed(0)}%',
                   icon: LucideIcons.percent,
                   color: debtRatio <= 30 ? AppColors.safe : AppColors.critical,
@@ -541,7 +541,7 @@ class DashboardScreen extends ConsumerWidget {
                           ),
                           child: ListTile(
                             leading: Icon(
-                              Icons.warning_amber_rounded,
+                              LucideIcons.alertTriangle,
                               color: isRead ? AppColors.textMuted : AppColors.critical,
                             ),
                             title: Text(
@@ -554,7 +554,7 @@ class DashboardScreen extends ConsumerWidget {
                             ),
                             trailing: !isRead
                                 ? IconButton(
-                                    icon: const Icon(Icons.done, color: AppColors.accent),
+                                    icon: const Icon(LucideIcons.check, color: AppColors.accent),
                                     onPressed: () {
                                       ref.read(notificationsProvider.notifier).markAsRead(notif['notification_id']);
                                     },
