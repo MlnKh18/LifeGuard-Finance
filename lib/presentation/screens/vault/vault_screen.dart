@@ -31,8 +31,8 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
             return AlertDialog(
               backgroundColor: AppColors.surface,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppStyles.radiusMedium),
-                side: BorderSide(color: AppColors.surfaceCard, width: 1),
+                borderRadius: AppStyles.radiusMedium,
+                side: const BorderSide(color: AppColors.surfaceCard, width: 1),
               ),
               title: Text(
                 'Buat Kantong Tabungan',
@@ -90,7 +90,7 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.accent,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppStyles.radiusSmall),
+                      borderRadius: AppStyles.radiusSmall,
                     ),
                   ),
                   onPressed: () {
@@ -139,8 +139,8 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
         return AlertDialog(
           backgroundColor: AppColors.surface,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppStyles.radiusMedium),
-            side: BorderSide(color: AppColors.surfaceCard, width: 1),
+            borderRadius: AppStyles.radiusMedium,
+            side: const BorderSide(color: AppColors.surfaceCard, width: 1),
           ),
           title: Text(
             'Isi Saldo $goalName',
@@ -170,7 +170,7 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.accent,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppStyles.radiusSmall),
+                  borderRadius: AppStyles.radiusSmall,
                 ),
               ),
               onPressed: () {
@@ -232,7 +232,6 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
     final vaults = ref.watch(vaultsProvider);
     final score = ref.watch(fvsStateProvider);
 
-    // Goal-Driven Smart Routing Logic
     String smartRoutingAdvice = 'Lengkapi profil keuangan terlebih dahulu untuk mengaktifkan Smart Routing.';
     if (score != null) {
       final emergencyScore = score.emergencyFundScore;
@@ -272,7 +271,6 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Smart Routing Panel
               Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
@@ -281,8 +279,8 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(AppStyles.radiusMedium),
-                  border: BorderSide(color: AppColors.primaryLight.withOpacity(0.5), width: 1.5),
+                  borderRadius: AppStyles.radiusMedium,
+                  border: Border.all(color: AppColors.primaryLight.withOpacity(0.5), width: 1.5),
                 ),
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -470,7 +468,7 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                                   backgroundColor: AppColors.surfaceCard,
                                   elevation: 0,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(AppStyles.radiusSmall),
+                                    borderRadius: AppStyles.radiusSmall,
                                   ),
                                 ),
                                 onPressed: () => _showAddFundsDialog(id, _getGoalLabel(type)),
