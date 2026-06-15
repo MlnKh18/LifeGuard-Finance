@@ -1,0 +1,100 @@
+# Project Blueprint: LifeGuard Finance
+
+This document contains our conceptual analysis of the **LifeGuard Finance** mobile application and our professional **Git Commit Strategy** for the upcoming hackathon.
+
+---
+
+## 1. Project Overview & Architecture
+
+**LifeGuard Finance** is an Early Warning System mobile app designed to detect, simulate, and mitigate financial vulnerability in Indonesian families.
+
+### Core Architecture (Local-First)
+```mermaid
+graph TD
+    User([User]) --> Presentation[Presentation Layer: Flutter/React Native]
+    Presentation --> Logic[Business Logic Layer]
+    Logic --> Validation[Validation Service]
+    Logic --> FVS[FVS Scoring Engine]
+    Logic --> Simulation[Simulation Engine]
+    Logic --> Recommendation[Recommendation Engine]
+    Logic --> Storage[Local Storage Layer: SQLite/Preferences]
+```
+
+### Core Features (Scope of MVP)
+1. **Detect (FVS Scoring)**: Calculate a **Financial Vulnerability Score (FVS)** from 0 to 100 based on user profiles:
+   - *Income Stability*
+   - *Expense Ratio*
+   - *Emergency Fund Readiness*
+   - *Debt Burden*
+   - *Dependent Load*
+   - *Protection Readiness*
+   - *Shock Absorption Capacity*
+2. **Simulate (Crisis Scenarios)**: Simulate events like job loss (PHK), medical expenses, interest rate hikes, inflation, or income drops, and show before/after scores and survival months.
+3. **Guide (Action Plan)**: Render specific action plans for 30/60/90 days and list prioritized recommendations.
+4. **Learn (Financial Literacy)**: Short educational cards tied to the weakest indicators.
+
+---
+
+## 2. Professional Git Commit Strategy
+
+We will use the **Conventional Commits 1.0.0** specification, paired with visual emojis, to keep our Git history crystal clear, professional, and well-structured.
+
+### Commit Format
+```text
+<type>(<scope>): <emoji> <description>
+
+[optional body]
+```
+
+### Commit Types
+*   `feat`: A new user-facing feature (e.g., `feat(fvs): ✨ implement FVS scoring engine`)
+*   `fix`: A bug fix (e.g., `fix(simulation): 🐛 fix emergency survival month formula`)
+*   `docs`: Documentation changes (e.g., `docs(readme): 📝 update local setup guide`)
+*   `style`: Code style modifications (formatting, white-spaces, semi-colons, etc.)
+*   `refactor`: Structural changes that neither fix a bug nor add a feature
+*   `test`: Adding or updating test suites
+*   `chore`: Build process, package configuration, dependencies (e.g., `chore(deps): 🔧 add sqlite dependency`)
+
+### Scopes for LifeGuard Finance
+*   `setup`: Initializing workspace, configuration, or folder structure.
+*   `onboarding`: Onboarding screens and user registration/preferences.
+*   `profile`: Family finance profile forms, input validation.
+*   `fvs`: Financial Vulnerability Score scoring engine and indicator calculations.
+*   `dashboard`: Main UI, circular score displays, and indicator breakdown.
+*   `simulation`: Scenario creation, calculations, and simulation UI.
+*   `recommendation`: Recommendation rules and 30/60/90 day action plan lists.
+*   `db`: SQLite local storage integration, repositories.
+*   `security`: PIN/Biometric lock, encryption, or data deletion handler.
+
+### Rules of Engagement for Hackathon Commits
+1. **Atomic Commits**: One logical change per commit. Avoid grouping multiple features into a single commit.
+2. **Imperative Mood**: Write the commit message in the imperative mood (e.g., "add profile form" instead of "added profile form" or "adds profile form").
+3. **Clear Descriptions**: Summarize *what* changed and *why* if not obvious.
+
+---
+
+## 3. Step-by-Step Implementation Plan
+
+To ensure a smooth, professional workflow under hackathon constraints, we will proceed in the following sprints:
+
+### Sprint 1: Setup & Design System
+- Initialize Git repository.
+- Setup Flutter/React Native project skeleton.
+- Define a beautiful color palette (Slate Dark, Blue/Teal trust colors, Green safe, Orange warn, Red critical) and typography.
+- Build the onboarding flow and disclaimer screens.
+
+### Sprint 2: Core Scoring Engine & Profile Form
+- Create the multi-step `FamilyFinanceProfile` form (Income, Expenses, Savings, Debt, Dependents, Protection).
+- Implement input validation.
+- Implement the FVS Scoring Engine (rule-based scoring algorithm).
+- Create the main Dashboard with a circular FVS gauge and breakdown widgets.
+
+### Sprint 3: Crisis Simulation & Mitigation Plan
+- Build the Simulation Service (calculating survival months, income deficits).
+- Implement the Simulation Screen with interactive inputs for crisis scenarios (PHK, medical shock).
+- Build the Recommendation Engine and the 30/60/90-day Action Plan checklist.
+
+### Sprint 4: Storage, Security & Polish
+- Wire up SQLite or local key-value storage to persist profile and score history.
+- Add local PIN/Biometric security lock and the "Delete All Data" privacy feature.
+- Refine animations, responsive sizing, and conduct final testing.
