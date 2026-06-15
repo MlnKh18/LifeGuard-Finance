@@ -16,13 +16,15 @@ class SimulationScreen extends ConsumerStatefulWidget {
 }
 
 class _SimulationScreenState extends ConsumerState<SimulationScreen> {
-  String _selectedScenario = 'PHK'; // 'PHK', 'MEDICAL', 'CICILAN', 'INFLASI'
+  String _selectedScenario = 'PHK'; // 'PHK', 'MEDICAL', 'CICILAN', 'INFLASI', 'PENDIDIKAN', 'DEPENDENT'
   
   // Input values
-  double _durationMonths = 3.0; // For PHK, Cicilan, Inflasi
-  double _amountValue = 10000000.0; // For Medical (nominal)
-  double _cicilanIncrease = 1000000.0; // For Cicilan (nominal)
-  double _inflationPercent = 0.15; // For Inflasi (percentage)
+  double _durationMonths = 3.0;
+  double _amountValue = 10000000.0;
+  double _cicilanIncrease = 1000000.0;
+  double _inflationPercent = 0.15;
+  double _educationFee = 15000000.0;
+  double _dependentCost = 1500000.0;
 
   ScenarioSimulation? _latestResult;
 
@@ -38,14 +40,19 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
     int duration = _durationMonths.round();
 
     if (_selectedScenario == 'PHK') {
-      amount = profile.monthlyIncome; // Reference
+      amount = profile.monthlyIncome;
     } else if (_selectedScenario == 'MEDICAL') {
       amount = _amountValue;
-      duration = 1; // One-time cost
+      duration = 1;
     } else if (_selectedScenario == 'CICILAN') {
       amount = _cicilanIncrease;
     } else if (_selectedScenario == 'INFLASI') {
       amount = _inflationPercent;
+    } else if (_selectedScenario == 'PENDIDIKAN') {
+      amount = _educationFee;
+      duration = 1;
+    } else if (_selectedScenario == 'DEPENDENT') {
+      amount = _dependentCost;
     }
 
     final result = SimulationEngine.run(
@@ -59,7 +66,6 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
       _latestResult = result;
     });
 
-    // Save simulation to history database
     ref.read(simulationHistoryProvider.notifier).addSimulation(result);
   }
 
@@ -92,7 +98,7 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
 
             // Parameters card
             Text(
-              'Parameter Simulasi ${_selectedScenario == 'PHK' ? 'Kehilangan Pekerjaan' : _selectedScenario == 'MEDICAL' ? 'Biaya Medis Mendadak' : _selectedScenario == 'CICILAN' ? 'Kenaikan Cicilan' : 'Inflasi Pokok'}',
+              'Parameter Simulasi ${_selectedScenario == 'PHK' ? 'Kehilangan Pekerjaan' : _selectedScenario == 'MEDICAL' ? 'Biaya Medis Mendadak' : _selectedScenario == 'CICILAN' ? 'Kenaikan Cicilan' : _selectedScenario == 'PENDIDIKAN' ? 'Biaya Sekolah' : _selectedScenario == 'DEPENDENT' ? 'Tanggungan Baru' : 'Inflasi Pokok'}',
               style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textSecondary),
             ),
             const SizedBox(height: AppStyles.s),
@@ -135,6 +141,8 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
       {'id': 'MEDICAL', 'label': 'Biaya Medis', 'icon': LucideIcons.heartPulse},
       {'id': 'CICILAN', 'label': 'Kenaikan Cicilan', 'icon': LucideIcons.trendingUp},
       {'id': 'INFLASI', 'label': 'Inflasi Kebutuhan', 'icon': LucideIcons.shoppingBag},
+      {'id': 'PENDIDIKAN', 'label': 'Biaya Sekolah', 'icon': LucideIcons.book},
+      {'id': 'DEPENDENT', 'label': 'Tanggungan Baru', 'icon': LucideIcons.users},
     ];
 
     return Wrap(
@@ -169,7 +177,7 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
             if (selected) {
               setState(() {
                 _selectedScenario = item['id'] as String;
-                _latestResult = null; // Clear previous outputs
+                _latestResult = null;
               });
             }
           },
@@ -299,7 +307,102 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
                 Text('${_durationMonths.round()} Bulan', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
               ],
             ),
+            const SizedBox(height: 16),
+            const Divider(color: AppColors.surfaceCard),
+            const SizedBox(height: 10),
+            // Standalone Inflation Impact Calculator Card
+            Row(
+              children: [
+                const Icon(Icons.calculate, color: AppColors.accent, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'Inflation Impact Calculator',
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Dengan inflasi ${(_inflationPercent * 100).toStringAsFixed(0)}% per tahun, nilai riil daya beli tabungan Anda (${_formatCurrency(profile.liquidSavings)}) akan menurun menjadi:',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+            ),
+            const SizedBox(height: 10),
+            _buildInflationRow('1 Tahun Ke Depan', profile.liquidSavings / (1 + _inflationPercent)),
+            _buildInflationRow('3 Tahun Ke Depan', profile.liquidSavings / (1 + _inflationPercent * 3)),
+            _buildInflationRow('5 Tahun Ke Depan', profile.liquidSavings / (1 + _inflationPercent * 5)),
+          ] else if (_selectedScenario == 'PENDIDIKAN') ...[
+            const Text('Biaya Masuk Sekolah (Lump Sum):', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+            Row(
+              children: [
+                Expanded(
+                  child: Slider(
+                    value: _educationFee,
+                    min: 1000000,
+                    max: 50000000,
+                    divisions: 49,
+                    activeColor: AppColors.primaryLight,
+                    onChanged: (val) => setState(() => _educationFee = val),
+                  ),
+                ),
+                Text('${(_educationFee / 1000000).toStringAsFixed(0)} Jt', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+              ],
+            ),
+            Text(
+              'Biaya sekolah sebesar ${_formatCurrency(_educationFee)} akan ditarik langsung dari tabungan likuid saat ini.',
+              style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+            ),
+          ] else if (_selectedScenario == 'DEPENDENT') ...[
+            const Text('Estimasi Biaya Bulanan Tanggungan Baru:', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+            Row(
+              children: [
+                Expanded(
+                  child: Slider(
+                    value: _dependentCost,
+                    min: 500000,
+                    max: 5000000,
+                    divisions: 45,
+                    activeColor: AppColors.primaryLight,
+                    onChanged: (val) => setState(() => _dependentCost = val),
+                  ),
+                ),
+                Text('${(_dependentCost / 1000000).toStringAsFixed(1)} Jt', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+              ],
+            ),
+            const SizedBox(height: AppStyles.s),
+            const Text('Berapa Bulan Periode Simulasi Tanggungan:', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+            Row(
+              children: [
+                Expanded(
+                  child: Slider(
+                    value: _durationMonths,
+                    min: 1,
+                    max: 12,
+                    divisions: 11,
+                    activeColor: AppColors.primaryLight,
+                    onChanged: (val) => setState(() => _durationMonths = val),
+                  ),
+                ),
+                Text('${_durationMonths.round()} Bulan', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+              ],
+            ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInflationRow(String time, double value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(time, style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+          Text(_formatCurrency(value), style: const TextStyle(color: AppColors.textPrimary, fontSize: 13, fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -330,7 +433,6 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Row FVS Score Before After
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -376,7 +478,6 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
           
           const Divider(color: AppColors.surfaceCard, height: AppStyles.l),
 
-          // Detail list: Survival Months, Monthly Deficit
           _buildResultRow(
             icon: LucideIcons.hourglass,
             label: 'Survival Month (Bulan Bertahan)',
