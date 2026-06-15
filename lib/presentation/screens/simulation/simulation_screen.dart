@@ -6,6 +6,7 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_styles.dart';
 import '../../../providers/app_providers.dart';
 import '../../../data/models/simulation.dart';
+import '../../../data/models/finance_profile.dart';
 import '../../../logic/simulation/simulation_engine.dart';
 
 class SimulationScreen extends ConsumerStatefulWidget {

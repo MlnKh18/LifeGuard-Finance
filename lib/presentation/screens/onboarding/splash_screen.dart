@@ -41,7 +41,7 @@ class SplashScreen extends StatelessWidget {
                         size: 72,
                         color: Colors.white,
                       ),
-                    ).animate().scale(delay: 200.ms, duration: 600.ms, curve: Curves.backOut),
+                    ).animate().scale(delay: 200.ms, duration: 600.ms, curve: Curves.easeOutBack),
                     
                     const SizedBox(height: AppStyles.m),
                     

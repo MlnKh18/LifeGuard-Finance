@@ -464,6 +464,10 @@ class DashboardScreen extends ConsumerWidget {
             ),
           ),
         );
+      },
+    );
+  }
+
   void _showNotificationsBottomSheet(
     BuildContext context,
     WidgetRef ref,
