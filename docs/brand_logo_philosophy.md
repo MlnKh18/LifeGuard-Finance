@@ -23,24 +23,19 @@ Logo LifeGuard Finance dirancang menggunakan pendekatan **geometris minimalis** 
                  │
                  ▼
          ┌───────────────┐
-         │   🛡️ PERISAI  │ ──► Melambangkan perlindungan preventif
-         │   KEAMANAN    │     dan keamanan privasi data lokal.
+         │   💳 DOMPET   │ ──► Melambangkan alokasi dana darurat
+         │   FINANSIAL   │     dan pengelolaan arus kas keluarga.
          └───────────────┘
-                 │
-                 ▼
-       [  📊 GRAFIK TREN NAIK   ]
-       Melambangkan pertumbuhan ekonomi
-       berkelanjutan (sustainable).
 ```
 
 ### A. Lingkaran Pelampung (Lifebuoy Ring)
 *   **Makna**: Lingkaran luar yang menyerupai pelampung penyelamat pantai melambangkan fungsi kesiapan darurat, respon cepat, dan penolongan pertama pada krisis ekonomi keluarga (seperti saat hilangnya pendapatan).
 *   **Karakteristik**: Bentuk bundar sempurna melambangkan keutuhan, kesinambungan perlindungan, dan ekosistem keuangan keluarga yang tertutup rapat (menjaga privasi).
 
-### B. Perisai Dalam (Security Shield)
-*   **Makna**: Terletak di bagian tengah logo, melambangkan perlindungan tangguh, kekuatan pertahanan, dan keamanan data finansial. Ini menegaskan komitmen aplikasi yang mengusung prinsip *Privacy-by-Design* (penyimpanan SQLite offline lokal tanpa cloud database).
+### B. Dompet Finansial (Wallet Icon)
+*   **Makna**: Terletak di pusat pelampung, melambangkan fokus utama aplikasi pada perlindungan arus kas, penyimpanan dana darurat, dan kedaulatan finansial keluarga. Dompet ini dikelilingi oleh pelampung untuk menggambarkan bahwa aset keuangan pengguna selalu terjaga dengan aman di bawah pengawasan sistem mitigasi risiko.
 
-### C. Garis Grafik Tren Naik (Growth Trend Line)
+### C. Garis Grafik Ketahanan (Resilience Concept)
 *   **Makna**: Potongan garis sudut di dalam perisai membentuk grafik pertumbuhan finansial yang bergerak naik. Ini melambangkan proses pemulihan (*resilience*), investasi cerdas, serta pertumbuhan ekonomi yang berkelanjutan (*sustainable future*) pasca-mitigasi krisis.
 
 ---
