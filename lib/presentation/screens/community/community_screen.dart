@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_styles.dart';
 import '../../../providers/app_providers.dart';
 
 class CommunityScreen extends ConsumerStatefulWidget {
-  const CommunityScreen({Key? key}) : super(key: key);
+  const CommunityScreen({super.key});
 
   @override
   ConsumerState<CommunityScreen> createState() => _CommunityScreenState();
@@ -36,12 +36,9 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                 borderRadius: AppStyles.radiusMedium,
                 side: const BorderSide(color: AppColors.surfaceCard, width: 1),
               ),
-              title: Text(
+              title: const Text(
                 'Buat Diskusi Baru',
-                style: GoogleFonts.outfit(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
               ),
               content: SingleChildScrollView(
                 child: Column(
@@ -50,10 +47,10 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                     DropdownButtonFormField<String>(
                       dropdownColor: AppColors.surface,
                       value: _selectedCategory,
-                      style: GoogleFonts.outfit(color: AppColors.textPrimary),
+                      style: const TextStyle(color: AppColors.textPrimary),
                       decoration: AppStyles.inputDecoration(
                         labelText: 'Kategori Topik',
-                        prefixIcon: const Icon(Icons.tag, color: AppColors.accent),
+                        prefixIcon: const Icon(LucideIcons.tag, color: AppColors.accent),
                       ),
                       items: const [
                         DropdownMenuItem(value: 'Sandwich', child: Text('Generasi Sandwich')),
@@ -69,19 +66,19 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                         }
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppStyles.m),
                     TextFormField(
                       controller: _titleController,
-                      style: GoogleFonts.outfit(color: AppColors.textPrimary),
+                      style: const TextStyle(color: AppColors.textPrimary),
                       decoration: AppStyles.inputDecoration(
                         labelText: 'Judul Pertanyaan/Cerita',
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppStyles.m),
                     TextFormField(
                       controller: _contentController,
                       maxLines: 4,
-                      style: GoogleFonts.outfit(color: AppColors.textPrimary),
+                      style: const TextStyle(color: AppColors.textPrimary),
                       decoration: AppStyles.inputDecoration(
                         labelText: 'Tulis isi postingan Anda...',
                       ),
@@ -92,17 +89,13 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text(
-                    'Batal',
-                    style: GoogleFonts.outfit(color: AppColors.textSecondary),
-                  ),
+                  child: const Text('Batal', style: TextStyle(color: AppColors.textSecondary)),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.accent,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: AppStyles.radiusSmall,
-                    ),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: AppStyles.radiusSmall),
                   ),
                   onPressed: () {
                     if (_titleController.text.isNotEmpty && _contentController.text.isNotEmpty) {
@@ -116,17 +109,11 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                       _contentController.clear();
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Diskusi dikirim! +15 Poin Kontribusi didapatkan.')),
+                        const SnackBar(content: Text('Diskusi berhasil dikirim! +15 Poin Kontribusi didapatkan.')),
                       );
                     }
                   },
-                  child: Text(
-                    'Kirim',
-                    style: GoogleFonts.outfit(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  child: const Text('Kirim', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ],
             );
@@ -164,29 +151,24 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        backgroundColor: AppColors.background,
         appBar: AppBar(
-          title: Text(
-            'Edukasi & Komunitas',
-            style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
-          ),
-          backgroundColor: AppColors.background,
-          elevation: 0,
+          title: const Text('Edukasi & Komunitas'),
           bottom: TabBar(
             indicatorColor: AppColors.accent,
             labelColor: AppColors.accent,
             unselectedLabelColor: AppColors.textSecondary,
             tabs: const [
-              Tab(icon: Icon(Icons.school), text: 'Literasi Finansial'),
-              Tab(icon: Icon(Icons.forum), text: 'Forum Diskusi'),
+              Tab(icon: Icon(LucideIcons.graduationCap), text: 'Literasi Finansial'),
+              Tab(icon: Icon(LucideIcons.messageSquare), text: 'Forum Diskusi'),
             ],
           ),
         ),
         body: TabBarView(
           children: [
+            // Tab 1: Literasi Finansial
             SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(AppStyles.m),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -201,22 +183,22 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                         borderRadius: AppStyles.radiusMedium,
                         border: Border.all(color: AppColors.accent.withOpacity(0.4), width: 1),
                       ),
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(AppStyles.m),
                       child: Row(
                         children: [
                           CircleAvatar(
                             radius: 26,
                             backgroundColor: AppColors.accent.withOpacity(0.2),
-                            child: const Icon(Icons.emoji_events, color: AppColors.accent, size: 32),
+                            child: const Icon(LucideIcons.award, color: AppColors.accent, size: 32),
                           ),
-                          const SizedBox(width: 16),
+                          const SizedBox(width: AppStyles.m),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   rewards.badgeLevel,
-                                  style: GoogleFonts.outfit(
+                                  style: const TextStyle(
                                     color: AppColors.textPrimary,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
@@ -225,7 +207,7 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                                 const SizedBox(height: 4),
                                 Text(
                                   'Poin Kontribusi: ${rewards.points} Poin',
-                                  style: GoogleFonts.inter(
+                                  style: const TextStyle(
                                     color: AppColors.textSecondary,
                                     fontSize: 13,
                                   ),
@@ -236,51 +218,51 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'Modul Edukasi Contextual',
-                      style: GoogleFonts.outfit(
+                    const SizedBox(height: AppStyles.l),
+                    const Text(
+                      'Modul Edukasi Kontekstual',
+                      style: TextStyle(
                         color: AppColors.textPrimary,
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppStyles.s),
                     Container(
                       width: double.infinity,
                       decoration: AppStyles.cardDecoration,
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(AppStyles.m),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: AppStyles.s, vertical: 4),
                             decoration: BoxDecoration(
                               color: AppColors.accent.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: Text(
+                            child: const Text(
                               'REKOMENDASI PERSONAL',
-                              style: GoogleFonts.outfit(
+                              style: TextStyle(
                                 color: AppColors.accent,
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: AppStyles.s),
                           Text(
                             literacyTitle,
-                            style: GoogleFonts.outfit(
+                            style: const TextStyle(
                               color: AppColors.textPrimary,
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: AppStyles.s),
                           Text(
                             literacyDesc,
-                            style: GoogleFonts.outfit(
+                            style: const TextStyle(
                               color: AppColors.textSecondary,
                               fontSize: 14,
                               height: 1.4,
@@ -289,16 +271,16 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    Text(
+                    const SizedBox(height: AppStyles.l),
+                    const Text(
                       'Glosarium Finansial Cepat',
-                      style: GoogleFonts.outfit(
+                      style: TextStyle(
                         color: AppColors.textPrimary,
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppStyles.s),
                     _buildGlossaryItem('Financial Vulnerability Score (FVS)', 'Skor indeks 0-100 untuk menilai kesiapan dan ketahanan finansial keluarga menghadapi krisis.'),
                     _buildGlossaryItem('Generasi Sandwich', 'Kondisi individu yang menanggung beban finansial tiga generasi sekaligus: orang tua, diri sendiri, dan anak.'),
                     _buildGlossaryItem('Emergency Fund Runway', 'Jumlah bulan tabungan likuid yang mampu menutupi pengeluaran rutin keluarga jika pendapatan berhenti total.'),
@@ -306,17 +288,19 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                 ),
               ),
             ),
+
+            // Tab 2: Forum Diskusi
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(AppStyles.m),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
+                      const Text(
                         'Forum Dukungan Keluarga',
-                        style: GoogleFonts.outfit(
+                        style: TextStyle(
                           color: AppColors.textPrimary,
                           fontWeight: FontWeight.bold,
                           fontSize: 17,
@@ -325,33 +309,26 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                       ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.accent,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: AppStyles.radiusSmall,
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: AppStyles.radiusSmall),
+                          padding: const EdgeInsets.symmetric(horizontal: AppStyles.s, vertical: AppStyles.xs),
                         ),
                         onPressed: _showAddPostDialog,
-                        icon: const Icon(Icons.add, size: 16, color: AppColors.textPrimary),
-                        label: Text(
-                          'Tanya',
-                          style: GoogleFonts.outfit(
-                            color: AppColors.textPrimary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        icon: const Icon(LucideIcons.plus, size: 16),
+                        label: const Text('Tanya', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppStyles.s),
                   Expanded(
                     child: ListView.builder(
                       itemCount: posts.length,
                       itemBuilder: (context, index) {
                         final post = posts[index];
                         return Container(
-                          margin: const EdgeInsets.only(bottom: 12),
+                          margin: const EdgeInsets.only(bottom: AppStyles.s),
                           decoration: AppStyles.cardDecoration,
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(AppStyles.m),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -362,13 +339,13 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                                     backgroundColor: AppColors.surfaceCard,
                                     child: Text(
                                       post.author.substring(0, 1).toUpperCase(),
-                                      style: GoogleFonts.outfit(color: AppColors.textPrimary, fontSize: 12),
+                                      style: const TextStyle(color: AppColors.textPrimary, fontSize: 12),
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(width: AppStyles.s),
                                   Text(
                                     post.author,
-                                    style: GoogleFonts.outfit(
+                                    style: const TextStyle(
                                       color: AppColors.textPrimary,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 13,
@@ -383,7 +360,7 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                                     ),
                                     child: Text(
                                       post.category.toUpperCase(),
-                                      style: GoogleFonts.outfit(
+                                      style: const TextStyle(
                                         color: AppColors.primaryLight,
                                         fontSize: 9,
                                         fontWeight: FontWeight.bold,
@@ -392,60 +369,56 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 12),
+                              const SizedBox(height: AppStyles.s),
                               Text(
                                 post.title,
-                                style: GoogleFonts.outfit(
+                                style: const TextStyle(
                                   color: AppColors.textPrimary,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 15,
                                 ),
                               ),
-                              const SizedBox(height: 6),
+                              const SizedBox(height: AppStyles.xs),
                               Text(
                                 post.content,
-                                style: GoogleFonts.outfit(
+                                style: const TextStyle(
                                   color: AppColors.textSecondary,
                                   fontSize: 13,
                                   height: 1.4,
                                 ),
                               ),
-                              const Divider(height: 24, color: AppColors.surfaceCard),
+                              const Divider(height: AppStyles.l, color: AppColors.surfaceCard),
                               Row(
                                 children: [
                                   TextButton.icon(
-                                    style: TextButton.styleFrom(
-                                      padding: EdgeInsets.zero,
-                                    ),
+                                    style: TextButton.styleFrom(padding: EdgeInsets.zero),
                                     onPressed: () {
                                       ref.read(communityProvider.notifier).supportPost(post.postId);
                                       ref.read(rewardPointsProvider.notifier).addPoints(5);
                                       ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Anda menyukai diskusi ini. +5 Poin Kontribusi diberikan!')),
+                                        const SnackBar(content: Text('Anda mendukung diskusi ini. +5 Poin Kontribusi diberikan!')),
                                       );
                                     },
-                                    icon: const Icon(Icons.thumb_up_outlined, size: 16, color: AppColors.accent),
+                                    icon: const Icon(LucideIcons.thumbsUp, size: 16, color: AppColors.accent),
                                     label: Text(
                                       'Bantu (${post.supportCount})',
-                                      style: GoogleFonts.outfit(color: AppColors.accent, fontSize: 13),
+                                      style: const TextStyle(color: AppColors.accent, fontSize: 13),
                                     ),
                                   ),
-                                  const SizedBox(width: 16),
+                                  const SizedBox(width: AppStyles.m),
                                   TextButton.icon(
-                                    style: TextButton.styleFrom(
-                                      padding: EdgeInsets.zero,
-                                    ),
+                                    style: TextButton.styleFrom(padding: EdgeInsets.zero),
                                     onPressed: () {
                                       ref.read(communityProvider.notifier).addComment(post.postId);
                                       ref.read(rewardPointsProvider.notifier).addPoints(10);
                                       ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Komentar dummy berhasil ditambahkan! +10 Poin.')),
+                                        const SnackBar(content: Text('Komentar berhasil ditambahkan! +10 Poin.')),
                                       );
                                     },
-                                    icon: const Icon(Icons.comment_outlined, size: 16, color: AppColors.textSecondary),
+                                    icon: const Icon(LucideIcons.messageCircle, size: 16, color: AppColors.textSecondary),
                                     label: Text(
                                       'Jawab (${post.commentsCount})',
-                                      style: GoogleFonts.outfit(color: AppColors.textSecondary, fontSize: 13),
+                                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
                                     ),
                                   ),
                                 ],
@@ -468,19 +441,19 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
   Widget _buildGlossaryItem(String term, String definition) {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: AppStyles.s),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: AppStyles.radiusSmall,
         border: Border.all(color: AppColors.surfaceCard, width: 1),
       ),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppStyles.s),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             term,
-            style: GoogleFonts.outfit(
+            style: const TextStyle(
               color: AppColors.accent,
               fontWeight: FontWeight.bold,
               fontSize: 14,
@@ -489,7 +462,7 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
           const SizedBox(height: 4),
           Text(
             definition,
-            style: GoogleFonts.outfit(
+            style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 13,
               height: 1.3,
