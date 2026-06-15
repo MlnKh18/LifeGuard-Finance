@@ -1,3 +1,0 @@
-class SmartRoutingCalculator {
-  const SmartRoutingCalculator();
-}
