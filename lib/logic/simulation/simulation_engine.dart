@@ -53,7 +53,22 @@ class SimulationEngine {
         projectedSavings = (profile.liquidSavings - (inflationCost * durationMonths))
             .clamp(0.0, double.infinity);
         break;
-        
+
+      case 'PENDIDIKAN':
+        // Sudden education entry fee, paid immediately from savings
+        monthlyDeficit = amount;
+        projectedSavings = (profile.liquidSavings - amount)
+            .clamp(0.0, double.infinity);
+        break;
+
+      case 'DEPENDENT':
+        // Additional dependent adds monthly expenses and increases dependent count
+        projectedExpense = profile.monthlyExpense + amount;
+        monthlyDeficit = amount;
+        projectedSavings = (profile.liquidSavings - (amount * durationMonths))
+            .clamp(0.0, double.infinity);
+        break;
+
       default:
         break;
     }
@@ -64,6 +79,9 @@ class SimulationEngine {
       monthlyExpense: projectedExpense,
       liquidSavings: projectedSavings,
       monthlyDebtPayment: projectedDebtPayment,
+      dependentsCount: scenarioType.toUpperCase() == 'DEPENDENT'
+          ? profile.dependentsCount + 1
+          : profile.dependentsCount,
     );
 
     // Calculate projected FVS
