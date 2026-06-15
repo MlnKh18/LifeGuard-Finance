@@ -308,16 +308,15 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
                 Text('${_durationMonths.round()} Bulan', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppStyles.m),
             const Divider(color: AppColors.surfaceCard),
-            const SizedBox(height: 10),
-            // Standalone Inflation Impact Calculator Card
+            const SizedBox(height: AppStyles.s),
             Row(
               children: [
-                const Icon(Icons.calculate, color: AppColors.accent, size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  'Inflation Impact Calculator',
+                const Icon(LucideIcons.calculator, color: AppColors.accent, size: 20),
+                const SizedBox(width: AppStyles.s),
+                const Text(
+                  'Kalkulator Dampak Inflasi',
                   style: TextStyle(
                     color: AppColors.textPrimary,
                     fontWeight: FontWeight.bold,
@@ -326,12 +325,12 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppStyles.s),
             Text(
               'Dengan inflasi ${(_inflationPercent * 100).toStringAsFixed(0)}% per tahun, nilai riil daya beli tabungan Anda (${_formatCurrency(profile.liquidSavings)}) akan menurun menjadi:',
               style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: AppStyles.s),
             _buildInflationRow('1 Tahun Ke Depan', profile.liquidSavings / (1 + _inflationPercent)),
             _buildInflationRow('3 Tahun Ke Depan', profile.liquidSavings / (1 + _inflationPercent * 3)),
             _buildInflationRow('5 Tahun Ke Depan', profile.liquidSavings / (1 + _inflationPercent * 5)),
@@ -398,7 +397,7 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
 
   Widget _buildInflationRow(String time, double value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: AppStyles.xs),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -450,7 +449,7 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
                   ),
                 ],
               ),
-              const Icon(Icons.arrow_forward, color: AppColors.textSecondary, size: 28),
+              const Icon(LucideIcons.arrowRight, color: AppColors.textSecondary, size: 28),
               Column(
                 children: [
                   const Text('Skor Proyeksi', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
@@ -481,7 +480,7 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
 
           _buildResultRow(
             icon: LucideIcons.hourglass,
-            label: 'Survival Month (Bulan Bertahan)',
+            label: 'Estimasi Bulan Bertahan',
             value: _latestResult!.survivalMonths <= 0 
                 ? '0 Bulan (Uang habis!)'
                 : '${_latestResult!.survivalMonths} Bulan',
