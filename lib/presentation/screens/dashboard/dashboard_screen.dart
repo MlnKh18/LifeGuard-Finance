@@ -25,6 +25,8 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(profileStateProvider);
     final score = ref.watch(fvsStateProvider);
+    final notifications = ref.watch(notificationsProvider);
+    final unreadNotifs = notifications.where((n) => n['is_read'] == 0).toList();
 
     if (profile == null || score == null) {
       return const Scaffold(
@@ -49,17 +51,31 @@ class DashboardScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('LifeGuard Dashboard'),
         actions: [
-          IconButton(
-            icon: const Icon(LucideIcons.bell),
-            onPressed: () {
-              // Notification popup indicator
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Notifikasi Peringatan Dini: Kondisi Keuangan Anda Stabil.'),
-                  backgroundColor: AppColors.primaryLight,
-                ),
-              );
-            },
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(LucideIcons.bell),
+                onPressed: () {
+                  _showNotificationsBottomSheet(context, ref, notifications);
+                },
+              ),
+              if (unreadNotifs.isNotEmpty)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: const BoxDecoration(
+                      color: AppColors.critical,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 10,
+                      minHeight: 10,
+                    ),
+                  ),
+                )
+            ],
           ),
         ],
       ),
@@ -71,6 +87,54 @@ class DashboardScreen extends ConsumerWidget {
             // Header Card
             _buildGreetingCard(profile),
             const SizedBox(height: AppStyles.m),
+
+            // Early Warning Alert Banner
+            if (unreadNotifs.isNotEmpty) ...[
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: AppColors.critical.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(AppStyles.radiusSmall),
+                  border: Border.all(color: AppColors.critical.withOpacity(0.4)),
+                ),
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    const Icon(Icons.warning_amber_rounded, color: AppColors.critical, size: 24),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Peringatan Dini Keuangan',
+                            style: TextStyle(
+                              color: AppColors.critical,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            unreadNotifs.first['message'],
+                            style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.check_circle_outline, color: AppColors.accent, size: 20),
+                      onPressed: () {
+                        ref.read(notificationsProvider.notifier).markAsRead(unreadNotifs.first['notification_id']);
+                      },
+                    )
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppStyles.m),
+            ],
 
             // Gauge Card
             Center(
@@ -376,6 +440,106 @@ class DashboardScreen extends ConsumerWidget {
                   onPressed: () => Navigator.pop(context),
                   child: const Text('Tutup'),
                 ),
+              ],
+            ),
+          ),
+        );
+  void _showNotificationsBottomSheet(
+    BuildContext context,
+    WidgetRef ref,
+    List<Map<String, dynamic>> notifications,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.background,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(AppStyles.l),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Peringatan Dini Finansial',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        for (var n in notifications) {
+                          ref.read(notificationsProvider.notifier).markAsRead(n['notification_id']);
+                        }
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Tandai Semua Dibaca'),
+                    )
+                  ],
+                ),
+                const Divider(color: AppColors.surfaceCard),
+                if (notifications.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 30),
+                    child: Center(
+                      child: Text(
+                        'Tidak ada peringatan terdeteksi.',
+                        style: TextStyle(color: AppColors.textSecondary),
+                      ),
+                    ),
+                  )
+                else
+                  Expanded(
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: notifications.length,
+                      itemBuilder: (context, index) {
+                        final notif = notifications[index];
+                        final bool isRead = notif['is_read'] == 1;
+
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          decoration: BoxDecoration(
+                            color: isRead ? AppColors.surface.withOpacity(0.5) : AppColors.surface,
+                            borderRadius: BorderRadius.circular(AppStyles.radiusSmall),
+                            border: Border.all(
+                              color: isRead ? AppColors.surfaceCard.withOpacity(0.5) : AppColors.critical.withOpacity(0.3),
+                            ),
+                          ),
+                          child: ListTile(
+                            leading: Icon(
+                              Icons.warning_amber_rounded,
+                              color: isRead ? AppColors.textMuted : AppColors.critical,
+                            ),
+                            title: Text(
+                              notif['message'],
+                              style: TextStyle(
+                                color: isRead ? AppColors.textSecondary : AppColors.textPrimary,
+                                fontSize: 13,
+                                fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
+                              ),
+                            ),
+                            trailing: !isRead
+                                ? IconButton(
+                                    icon: const Icon(Icons.done, color: AppColors.accent),
+                                    onPressed: () {
+                                      ref.read(notificationsProvider.notifier).markAsRead(notif['notification_id']);
+                                    },
+                                  )
+                                : null,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
               ],
             ),
           ),
