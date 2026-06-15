@@ -449,7 +449,7 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
                   ),
                 ],
               ),
-              const Icon(LucideIcons.arrowRightRight, color: AppColors.textSecondary, size: 28),
+              const Icon(Icons.arrow_forward, color: AppColors.textSecondary, size: 28),
               Column(
                 children: [
                   const Text('Skor Proyeksi', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
