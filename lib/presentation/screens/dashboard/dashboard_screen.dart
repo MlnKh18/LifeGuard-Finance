@@ -7,6 +7,8 @@ import '../../../constants/app_styles.dart';
 import '../../../providers/app_providers.dart';
 import '../../widgets/circular_gauge.dart';
 import '../../widgets/indicator_card.dart';
+import '../settings/settings_screen.dart';
+import '../action_plan/action_plan_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -51,6 +53,24 @@ class DashboardScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('LifeGuard Dashboard'),
         actions: [
+          IconButton(
+            icon: const Icon(LucideIcons.clipboardList),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ActionPlanScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(LucideIcons.settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsScreen()),
+              );
+            },
+          ),
           Stack(
             children: [
               IconButton(
