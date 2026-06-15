@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_styles.dart';
 import '../../../providers/app_providers.dart';
+import '../../../data/models/finance_profile.dart';
 import '../../widgets/circular_gauge.dart';
 import '../../widgets/indicator_card.dart';
 import '../settings/settings_screen.dart';
@@ -114,7 +115,7 @@ class DashboardScreen extends ConsumerWidget {
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: AppColors.critical.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(AppStyles.radiusSmall),
+                  borderRadius: AppStyles.radiusSmall,
                   border: Border.all(color: AppColors.critical.withOpacity(0.4)),
                 ),
                 padding: const EdgeInsets.all(12),
@@ -533,7 +534,7 @@ class DashboardScreen extends ConsumerWidget {
                           margin: const EdgeInsets.only(bottom: 10),
                           decoration: BoxDecoration(
                             color: isRead ? AppColors.surface.withOpacity(0.5) : AppColors.surface,
-                            borderRadius: BorderRadius.circular(AppStyles.radiusSmall),
+                            borderRadius: AppStyles.radiusSmall,
                             border: Border.all(
                               color: isRead ? AppColors.surfaceCard.withOpacity(0.5) : AppColors.critical.withOpacity(0.3),
                             ),
