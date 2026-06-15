@@ -53,7 +53,7 @@ class AppStyles {
   // Input Field Decoration
   static InputDecoration inputDecoration({
     required String labelText,
-    required String hintText,
+    String hintText = '',
     Widget? prefixIcon,
     Widget? suffixIcon,
     String? suffixText,
