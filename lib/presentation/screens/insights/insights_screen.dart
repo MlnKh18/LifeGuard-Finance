@@ -32,8 +32,8 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
             return AlertDialog(
               backgroundColor: AppColors.surface,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppStyles.radiusMedium),
-                side: BorderSide(color: AppColors.surfaceCard, width: 1),
+                borderRadius: AppStyles.radiusMedium,
+                side: const BorderSide(color: AppColors.surfaceCard, width: 1),
               ),
               title: Text(
                 'Catat Pengeluaran Baru',
@@ -112,7 +112,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.accent,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppStyles.radiusSmall),
+                      borderRadius: AppStyles.radiusSmall,
                     ),
                   ),
                   onPressed: () {
@@ -150,7 +150,6 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
   Widget build(BuildContext context) {
     final expenses = ref.watch(expensesProvider);
 
-    // Identify anomalies
     final anomalies = expenses.where((e) => e['is_anomaly'] == 1).toList();
 
     return Scaffold(
@@ -175,13 +174,12 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ML Anomaly Summary Header
               Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: anomalies.isNotEmpty ? AppColors.critical.withOpacity(0.1) : AppColors.accent.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(AppStyles.radiusMedium),
-                  border: BorderSide(
+                  borderRadius: AppStyles.radiusMedium,
+                  border: Border.all(
                     color: anomalies.isNotEmpty ? AppColors.critical.withOpacity(0.7) : AppColors.accent.withOpacity(0.4),
                     width: 1.5,
                   ),
@@ -271,8 +269,8 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
                       margin: const EdgeInsets.only(bottom: 12),
                       decoration: BoxDecoration(
                         color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(AppStyles.radiusSmall),
-                        border: BorderSide(
+                        borderRadius: AppStyles.radiusSmall,
+                        border: Border.all(
                           color: isAnomaly ? AppColors.critical.withOpacity(0.5) : AppColors.surfaceCard,
                           width: isAnomaly ? 1.5 : 1,
                         ),
