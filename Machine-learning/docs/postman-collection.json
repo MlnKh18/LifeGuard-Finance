@@ -1,0 +1,77 @@
+{
+  "info": {
+    "_postman_id": "bfd60920-adbb-4f2b-81ed-ef691e12550f",
+    "name": "LifeGuard Finance - FVS ML Service (New Schema)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/health",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Model Version",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/model/version",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "model",
+            "version"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Calculate FVS (Safe Scenario)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"monthly_income\": 20000000.0,\n  \"monthly_expenses\": 4000000.0,\n  \"total_debt\": 0.0,\n  \"number_of_dependents\": 1,\n  \"protection_coverage\": 1200000000.0,\n  \"emergency_fund\": 50000000.0\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/fvs/calculate",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "fvs",
+            "calculate"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

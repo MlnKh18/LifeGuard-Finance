@@ -1,0 +1,136 @@
+{
+  "cv_results": {
+    "linear_regression": {
+      "cv_rmse_mean": 0.0028133340756748325,
+      "cv_rmse_std": 3.7948553706023337e-05,
+      "cv_mae_mean": 0.0023842674783849985,
+      "cv_mae_std": 3.899110752777783e-05,
+      "cv_r2_mean": 0.9999999897091196,
+      "cv_r2_std": 4.377480592054113e-10
+    },
+    "random_forest": {
+      "cv_rmse_mean": 0.6492170766648567,
+      "cv_rmse_std": 0.016360686974953534,
+      "cv_mae_mean": 0.43605950524397247,
+      "cv_mae_std": 0.010149019107299663,
+      "cv_r2_mean": 0.999451938702158,
+      "cv_r2_std": 2.9515431640596154e-05
+    },
+    "xgboost": {
+      "cv_rmse_mean": 0.3742040797511449,
+      "cv_rmse_std": 0.03149592011339491,
+      "cv_mae_mean": 0.23326808850097663,
+      "cv_mae_std": 0.009832642899143056,
+      "cv_r2_mean": 0.9998167668977975,
+      "cv_r2_std": 3.082884066922928e-05
+    }
+  },
+  "test_evaluation": {
+    "models": [
+      {
+        "model_name": "linear_regression",
+        "mae": 0.0024,
+        "rmse": 0.0028,
+        "r2": 1.0,
+        "feature_importance": {
+          "income_stability": 0.0963,
+          "expense_ratio": 0.1562,
+          "emergency_fund_coverage": 0.2524,
+          "debt_burden_ratio": 0.1655,
+          "dependent_load": 0.144,
+          "protection_readiness": 0.1146,
+          "shock_absorption_capacity": 0.0709
+        }
+      },
+      {
+        "model_name": "random_forest",
+        "mae": 0.2365,
+        "rmse": 0.3464,
+        "r2": 0.9998,
+        "feature_importance": {
+          "income_stability": 0.1634,
+          "expense_ratio": 0.1503,
+          "emergency_fund_coverage": 0.4611,
+          "debt_burden_ratio": 0.004,
+          "dependent_load": 0.1143,
+          "protection_readiness": 0.1023,
+          "shock_absorption_capacity": 0.0045
+        }
+      },
+      {
+        "model_name": "xgboost",
+        "mae": 0.0883,
+        "rmse": 0.1283,
+        "r2": 1.0,
+        "feature_importance": {
+          "income_stability": 0.1112,
+          "expense_ratio": 0.1009,
+          "emergency_fund_coverage": 0.0086,
+          "debt_burden_ratio": 0.0323,
+          "dependent_load": 0.0354,
+          "protection_readiness": 0.6488,
+          "shock_absorption_capacity": 0.0628
+        }
+      }
+    ],
+    "best_model": "linear_regression",
+    "ranking": [
+      {
+        "model_name": "linear_regression",
+        "mae": 0.0024,
+        "rmse": 0.0028,
+        "r2": 1.0,
+        "feature_importance": {
+          "income_stability": 0.0963,
+          "expense_ratio": 0.1562,
+          "emergency_fund_coverage": 0.2524,
+          "debt_burden_ratio": 0.1655,
+          "dependent_load": 0.144,
+          "protection_readiness": 0.1146,
+          "shock_absorption_capacity": 0.0709
+        }
+      },
+      {
+        "model_name": "xgboost",
+        "mae": 0.0883,
+        "rmse": 0.1283,
+        "r2": 1.0,
+        "feature_importance": {
+          "income_stability": 0.1112,
+          "expense_ratio": 0.1009,
+          "emergency_fund_coverage": 0.0086,
+          "debt_burden_ratio": 0.0323,
+          "dependent_load": 0.0354,
+          "protection_readiness": 0.6488,
+          "shock_absorption_capacity": 0.0628
+        }
+      },
+      {
+        "model_name": "random_forest",
+        "mae": 0.2365,
+        "rmse": 0.3464,
+        "r2": 0.9998,
+        "feature_importance": {
+          "income_stability": 0.1634,
+          "expense_ratio": 0.1503,
+          "emergency_fund_coverage": 0.4611,
+          "debt_burden_ratio": 0.004,
+          "dependent_load": 0.1143,
+          "protection_readiness": 0.1023,
+          "shock_absorption_capacity": 0.0045
+        }
+      }
+    ]
+  },
+  "feature_importance": {
+    "income_stability": 0.0963,
+    "expense_ratio": 0.1562,
+    "emergency_fund_coverage": 0.2524,
+    "debt_burden_ratio": 0.1655,
+    "dependent_load": 0.144,
+    "protection_readiness": 0.1146,
+    "shock_absorption_capacity": 0.0709
+  },
+  "best_model": "linear_regression",
+  "model_version": "linear_regression-v1.0.0"
+}

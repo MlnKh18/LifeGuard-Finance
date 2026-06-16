@@ -1,0 +1,20 @@
+{
+  "model_version": "linear_regression-v1.0.0",
+  "model_type": "linear_regression",
+  "trained_at": "2026-06-16T03:43:16.592408+00:00",
+  "dataset_version": "v1.0.0",
+  "feature_names": [
+    "income_stability",
+    "expense_ratio",
+    "emergency_fund_coverage",
+    "debt_burden_ratio",
+    "dependent_load",
+    "protection_readiness",
+    "shock_absorption_capacity"
+  ],
+  "metrics": {
+    "cv_rmse": 0.0028133340756748325,
+    "cv_mae": 0.0023842674783849985,
+    "cv_r2": 0.9999999897091196
+  }
+}
