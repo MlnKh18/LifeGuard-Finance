@@ -1,41 +1,10 @@
 export interface FvsCalculateRequest {
-  userId: string;
-  profile: {
-    displayName: string | null;
-    email: string;
-  };
-  incomes: Array<{
-    source: string;
-    amount: number;
-    frequency: string;
-    isActive: boolean;
-  }>;
-  expenses: Array<{
-    category: string;
-    amount: number;
-    date: string;
-    isRecurring: boolean;
-  }>;
-  debts: Array<{
-    creditor: string;
-    principal: number;
-    remainingBalance: number;
-    interestRate: number;
-    monthlyPayment: number;
-    status: string;
-  }>;
-  dependents: Array<{
-    name: string;
-    relationship: string;
-    needsEducation: boolean;
-    monthlyCost: number | null;
-  }>;
-  protections: Array<{
-    type: string;
-    coverageAmount: number;
-    premium: number;
-    isActive: boolean;
-  }>;
+  monthly_income: number;
+  monthly_expenses: number;
+  total_debt: number;
+  number_of_dependents: number;
+  protection_coverage: number;
+  emergency_fund: number;
 }
 
 export interface FvsIndicator {
@@ -47,11 +16,19 @@ export interface FvsIndicator {
 }
 
 export interface FvsCalculateResponse {
-  score: number;
-  category: string;
-  indicators: FvsIndicator[];
-  modelVersion: string;
-  generatedAt: string;
+  success: boolean;
+  model_version: string;
+  data: {
+    score: number;
+    category: string;
+    indicators: Record<string, number>;
+    feature_importance: Record<string, number>;
+    explanation: {
+      summary: string;
+      strengths: string[];
+      vulnerabilities: string[];
+    };
+  };
 }
 
 export interface RecommendationGenerateRequest {

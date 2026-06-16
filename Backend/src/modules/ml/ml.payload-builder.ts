@@ -14,44 +14,33 @@ export function buildFvsPayload(
   dependents: Dependent[],
   protections: Protection[],
 ): FvsCalculateRequest {
+  const calculateMonthlyAmount = (amount: number, frequency: string): number => {
+    switch (frequency) {
+      case 'DAILY': return amount * 30;
+      case 'WEEKLY': return amount * 4;
+      case 'BIWEEKLY': return amount * 2;
+      case 'MONTHLY': return amount * 1;
+      case 'QUARTERLY': return amount / 3;
+      case 'SEMI_ANNUALLY': return amount / 6;
+      case 'ANNUALLY': return amount / 12;
+      default: return 0;
+    }
+  };
+
+  const monthly_income = incomes.filter(i => i.isActive).reduce((sum, i) => sum + calculateMonthlyAmount(Number(i.amount), i.frequency), 0);
+  const monthly_expenses = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+  const total_debt = debts.reduce((sum, d) => sum + Number(d.remainingBalance), 0);
+  const number_of_dependents = dependents.length;
+  const protection_coverage = protections.filter(p => p.isActive).reduce((sum, p) => sum + Number(p.coverageAmount), 0);
+  const emergency_fund = protections.filter(p => p.type === 'EMERGENCY_FUND' && p.isActive).reduce((sum, p) => sum + Number(p.coverageAmount), 0);
+
   return {
-    userId: user.id,
-    profile: {
-      displayName: user.displayName,
-      email: user.email,
-    },
-    incomes: incomes.map((i) => ({
-      source: i.source,
-      amount: Number(i.amount),
-      frequency: i.frequency,
-      isActive: i.isActive,
-    })),
-    expenses: expenses.map((e) => ({
-      category: e.category,
-      amount: Number(e.amount),
-      date: e.date.toISOString(),
-      isRecurring: e.isRecurring,
-    })),
-    debts: debts.map((d) => ({
-      creditor: d.creditor,
-      principal: Number(d.principal),
-      remainingBalance: Number(d.remainingBalance),
-      interestRate: Number(d.interestRate),
-      monthlyPayment: Number(d.monthlyPayment),
-      status: d.status,
-    })),
-    dependents: dependents.map((d) => ({
-      name: d.name,
-      relationship: d.relationship,
-      needsEducation: d.needsEducation,
-      monthlyCost: d.monthlyCost ? Number(d.monthlyCost) : null,
-    })),
-    protections: protections.map((p) => ({
-      type: p.type,
-      coverageAmount: Number(p.coverageAmount),
-      premium: Number(p.premium),
-      isActive: p.isActive,
-    })),
+    monthly_income,
+    monthly_expenses,
+    total_debt,
+    number_of_dependents,
+    protection_coverage,
+    emergency_fund,
   };
 }
 

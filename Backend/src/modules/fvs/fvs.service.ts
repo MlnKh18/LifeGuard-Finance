@@ -38,18 +38,19 @@ export class FvsService {
         data: { status: 'COMPLETED', responsePayload: mlResult as any, completedAt: new Date() },
       });
 
+      const categoryStr = mlResult.data.category.toUpperCase().replace(/\s+/g, '_') as FvsCategory;
       const fvsResult = await fvsRepository.create({
         userId,
-        score: mlResult.score,
-        category: mlResult.category as FvsCategory,
-        modelVersion: mlResult.modelVersion,
-        rawResponse: mlResult,
-        indicators: mlResult.indicators.map((i) => ({
-          indicatorName: i.indicatorName,
-          value: i.value,
-          weight: i.weight,
-          status: i.status,
-          description: i.description,
+        score: mlResult.data.score,
+        category: categoryStr,
+        modelVersion: mlResult.model_version,
+        rawResponse: mlResult as any,
+        indicators: Object.entries(mlResult.data.indicators).map(([key, value]) => ({
+          indicatorName: key,
+          value: value,
+          weight: mlResult.data.feature_importance[key] ?? 0,
+          status: 'COMPUTED',
+          description: null as any,
         })),
       });
 
