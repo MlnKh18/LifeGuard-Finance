@@ -1,0 +1,598 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+enum IncomeFrequency {
+  DAILY
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+  QUARTERLY
+  SEMI_ANNUALLY
+  ANNUALLY
+  ONE_TIME
+}
+
+enum ExpenseCategory {
+  FOOD
+  TRANSPORTATION
+  HOUSING
+  UTILITIES
+  HEALTHCARE
+  EDUCATION
+  ENTERTAINMENT
+  SHOPPING
+  INSURANCE
+  SAVINGS
+  DEBT_PAYMENT
+  CHARITY
+  PERSONAL_CARE
+  TRAVEL
+  SUBSCRIPTIONS
+  OTHER
+}
+
+enum DebtStatus {
+  ACTIVE
+  PAID_OFF
+  DEFAULTED
+  RESTRUCTURED
+}
+
+enum ProtectionType {
+  LIFE_INSURANCE
+  HEALTH_INSURANCE
+  VEHICLE_INSURANCE
+  PROPERTY_INSURANCE
+  TRAVEL_INSURANCE
+  EDUCATION_INSURANCE
+  EMERGENCY_FUND
+  OTHER
+}
+
+enum FvsCategory {
+  VERY_VULNERABLE
+  VULNERABLE
+  MODERATE
+  STABLE
+  VERY_STABLE
+}
+
+enum SimulationType {
+  DEBT_PAYOFF
+  SAVINGS_GOAL
+  EXPENSE_REDUCTION
+  INCOME_INCREASE
+  INSURANCE_COVERAGE
+  EMERGENCY_FUND
+  RETIREMENT
+  CUSTOM
+}
+
+enum NotificationType {
+  FVS_UPDATED
+  ANOMALY_DETECTED
+  RECOMMENDATION
+  VAULT_MILESTONE
+  REWARD_EARNED
+  SYSTEM
+  COMMUNITY
+}
+
+enum AnomalySeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum LiteracyDifficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum LiteracyCategory {
+  BUDGETING
+  SAVING
+  INVESTING
+  DEBT_MANAGEMENT
+  INSURANCE
+  TAX
+  RETIREMENT
+  GENERAL
+}
+
+enum MlJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum MlJobType {
+  FVS_CALCULATION
+  RECOMMENDATION
+  ANOMALY_DETECTION
+  SIMULATION
+}
+
+enum RewardAction {
+  PROFILE_COMPLETED
+  FVS_CALCULATED
+  VAULT_CREATED
+  VAULT_MILESTONE
+  LITERACY_COMPLETED
+  COMMUNITY_POST
+  COMMUNITY_COMMENT
+  STREAK_LOGIN
+  FIRST_INCOME
+  FIRST_EXPENSE
+  FIRST_DEBT
+  FIRST_PROTECTION
+}
+
+model User {
+  id          String    @id @default(uuid()) @db.Uuid
+  firebaseUid String    @unique @map("firebase_uid")
+  email       String    @unique
+  displayName String?   @map("display_name")
+  avatarUrl   String?   @map("avatar_url")
+  phoneNumber String?   @map("phone_number")
+  isActive    Boolean   @default(true) @map("is_active")
+  lastLoginAt DateTime? @map("last_login_at")
+  deletedAt   DateTime? @map("deleted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  roles             UserRole[]
+  familyProfiles    FamilyProfile[]
+  incomes           Income[]
+  expenses          Expense[]
+  debts             Debt[]
+  dependents        Dependent[]
+  protections       Protection[]
+  fvsResults        FvsResult[]
+  simulations       SimulationResult[]
+  recommendations   RecommendationResult[]
+  anomalies         ExpenseAnomaly[]
+  notifications     Notification[]
+  savingsVaults     SavingsVault[]
+  communityPosts    CommunityPost[]
+  communityComments CommunityComment[]
+  rewardPoints      RewardPoint[]
+  mlJobs            MlJob[]
+  auditLogs         AuditLog[]
+
+  @@index([firebaseUid])
+  @@index([email])
+  @@index([isActive])
+  @@map("users")
+}
+
+model UserRole {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  role      Role     @default(USER)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, role])
+  @@index([userId])
+  @@map("user_roles")
+}
+
+model FamilyProfile {
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  name         String
+  relationship String
+  dateOfBirth  DateTime? @map("date_of_birth")
+  notes        String?
+  deletedAt    DateTime? @map("deleted_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, deletedAt])
+  @@map("family_profiles")
+}
+
+model Income {
+  id          String          @id @default(uuid()) @db.Uuid
+  userId      String          @map("user_id") @db.Uuid
+  source      String
+  amount      Decimal         @db.Decimal(15, 2)
+  currency    String          @default("IDR")
+  frequency   IncomeFrequency
+  description String?
+  isActive    Boolean         @default(true) @map("is_active")
+  startDate   DateTime?       @map("start_date")
+  endDate     DateTime?       @map("end_date")
+  deletedAt   DateTime?       @map("deleted_at")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, deletedAt])
+  @@index([userId, frequency])
+  @@map("incomes")
+}
+
+model Expense {
+  id          String          @id @default(uuid()) @db.Uuid
+  userId      String          @map("user_id") @db.Uuid
+  category    ExpenseCategory
+  amount      Decimal         @db.Decimal(15, 2)
+  currency    String          @default("IDR")
+  description String?
+  date        DateTime        @default(now())
+  isRecurring Boolean         @default(false) @map("is_recurring")
+  deletedAt   DateTime?       @map("deleted_at")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  anomalies ExpenseAnomaly[]
+
+  @@index([userId])
+  @@index([userId, deletedAt])
+  @@index([userId, category])
+  @@index([userId, date])
+  @@map("expenses")
+}
+
+model Debt {
+  id               String     @id @default(uuid()) @db.Uuid
+  userId           String     @map("user_id") @db.Uuid
+  creditor         String
+  principal        Decimal    @db.Decimal(15, 2)
+  remainingBalance Decimal    @map("remaining_balance") @db.Decimal(15, 2)
+  interestRate     Decimal    @map("interest_rate") @db.Decimal(5, 2)
+  monthlyPayment   Decimal    @map("monthly_payment") @db.Decimal(15, 2)
+  currency         String     @default("IDR")
+  status           DebtStatus @default(ACTIVE)
+  startDate        DateTime?  @map("start_date")
+  dueDate          DateTime?  @map("due_date")
+  description      String?
+  deletedAt        DateTime?  @map("deleted_at")
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, deletedAt])
+  @@index([userId, status])
+  @@map("debts")
+}
+
+model Dependent {
+  id             String    @id @default(uuid()) @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  name           String
+  relationship   String
+  dateOfBirth    DateTime? @map("date_of_birth")
+  needsEducation Boolean   @default(false) @map("needs_education")
+  monthlyCost    Decimal?  @map("monthly_cost") @db.Decimal(15, 2)
+  notes          String?
+  deletedAt      DateTime? @map("deleted_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, deletedAt])
+  @@map("dependents")
+}
+
+model Protection {
+  id               String          @id @default(uuid()) @db.Uuid
+  userId           String          @map("user_id") @db.Uuid
+  type             ProtectionType
+  provider         String
+  policyNumber     String?         @map("policy_number")
+  coverageAmount   Decimal         @map("coverage_amount") @db.Decimal(15, 2)
+  premium          Decimal         @db.Decimal(15, 2)
+  premiumFrequency IncomeFrequency @default(MONTHLY) @map("premium_frequency")
+  currency         String          @default("IDR")
+  startDate        DateTime?       @map("start_date")
+  expiryDate       DateTime?       @map("expiry_date")
+  isActive         Boolean         @default(true) @map("is_active")
+  notes            String?
+  deletedAt        DateTime?       @map("deleted_at")
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, deletedAt])
+  @@index([userId, type])
+  @@map("protections")
+}
+
+model FvsResult {
+  id           String      @id @default(uuid()) @db.Uuid
+  userId       String      @map("user_id") @db.Uuid
+  score        Decimal     @db.Decimal(5, 2)
+  category     FvsCategory
+  modelVersion String      @map("model_version")
+  rawResponse  Json?       @map("raw_response")
+  generatedAt  DateTime    @default(now()) @map("generated_at")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  user       User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  indicators FvsIndicatorResult[]
+
+  @@index([userId])
+  @@index([userId, createdAt])
+  @@map("fvs_results")
+}
+
+model FvsIndicatorResult {
+  id            String   @id @default(uuid()) @db.Uuid
+  fvsResultId   String   @map("fvs_result_id") @db.Uuid
+  indicatorName String   @map("indicator_name")
+  value         Decimal  @db.Decimal(5, 2)
+  weight        Decimal  @db.Decimal(5, 2)
+  status        String
+  description   String?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  fvsResult FvsResult @relation(fields: [fvsResultId], references: [id], onDelete: Cascade)
+
+  @@index([fvsResultId])
+  @@map("fvs_indicator_results")
+}
+
+model SimulationResult {
+  id           String         @id @default(uuid()) @db.Uuid
+  userId       String         @map("user_id") @db.Uuid
+  type         SimulationType
+  title        String?
+  parameters   Json
+  result       Json
+  modelVersion String?        @map("model_version")
+  deletedAt    DateTime?      @map("deleted_at")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, type])
+  @@index([userId, createdAt])
+  @@map("simulation_results")
+}
+
+model RecommendationResult {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  category    String
+  title       String
+  description String
+  priority    Int       @default(0)
+  actionUrl   String?   @map("action_url")
+  isDismissed Boolean   @default(false) @map("is_dismissed")
+  dismissedAt DateTime? @map("dismissed_at")
+  metadata    Json?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, isDismissed])
+  @@index([userId, createdAt])
+  @@map("recommendation_results")
+}
+
+model ExpenseAnomaly {
+  id            String          @id @default(uuid()) @db.Uuid
+  userId        String          @map("user_id") @db.Uuid
+  expenseId     String?         @map("expense_id") @db.Uuid
+  type          String
+  severity      AnomalySeverity
+  description   String
+  amount        Decimal?        @db.Decimal(15, 2)
+  expectedRange Json?           @map("expected_range")
+  isResolved    Boolean         @default(false) @map("is_resolved")
+  resolvedAt    DateTime?       @map("resolved_at")
+  metadata      Json?
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expense Expense? @relation(fields: [expenseId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([userId, severity])
+  @@index([userId, createdAt])
+  @@index([expenseId])
+  @@map("expense_anomalies")
+}
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @map("user_id") @db.Uuid
+  type      NotificationType
+  title     String
+  body      String
+  data      Json?
+  isRead    Boolean          @default(false) @map("is_read")
+  readAt    DateTime?        @map("read_at")
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+model LiteracyModule {
+  id          String             @id @default(uuid()) @db.Uuid
+  title       String
+  description String
+  content     String
+  category    LiteracyCategory
+  difficulty  LiteracyDifficulty
+  coverImage  String?            @map("cover_image")
+  duration    Int?
+  order       Int                @default(0)
+  isPublished Boolean            @default(true) @map("is_published")
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @updatedAt @map("updated_at")
+
+  @@index([category])
+  @@index([difficulty])
+  @@index([isPublished, order])
+  @@map("literacy_modules")
+}
+
+model SavingsVault {
+  id            String    @id @default(uuid()) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  name          String
+  description   String?
+  targetAmount  Decimal   @map("target_amount") @db.Decimal(15, 2)
+  currentAmount Decimal   @default(0) @map("current_amount") @db.Decimal(15, 2)
+  currency      String    @default("IDR")
+  deadline      DateTime?
+  iconUrl       String?   @map("icon_url")
+  color         String?
+  isCompleted   Boolean   @default(false) @map("is_completed")
+  completedAt   DateTime? @map("completed_at")
+  deletedAt     DateTime? @map("deleted_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, deletedAt])
+  @@index([userId, isCompleted])
+  @@map("savings_vaults")
+}
+
+model CommunityPost {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  title      String
+  content    String
+  category   String?
+  isPinned   Boolean   @default(false) @map("is_pinned")
+  likesCount Int       @default(0) @map("likes_count")
+  deletedAt  DateTime? @map("deleted_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments CommunityComment[]
+
+  @@index([userId])
+  @@index([deletedAt])
+  @@index([category, deletedAt])
+  @@index([createdAt])
+  @@map("community_posts")
+}
+
+model CommunityComment {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  postId     String    @map("post_id") @db.Uuid
+  content    String
+  likesCount Int       @default(0) @map("likes_count")
+  deletedAt  DateTime? @map("deleted_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([userId])
+  @@index([postId, deletedAt])
+  @@map("community_comments")
+}
+
+model RewardPoint {
+  id          String       @id @default(uuid()) @db.Uuid
+  userId      String       @map("user_id") @db.Uuid
+  action      RewardAction
+  points      Int
+  description String?
+  metadata    Json?
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, action])
+  @@index([userId, createdAt])
+  @@map("reward_points")
+}
+
+model MlJob {
+  id              String      @id @default(uuid()) @db.Uuid
+  userId          String      @map("user_id") @db.Uuid
+  jobType         MlJobType   @map("job_type")
+  status          MlJobStatus @default(PENDING)
+  requestPayload  Json?       @map("request_payload")
+  responsePayload Json?       @map("response_payload")
+  errorMessage    String?     @map("error_message")
+  startedAt       DateTime?   @map("started_at")
+  completedAt     DateTime?   @map("completed_at")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, jobType])
+  @@index([status])
+  @@map("ml_jobs")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String?  @map("user_id") @db.Uuid
+  action    String
+  entity    String
+  entityId  String?  @map("entity_id") @db.Uuid
+  metadata  Json?
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([entity, entityId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
