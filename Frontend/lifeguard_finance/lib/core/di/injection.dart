@@ -21,7 +21,7 @@ import '../../features/family_profile/domain/usecases/save_family_profile.dart';
 // Import Cubits & Blocs
 import '../../features/family_profile/presentation/bloc/family_profile_bloc.dart';
 import '../../features/fvs_dashboard/presentation/bloc/fvs_bloc.dart';
-import '../../features/emergency_simulation/presentation/bloc/simulation_cubit.dart';
+import '../../features/emergency_simulation/presentation/bloc/simulation_bloc.dart';
 import '../../features/recommendation/presentation/bloc/recommendation_cubit.dart';
 import '../../features/smart_routing/presentation/bloc/smart_routing_cubit.dart';
 import '../../features/anomaly_detection/presentation/bloc/expense_cubit.dart';
@@ -59,7 +59,7 @@ Future<void> setupInjection() async {
     () => const FvsCalculator(),
   );
   getIt.registerLazySingleton<SimulationCalculator>(
-    () => const SimulationCalculator(),
+    () => SimulationCalculator(getIt<FvsCalculator>()),
   );
   getIt.registerLazySingleton<RecommendationGenerator>(
     () => const RecommendationGenerator(),
@@ -87,8 +87,12 @@ Future<void> setupInjection() async {
       hiveService: getIt<HiveService>(),
     ),
   );
-  getIt.registerFactory<SimulationCubit>(
-    () => SimulationCubit(),
+  getIt.registerFactory<SimulationBloc>(
+    () => SimulationBloc(
+      familyProfileRepository: getIt<FamilyProfileRepository>(),
+      simulationCalculator: getIt<SimulationCalculator>(),
+      hiveService: getIt<HiveService>(),
+    ),
   );
   getIt.registerFactory<RecommendationCubit>(
     () => RecommendationCubit(),
