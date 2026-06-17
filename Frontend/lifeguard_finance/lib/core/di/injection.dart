@@ -20,7 +20,7 @@ import '../../features/family_profile/domain/usecases/save_family_profile.dart';
 
 // Import Cubits & Blocs
 import '../../features/family_profile/presentation/bloc/family_profile_bloc.dart';
-import '../../features/fvs_dashboard/presentation/bloc/fvs_cubit.dart';
+import '../../features/fvs_dashboard/presentation/bloc/fvs_bloc.dart';
 import '../../features/emergency_simulation/presentation/bloc/simulation_cubit.dart';
 import '../../features/recommendation/presentation/bloc/recommendation_cubit.dart';
 import '../../features/smart_routing/presentation/bloc/smart_routing_cubit.dart';
@@ -80,8 +80,12 @@ Future<void> setupInjection() async {
       saveFamilyProfile: getIt<SaveFamilyProfile>(),
     ),
   );
-  getIt.registerFactory<FvsCubit>(
-    () => FvsCubit(),
+  getIt.registerFactory<FvsBloc>(
+    () => FvsBloc(
+      familyProfileRepository: getIt<FamilyProfileRepository>(),
+      fvsCalculator: getIt<FvsCalculator>(),
+      hiveService: getIt<HiveService>(),
+    ),
   );
   getIt.registerFactory<SimulationCubit>(
     () => SimulationCubit(),
