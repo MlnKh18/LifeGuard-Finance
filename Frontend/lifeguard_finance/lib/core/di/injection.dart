@@ -5,6 +5,7 @@ import '../data/local/hive_service.dart';
 
 // Import Services
 import '../../features/fvs_dashboard/data/datasources/fvs_calculator.dart';
+import '../../features/emergency_simulation/data/datasources/inflation_impact_calculator.dart';
 import '../../features/emergency_simulation/data/datasources/simulation_calculator.dart';
 import '../../features/recommendation/data/datasources/recommendation_generator.dart';
 import '../../features/smart_routing/data/datasources/smart_routing_calculator.dart';
@@ -58,8 +59,11 @@ Future<void> setupInjection() async {
   getIt.registerLazySingleton<FvsCalculator>(
     () => const FvsCalculator(),
   );
+  getIt.registerLazySingleton<InflationImpactCalculator>(
+    () => InflationImpactCalculator(getIt<FvsCalculator>()),
+  );
   getIt.registerLazySingleton<SimulationCalculator>(
-    () => SimulationCalculator(getIt<FvsCalculator>()),
+    () => SimulationCalculator(getIt<FvsCalculator>(), getIt<InflationImpactCalculator>()),
   );
   getIt.registerLazySingleton<RecommendationGenerator>(
     () => const RecommendationGenerator(),

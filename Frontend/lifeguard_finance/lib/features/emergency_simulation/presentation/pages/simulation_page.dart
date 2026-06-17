@@ -9,6 +9,7 @@ import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/section_title.dart';
 import '../../domain/entities/simulation_input.dart';
 import '../../domain/entities/simulation_result.dart';
+import '../../domain/entities/inflation_impact_result.dart';
 import '../bloc/simulation_bloc.dart';
 import '../bloc/simulation_event.dart';
 import '../bloc/simulation_state.dart';
@@ -35,12 +36,14 @@ class SimulationView extends StatefulWidget {
 class _SimulationViewState extends State<SimulationView> {
   final _formKey = GlobalKey<FormState>();
   final _paramController = TextEditingController();
+  final _secondaryParamController = TextEditingController();
 
   ScenarioType _selectedScenario = ScenarioType.lossOfIncome;
 
   @override
   void dispose() {
     _paramController.dispose();
+    _secondaryParamController.dispose();
     super.dispose();
   }
 
@@ -49,6 +52,7 @@ class _SimulationViewState extends State<SimulationView> {
     setState(() {
       _selectedScenario = scenario;
       _paramController.clear();
+      _secondaryParamController.clear();
     });
   }
 
@@ -61,7 +65,7 @@ class _SimulationViewState extends State<SimulationView> {
       case ScenarioType.interestRateIncrease:
         return 'Kenaikan Cicilan Per Bulan (Rp)';
       case ScenarioType.inflationNeeds:
-        return 'Laju Inflasi Kebutuhan Pokok (%)';
+        return 'Laju Inflasi Pokok (%)';
       case ScenarioType.educationEmergency:
         return 'Biaya Pendidikan Mendadak (Rp)';
       case ScenarioType.increasedDependents:
@@ -90,9 +94,15 @@ class _SimulationViewState extends State<SimulationView> {
     if (!_formKey.currentState!.validate()) return;
 
     final value = double.parse(_paramController.text);
+    double? secondaryValue;
+    if (_selectedScenario == ScenarioType.inflationNeeds) {
+      secondaryValue = double.tryParse(_secondaryParamController.text);
+    }
+
     final input = SimulationInput(
       scenarioType: _selectedScenario,
       parameterValue: value,
+      secondaryParameterValue: secondaryValue,
     );
 
     context.read<SimulationBloc>().add(RunSimulation(input));
@@ -171,6 +181,32 @@ class _SimulationViewState extends State<SimulationView> {
                             return null;
                           },
                         ),
+                        if (_selectedScenario == ScenarioType.inflationNeeds) ...[
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _secondaryParamController,
+                            keyboardType: TextInputType.number,
+                            style: AppTextStyles.bodyMedium,
+                            decoration: InputDecoration(
+                              labelText: 'Pengeluaran Kebutuhan Pokok Bulanan (Rp)',
+                              hintText: 'Contoh: 4000000',
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                            validator: (val) {
+                              if (val == null || val.trim().isEmpty) {
+                                return 'Pengeluaran kebutuhan pokok wajib diisi';
+                              }
+                              final parsed = double.tryParse(val);
+                              if (parsed == null) {
+                                return 'Harus berupa angka';
+                              }
+                              if (parsed <= 0) {
+                                return 'Harus lebih besar dari 0';
+                              }
+                              return null;
+                            },
+                          ),
+                        ],
                         const SizedBox(height: 16),
                         PrimaryButton(
                           text: 'Jalankan Simulasi Krisis',
@@ -309,57 +345,61 @@ class _SimulationViewState extends State<SimulationView> {
         ),
         const SizedBox(height: 16),
 
-        // Financial Metrics Card
-        AppCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Daya Tahan & Kerugian', style: AppTextStyles.heading3.copyWith(color: AppColors.primary)),
-              const Divider(height: 20, color: AppColors.border),
-              _buildMetricRow(
-                icon: Icons.timer_outlined,
-                title: 'Daya Tahan Dana Darurat',
-                value: result.monthsEmergencyFundLasts >= 99.0
-                    ? 'Aman / Tidak Terpengaruh'
-                    : '${result.monthsEmergencyFundLasts.toStringAsFixed(1)} Bulan',
-                color: result.monthsEmergencyFundLasts < 3.0 ? AppColors.riskCritical : AppColors.riskSafe,
-              ),
-              const SizedBox(height: 12),
-              _buildMetricRow(
-                icon: Icons.money_off_rounded,
-                title: 'Proyeksi Defisit Skenario',
-                value: result.potentialDeficit == 0
-                    ? 'Tidak Ada Defisit'
-                    : 'Rp ${_formatRupiah(result.potentialDeficit)}',
-                color: result.potentialDeficit > 0 ? AppColors.riskCritical : AppColors.riskSafe,
-              ),
-            ],
+        if (result.inflationResult != null) ...[
+          _buildInflationResultSection(result.inflationResult!),
+        ] else ...[
+          // Financial Metrics Card
+          AppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Daya Tahan & Kerugian', style: AppTextStyles.heading3.copyWith(color: AppColors.primary)),
+                const Divider(height: 20, color: AppColors.border),
+                _buildMetricRow(
+                  icon: Icons.timer_outlined,
+                  title: 'Daya Tahan Dana Darurat',
+                  value: result.monthsEmergencyFundLasts >= 99.0
+                      ? 'Aman / Tidak Terpengaruh'
+                      : '${result.monthsEmergencyFundLasts.toStringAsFixed(1)} Bulan',
+                  color: result.monthsEmergencyFundLasts < 3.0 ? AppColors.riskCritical : AppColors.riskSafe,
+                ),
+                const SizedBox(height: 12),
+                _buildMetricRow(
+                  icon: Icons.money_off_rounded,
+                  title: 'Proyeksi Defisit Skenario',
+                  value: result.potentialDeficit == 0
+                      ? 'Tidak Ada Defisit'
+                      : 'Rp ${_formatRupiah(result.potentialDeficit)}',
+                  color: result.potentialDeficit > 0 ? AppColors.riskCritical : AppColors.riskSafe,
+                ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: 16),
+          const SizedBox(height: 16),
 
-        // Affected Indicators Card
-        AppCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Indikator FVS yang Terdampak', style: AppTextStyles.heading3),
-              const SizedBox(height: 8),
-              ...result.affectedIndicators.map((ind) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(Icons.arrow_right_rounded, color: AppColors.riskCritical),
-                        Expanded(
-                          child: Text(ind, style: AppTextStyles.bodyMedium),
-                        ),
-                      ],
-                    ),
-                  )),
-            ],
+          // Affected Indicators Card
+          AppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Indikator FVS yang Terdampak', style: AppTextStyles.heading3),
+                const SizedBox(height: 8),
+                ...result.affectedIndicators.map((ind) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.arrow_right_rounded, color: AppColors.riskCritical),
+                          Expanded(
+                            child: Text(ind, style: AppTextStyles.bodyMedium),
+                          ),
+                        ],
+                      ),
+                    )),
+              ],
+            ),
           ),
-        ),
+        ],
         const SizedBox(height: 16),
 
         // Recommendation Box
@@ -391,6 +431,166 @@ class _SimulationViewState extends State<SimulationView> {
           text: 'Lihat Rencana Mitigasi Lengkap',
           icon: const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
           onPressed: () => context.push('/recommendation'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInflationResultSection(InflationImpactResult inflation) {
+    final isCritical = inflation.monthsEmergencyFundLastsAfter < 3.0;
+    final isWarning = inflation.monthsEmergencyFundLastsAfter < 6.0 && inflation.monthsEmergencyFundLastsAfter >= 3.0;
+
+    final warningColor = isCritical
+        ? AppColors.riskCritical
+        : isWarning
+            ? AppColors.riskWarning
+            : AppColors.riskSafe;
+
+    final warningBg = isCritical
+        ? AppColors.riskCritical.withAlpha(26)
+        : isWarning
+            ? AppColors.riskWarning.withAlpha(26)
+            : AppColors.riskSafe.withAlpha(26);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: const [
+                  Icon(Icons.trending_up_rounded, color: AppColors.riskCritical),
+                  SizedBox(width: 8),
+                  Text('Kalkulasi Dampak Inflasi', style: AppTextStyles.heading3),
+                ],
+              ),
+              const Divider(height: 24, color: AppColors.border),
+
+              // 1. Pengeluaran
+              _buildInflationMetricRow(
+                title: 'Pengeluaran Pokok Baru',
+                valueBefore: 'Rp ${_formatRupiah(inflation.routineExpensesAfter - inflation.expenseIncrease)}',
+                valueAfter: 'Rp ${_formatRupiah(inflation.routineExpensesAfter)}',
+                badgeText: '+Rp ${_formatRupiah(inflation.expenseIncrease)}',
+                badgeColor: AppColors.riskCritical,
+              ),
+              const Divider(height: 20, color: AppColors.border),
+
+              // 2. Daya Tahan
+              _buildInflationMetricRow(
+                title: 'Daya Tahan Dana Darurat',
+                valueBefore: '${inflation.monthsEmergencyFundLastsBefore.toStringAsFixed(1)} Bulan',
+                valueAfter: '${inflation.monthsEmergencyFundLastsAfter.toStringAsFixed(1)} Bulan',
+                badgeText: '-${(inflation.monthsEmergencyFundLastsBefore - inflation.monthsEmergencyFundLastsAfter).abs().toStringAsFixed(1)} Bulan',
+                badgeColor: warningColor,
+              ),
+              const Divider(height: 20, color: AppColors.border),
+
+              // 3. Skor FVS
+              _buildInflationMetricRow(
+                title: 'Estimasi Perubahan FVS',
+                valueBefore: inflation.fvsScoreBefore.toStringAsFixed(0),
+                valueAfter: inflation.fvsScoreAfter.toStringAsFixed(0),
+                badgeText: '${inflation.fvsScoreChange.toStringAsFixed(0)} Poin',
+                badgeColor: inflation.fvsScoreChange < 0 ? AppColors.riskCritical : AppColors.riskSafe,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // 4. Warning Message Box
+        AppCard(
+          color: warningBg,
+          border: Border.all(color: warningColor),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                isCritical
+                    ? Icons.gavel_rounded
+                    : isWarning
+                        ? Icons.warning_amber_rounded
+                        : Icons.check_circle_outline_rounded,
+                color: warningColor,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isCritical
+                          ? '🚨 BAHAYA DANA DARURAT KRITIS'
+                          : isWarning
+                              ? '⚠️ PERINGATAN WASPADA'
+                              : '✅ KONDISI DANA DARURAT AMAN',
+                      style: AppTextStyles.heading3.copyWith(color: warningColor, fontSize: 13),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      inflation.warningMessage,
+                      style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInflationMetricRow({
+    required String title,
+    required String valueBefore,
+    required String valueAfter,
+    required String badgeText,
+    required Color badgeColor,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: AppTextStyles.heading3.copyWith(fontSize: 13, color: AppColors.textSecondary)),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Sebelum', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                Text(valueBefore, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                const Text('Setelah', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                Row(
+                  children: [
+                    Text(valueAfter, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: badgeColor)),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: badgeColor.withAlpha(38),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        badgeText,
+                        style: TextStyle(color: badgeColor, fontSize: 10, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
         ),
       ],
     );

@@ -1,12 +1,15 @@
 import '../../domain/entities/simulation_input.dart';
 import '../../domain/entities/simulation_result.dart';
+import '../../domain/entities/inflation_impact_result.dart';
+import 'inflation_impact_calculator.dart';
 import '../../../fvs_dashboard/data/datasources/fvs_calculator.dart';
 import '../../../family_profile/domain/entities/family_profile_entity.dart';
 
 class SimulationCalculator {
   final FvsCalculator fvsCalculator;
+  final InflationImpactCalculator inflationImpactCalculator;
 
-  const SimulationCalculator(this.fvsCalculator);
+  const SimulationCalculator(this.fvsCalculator, this.inflationImpactCalculator);
 
   SimulationResult simulate({
     required FamilyFinanceProfile profile,
@@ -29,6 +32,7 @@ class SimulationCalculator {
     double potentialDeficit = 0.0;
     List<String> affectedIndicators = [];
     String recommendation = '';
+    InflationImpactResult? inflationResult;
 
     final totalIncomeBefore = fixedIncome + variableIncome;
 
@@ -111,15 +115,22 @@ class SimulationCalculator {
         break;
 
       case ScenarioType.inflationNeeds:
-        // parameterValue is inflation rate (%)
+        // parameterValue is inflation rate (%), secondaryParameterValue is primary needs expense
         final rate = input.parameterValue;
-        final oldRoutine = routineExpenses;
-        routineExpenses = routineExpenses * (1 + rate / 100);
-        final increase = routineExpenses - oldRoutine;
-        
-        potentialDeficit = increase * 12; // Annualized inflation cost
+        final primaryNeeds = input.secondaryParameterValue ?? (routineExpenses * 0.6);
 
-        monthsEmergencyFundLasts = routineExpenses > 0 ? liquidSavings / routineExpenses : 99.0;
+        final inflationRes = inflationImpactCalculator.calculate(
+          profile: profile,
+          primaryNeedsExpense: primaryNeeds,
+          inflationRate: rate,
+        );
+
+        inflationResult = inflationRes;
+        routineExpenses = inflationRes.routineExpensesAfter;
+        final increase = inflationRes.expenseIncrease;
+        potentialDeficit = increase * 12; // Annualized inflation cost
+        monthsEmergencyFundLasts = inflationRes.monthsEmergencyFundLastsAfter;
+
         affectedIndicators = [
           'S2: Rasio Pengeluaran Rutin (Pengeluaran dasar naik)',
           'S3: Dana Darurat (Daya beli dana darurat melemah)',
@@ -205,6 +216,7 @@ class SimulationCalculator {
       potentialDeficit: potentialDeficit,
       affectedIndicators: affectedIndicators,
       recommendation: recommendation,
+      inflationResult: inflationResult,
     );
   }
 }
