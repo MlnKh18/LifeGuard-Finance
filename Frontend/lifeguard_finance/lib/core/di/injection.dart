@@ -1,11 +1,18 @@
 import 'package:get_it/get_it.dart';
 
+// Import Core Services
+import '../data/local/hive_service.dart';
+
 // Import Services
 import '../../features/fvs_dashboard/data/datasources/fvs_calculator.dart';
 import '../../features/emergency_simulation/data/datasources/simulation_calculator.dart';
 import '../../features/recommendation/data/datasources/recommendation_generator.dart';
 import '../../features/smart_routing/data/datasources/smart_routing_calculator.dart';
 import '../../features/anomaly_detection/data/datasources/anomaly_detection_service.dart';
+
+// Import Repositories
+import '../../features/family_profile/domain/repositories/family_profile_repository.dart';
+import '../../features/family_profile/data/repositories/family_profile_repository_impl.dart';
 
 // Import Cubits
 import '../../features/family_profile/presentation/bloc/family_profile_cubit.dart';
@@ -24,6 +31,13 @@ import '../../features/rewards/presentation/bloc/reward_cubit.dart';
 final getIt = GetIt.instance;
 
 Future<void> setupInjection() async {
+  // =========================================================================
+  // REPOSITORIES
+  // =========================================================================
+  getIt.registerLazySingleton<FamilyProfileRepository>(
+    () => FamilyProfileRepositoryImpl(getIt<HiveService>()),
+  );
+
   // =========================================================================
   // SERVICES (Lazy Singletons)
   // =========================================================================
@@ -47,7 +61,7 @@ Future<void> setupInjection() async {
   // BLOCS / CUBITS (Factory)
   // =========================================================================
   getIt.registerFactory<FamilyProfileCubit>(
-    () => FamilyProfileCubit(),
+    () => FamilyProfileCubit(getIt<FamilyProfileRepository>()),
   );
   getIt.registerFactory<FvsCubit>(
     () => FvsCubit(),

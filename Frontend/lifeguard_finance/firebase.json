@@ -1,0 +1,25 @@
+{
+    "flutter": {
+        "platforms": {
+            "android": {
+                "default": {
+                    "projectId": "lifeguard-finance-f09c1",
+                    "appId": "1:751325598222:android:e3fe7ac6a95ab8f912a25f",
+                    "fileOutput": "android/app/google-services.json"
+                }
+            },
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "lifeguard-finance-f09c1",
+                    "configurations": {
+                        "android": "1:751325598222:android:e3fe7ac6a95ab8f912a25f",
+                        "ios": "1:751325598222:ios:855f2a257af856b712a25f",
+                        "macos": "1:751325598222:ios:855f2a257af856b712a25f",
+                        "web": "1:751325598222:web:62201c6771f288d712a25f",
+                        "windows": "1:751325598222:web:a7906a1080c0681b12a25f"
+                    }
+                }
+            }
+        }
+    }
+}

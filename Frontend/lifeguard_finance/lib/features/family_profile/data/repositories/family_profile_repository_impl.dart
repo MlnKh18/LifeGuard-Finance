@@ -1,0 +1,41 @@
+import 'package:dartz/dartz.dart';
+import '../../../../core/data/local/hive_service.dart';
+import '../../../../core/data/local/local_keys.dart';
+import '../../../../core/errors/failures.dart';
+import '../../domain/entities/family_profile_entity.dart';
+import '../../domain/repositories/family_profile_repository.dart';
+import '../models/family_profile_model.dart';
+
+class FamilyProfileRepositoryImpl implements FamilyProfileRepository {
+  final HiveService hiveService;
+
+  FamilyProfileRepositoryImpl(this.hiveService);
+
+  @override
+  Future<Either<Failure, void>> saveFamilyProfile(FamilyProfileEntity profile) async {
+    try {
+      final model = FamilyProfileModel.fromEntity(profile);
+      await hiveService.saveData(LocalKeys.familyProfile, model.toJson());
+      return const Right(null);
+    } catch (e) {
+      return Left(CacheFailure('Gagal menyimpan profil keuangan keluarga: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, FamilyProfileEntity?>> getFamilyProfile() async {
+    try {
+      final rawData = hiveService.getData(LocalKeys.familyProfile);
+      if (rawData == null) {
+        return const Right(null);
+      }
+      
+      // Convert Map<dynamic, dynamic> from Hive to Map<String, dynamic> safely
+      final jsonMap = Map<String, dynamic>.from(rawData as Map);
+      final model = FamilyProfileModel.fromJson(jsonMap);
+      return Right(model);
+    } catch (e) {
+      return Left(CacheFailure('Gagal memuat profil keuangan keluarga: $e'));
+    }
+  }
+}
