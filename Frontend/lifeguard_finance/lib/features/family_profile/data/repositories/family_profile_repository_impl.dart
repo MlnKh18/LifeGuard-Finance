@@ -12,9 +12,9 @@ class FamilyProfileRepositoryImpl implements FamilyProfileRepository {
   FamilyProfileRepositoryImpl(this.hiveService);
 
   @override
-  Future<Either<Failure, void>> saveFamilyProfile(FamilyProfileEntity profile) async {
+  Future<Either<Failure, void>> saveFamilyProfile(FamilyFinanceProfile profile) async {
     try {
-      final model = FamilyProfileModel.fromEntity(profile);
+      final model = FamilyFinanceProfileModel.fromEntity(profile);
       await hiveService.saveData(LocalKeys.familyProfile, model.toJson());
       return const Right(null);
     } catch (e) {
@@ -23,16 +23,15 @@ class FamilyProfileRepositoryImpl implements FamilyProfileRepository {
   }
 
   @override
-  Future<Either<Failure, FamilyProfileEntity?>> getFamilyProfile() async {
+  Future<Either<Failure, FamilyFinanceProfile?>> getFamilyProfile() async {
     try {
       final rawData = hiveService.getData(LocalKeys.familyProfile);
       if (rawData == null) {
         return const Right(null);
       }
       
-      // Convert Map<dynamic, dynamic> from Hive to Map<String, dynamic> safely
       final jsonMap = Map<String, dynamic>.from(rawData as Map);
-      final model = FamilyProfileModel.fromJson(jsonMap);
+      final model = FamilyFinanceProfileModel.fromJson(jsonMap);
       return Right(model);
     } catch (e) {
       return Left(CacheFailure('Gagal memuat profil keuangan keluarga: $e'));

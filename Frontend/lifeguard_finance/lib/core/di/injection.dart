@@ -14,8 +14,12 @@ import '../../features/anomaly_detection/data/datasources/anomaly_detection_serv
 import '../../features/family_profile/domain/repositories/family_profile_repository.dart';
 import '../../features/family_profile/data/repositories/family_profile_repository_impl.dart';
 
-// Import Cubits
-import '../../features/family_profile/presentation/bloc/family_profile_cubit.dart';
+// Import Use Cases
+import '../../features/family_profile/domain/usecases/get_family_profile.dart';
+import '../../features/family_profile/domain/usecases/save_family_profile.dart';
+
+// Import Cubits & Blocs
+import '../../features/family_profile/presentation/bloc/family_profile_bloc.dart';
 import '../../features/fvs_dashboard/presentation/bloc/fvs_cubit.dart';
 import '../../features/emergency_simulation/presentation/bloc/simulation_cubit.dart';
 import '../../features/recommendation/presentation/bloc/recommendation_cubit.dart';
@@ -36,6 +40,16 @@ Future<void> setupInjection() async {
   // =========================================================================
   getIt.registerLazySingleton<FamilyProfileRepository>(
     () => FamilyProfileRepositoryImpl(getIt<HiveService>()),
+  );
+
+  // =========================================================================
+  // USE CASES
+  // =========================================================================
+  getIt.registerLazySingleton<GetFamilyProfile>(
+    () => GetFamilyProfile(getIt<FamilyProfileRepository>()),
+  );
+  getIt.registerLazySingleton<SaveFamilyProfile>(
+    () => SaveFamilyProfile(getIt<FamilyProfileRepository>()),
   );
 
   // =========================================================================
@@ -60,8 +74,11 @@ Future<void> setupInjection() async {
   // =========================================================================
   // BLOCS / CUBITS (Factory)
   // =========================================================================
-  getIt.registerFactory<FamilyProfileCubit>(
-    () => FamilyProfileCubit(getIt<FamilyProfileRepository>()),
+  getIt.registerFactory<FamilyProfileBloc>(
+    () => FamilyProfileBloc(
+      getFamilyProfile: getIt<GetFamilyProfile>(),
+      saveFamilyProfile: getIt<SaveFamilyProfile>(),
+    ),
   );
   getIt.registerFactory<FvsCubit>(
     () => FvsCubit(),
