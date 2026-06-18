@@ -14,6 +14,9 @@ import '../../features/anomaly_detection/data/datasources/anomaly_detection_serv
 // Import Repositories
 import '../../features/family_profile/domain/repositories/family_profile_repository.dart';
 import '../../features/family_profile/data/repositories/family_profile_repository_impl.dart';
+import '../../features/settings/data/datasources/profile_local_datasource.dart';
+import '../../features/settings/domain/repositories/profile_repository.dart';
+import '../../features/settings/data/repositories/profile_repository_impl.dart';
 
 // Import Use Cases
 import '../../features/family_profile/domain/usecases/get_family_profile.dart';
@@ -31,6 +34,7 @@ import '../../features/literacy/presentation/bloc/literacy_cubit.dart';
 import '../../features/savings_vault/presentation/bloc/vault_cubit.dart';
 import '../../features/community/presentation/bloc/community_cubit.dart';
 import '../../features/rewards/presentation/bloc/reward_cubit.dart';
+import '../../features/settings/presentation/bloc/profile_bloc.dart';
 
 final getIt = GetIt.instance;
 
@@ -40,6 +44,12 @@ Future<void> setupInjection() async {
   // =========================================================================
   getIt.registerLazySingleton<FamilyProfileRepository>(
     () => FamilyProfileRepositoryImpl(getIt<HiveService>()),
+  );
+  getIt.registerLazySingleton<ProfileLocalDataSource>(
+    () => ProfileLocalDataSourceImpl(hiveService: getIt<HiveService>()),
+  );
+  getIt.registerLazySingleton<ProfileRepository>(
+    () => ProfileRepositoryImpl(localDataSource: getIt<ProfileLocalDataSource>()),
   );
 
   // =========================================================================
@@ -128,5 +138,8 @@ Future<void> setupInjection() async {
   );
   getIt.registerFactory<RewardCubit>(
     () => RewardCubit(),
+  );
+  getIt.registerFactory<ProfileBloc>(
+    () => ProfileBloc(repository: getIt<ProfileRepository>()),
   );
 }

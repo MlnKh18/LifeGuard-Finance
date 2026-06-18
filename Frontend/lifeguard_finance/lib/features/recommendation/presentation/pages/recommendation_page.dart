@@ -32,7 +32,13 @@ class RecommendationView extends StatefulWidget {
 }
 
 class _RecommendationViewState extends State<RecommendationView> with SingleTickerProviderStateMixin {
-  late final TabController _tabController = TabController(length: _timelines.length, vsync: this);
+  late final TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: _timelines.length, vsync: this);
+  }
 
   @override
   void dispose() {

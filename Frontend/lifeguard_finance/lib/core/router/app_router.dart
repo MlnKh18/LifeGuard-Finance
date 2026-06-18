@@ -75,14 +75,6 @@ class AppRouter {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/community',
-                builder: (context, state) => const CommunityPage(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
                 path: '/dashboard',
                 builder: (context, state) => const DashboardPage(),
               ),
@@ -93,6 +85,14 @@ class AppRouter {
               GoRoute(
                 path: '/simulation',
                 builder: (context, state) => const SimulationPage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/community',
+                builder: (context, state) => const CommunityPage(),
               ),
             ],
           ),

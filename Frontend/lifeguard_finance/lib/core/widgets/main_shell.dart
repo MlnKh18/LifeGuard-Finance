@@ -14,9 +14,9 @@ class MainShell extends StatelessWidget {
   const MainShell({super.key, required this.navigationShell});
 
   static const _items = [
-    _NavItem(icon: Icons.groups_rounded, label: 'Komunitas'),
     _NavItem(icon: Icons.dashboard_rounded, label: 'Ringkasan'),
     _NavItem(icon: Icons.science_rounded, label: 'Sandbox'),
+    _NavItem(icon: Icons.groups_rounded, label: 'Komunitas'),
     _NavItem(icon: Icons.shield_rounded, label: 'Mitigasi'),
     _NavItem(icon: Icons.person_rounded, label: 'Profil'),
   ];
