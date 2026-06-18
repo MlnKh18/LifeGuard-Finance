@@ -46,6 +46,8 @@ class VaultCubit extends Cubit<VaultState> {
     String? ownerUserId,
     String? ownerEmail,
     String? ownerName,
+    VaultPriority priority = VaultPriority.medium,
+    String? iconName,
   }) async {
     final newVault = SavingsVault(
       id: const Uuid().v4(),
@@ -64,6 +66,8 @@ class VaultCubit extends Cubit<VaultState> {
       ownerName: ownerName,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
+      priority: priority,
+      iconName: iconName,
     );
     await addVault(newVault);
   }

@@ -29,6 +29,23 @@ class AppColors {
   static const Color riskCritical = Color(0xFFEF4444); // status-critical (Kritis)
   static const Color riskCriticalBg = Color(0xFFFEE2E2);
 
+  // M3 role tokens (Stitch `Final Sync` exports — dashboard/vault/mitigasi/community)
+  static const Color primaryContainer = Color(0xFF008378);
+  static const Color onPrimaryContainer = Color(0xFFF4FFFC);
+
+  static const Color secondaryContainer = Color(0xFFD0E1FB);
+  static const Color onSecondaryContainer = Color(0xFF54647A);
+
+  static const Color tertiaryContainer = Color(0xFF6C748B);
+  static const Color onTertiaryContainer = Color(0xFFFEFCFF);
+
+  static const Color error = Color(0xFFBA1A1A);
+  static const Color errorContainer = Color(0xFFFFDAD6);
+  static const Color onErrorContainer = Color(0xFF93000A);
+
+  static const Color surfaceContainerLow = Color(0xFFF0F5F2);
+  static const Color surfaceContainerHigh = Color(0xFFE4E9E7);
+
   // Common gradients
   static const List<Color> primaryGradient = [
     Color(0xFF0D9488),

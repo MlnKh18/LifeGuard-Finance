@@ -134,8 +134,23 @@ class _AddVaultFormState extends State<AddVaultForm> {
   DateTime? _selectedDeadline;
   SavingFrequency _frequency = SavingFrequency.monthly;
   SavingsVaultScope _scope = SavingsVaultScope.personal;
+  VaultPriority _priority = VaultPriority.medium;
+  String _iconName = _vaultIconChoices.first.key;
 
   bool _loading = false;
+
+  static const List<MapEntry<String, IconData>> _vaultIconChoices = [
+    MapEntry('savings', Icons.savings_rounded),
+    MapEntry('home', Icons.home_rounded),
+    MapEntry('school', Icons.school_rounded),
+    MapEntry('medical', Icons.local_hospital_rounded),
+    MapEntry('travel', Icons.flight_takeoff_rounded),
+    MapEntry('car', Icons.directions_car_rounded),
+    MapEntry('wedding', Icons.favorite_rounded),
+    MapEntry('gift', Icons.card_giftcard_rounded),
+    MapEntry('emergency', Icons.health_and_safety_rounded),
+    MapEntry('other', Icons.category_rounded),
+  ];
 
   @override
   void initState() {
@@ -204,6 +219,8 @@ class _AddVaultFormState extends State<AddVaultForm> {
               ownerUserId: ownerUserId,
               ownerEmail: ownerEmail,
               ownerName: ownerName,
+              priority: _priority,
+              iconName: _iconName,
             );
 
         if (mounted) {
@@ -223,6 +240,41 @@ class _AddVaultFormState extends State<AddVaultForm> {
         if (mounted) setState(() => _loading = false);
       }
     }
+  }
+
+  Widget _buildPriorityPill(VaultPriority value, String label, Color color) {
+    final isSelected = _priority == value;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _priority = value),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? color.withValues(alpha: 0.1) : AppColors.surface,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: isSelected ? color : AppColors.border, width: isSelected ? 2 : 1),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: AppTextStyles.dataLabel.copyWith(
+                  color: isSelected ? color : AppColors.textSecondary,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -281,9 +333,52 @@ class _AddVaultFormState extends State<AddVaultForm> {
             decoration: const InputDecoration(labelText: 'Kategori (Misal: Liburan, Medis, dll)', border: OutlineInputBorder()),
           ),
           const SizedBox(height: 16),
+          Text('Prioritas', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _buildPriorityPill(VaultPriority.high, 'Tinggi', AppColors.riskCritical),
+              const SizedBox(width: 8),
+              _buildPriorityPill(VaultPriority.medium, 'Sedang', AppColors.riskWarning),
+              const SizedBox(width: 8),
+              _buildPriorityPill(VaultPriority.low, 'Rendah', AppColors.riskSafe),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text('Pilih Ikon', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 8),
+          GridView.count(
+            crossAxisCount: 5,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
+            children: _vaultIconChoices.map((entry) {
+              final isSelected = _iconName == entry.key;
+              return GestureDetector(
+                onTap: () => setState(() => _iconName = entry.key),
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : AppColors.surface,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: isSelected ? AppColors.primary : AppColors.border, width: isSelected ? 2 : 1),
+                    ),
+                    child: Icon(entry.value, color: isSelected ? AppColors.primary : AppColors.textSecondary),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 16),
           TextFormField(
             controller: _targetController,
-            decoration: const InputDecoration(labelText: 'Target Nominal (Rp)', border: OutlineInputBorder()),
+            decoration: const InputDecoration(
+              labelText: 'Target Nominal',
+              prefixText: 'Rp ',
+              border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
+            ),
             keyboardType: TextInputType.number,
             validator: (v) {
               final val = double.tryParse(v ?? '');
@@ -294,7 +389,11 @@ class _AddVaultFormState extends State<AddVaultForm> {
           const SizedBox(height: 16),
           TextFormField(
             controller: _initialController,
-            decoration: const InputDecoration(labelText: 'Dana Awal (Rp, Opsional)', border: OutlineInputBorder()),
+            decoration: const InputDecoration(
+              labelText: 'Dana Awal (Opsional)',
+              prefixText: 'Rp ',
+              border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
+            ),
             keyboardType: TextInputType.number,
           ),
           const SizedBox(height: 16),
