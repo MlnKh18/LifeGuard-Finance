@@ -178,6 +178,17 @@ class DashboardView extends StatelessWidget {
               subtitle: 'Lihat rekomendasi prioritas untuk skor Anda',
               onTap: () => context.push('/recommendation'),
             ),
+            const SizedBox(height: 12),
+
+            // Feature Link: Peringatan Dini
+            _buildFeatureLinkCard(
+              context: context,
+              icon: Icons.notifications_active_outlined,
+              iconColor: AppColors.riskWarning,
+              title: 'Peringatan Dini',
+              subtitle: 'Pantau trigger risiko keuangan keluarga Anda',
+              onTap: () => context.push('/early-warning'),
+            ),
             const SizedBox(height: 24),
 
             // Action Button

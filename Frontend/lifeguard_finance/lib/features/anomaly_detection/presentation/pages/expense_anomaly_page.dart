@@ -61,6 +61,13 @@ class ExpenseAnomalyView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Deteksi Anomali', style: AppTextStyles.heading3),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_active_outlined, color: AppColors.textSecondary),
+            tooltip: 'Peringatan Dini',
+            onPressed: () => context.push('/early-warning'),
+          ),
+        ],
       ),
       body: BlocBuilder<AnomalyCubit, AnomalyState>(
         builder: (context, state) {

@@ -484,6 +484,19 @@ class _SimulationViewState extends State<SimulationView> {
           icon: const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
           onPressed: () => context.push('/recommendation'),
         ),
+        const SizedBox(height: 10),
+        OutlinedButton.icon(
+          onPressed: () => context.push('/early-warning'),
+          icon: const Icon(Icons.notifications_active_outlined, size: 18),
+          label: const Text('Cek Peringatan Dini'),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppColors.riskWarning,
+            side: const BorderSide(color: AppColors.riskWarning),
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            minimumSize: const Size(double.infinity, 0),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+          ),
+        ),
       ],
     );
   }

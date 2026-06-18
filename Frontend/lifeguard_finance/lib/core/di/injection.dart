@@ -10,6 +10,8 @@ import '../../features/emergency_simulation/data/datasources/simulation_calculat
 import '../../features/recommendation/data/datasources/recommendation_generator.dart';
 import '../../features/smart_routing/data/datasources/smart_routing_calculator.dart';
 import '../../features/anomaly_detection/data/datasources/anomaly_detection_service.dart';
+import '../../features/early_warning/data/datasources/early_warning_rule_checker.dart';
+import '../../features/early_warning/data/datasources/notification_service.dart';
 
 // Import Repositories
 import '../../features/family_profile/domain/repositories/family_profile_repository.dart';
@@ -104,6 +106,9 @@ Future<void> setupInjection() async {
   getIt.registerLazySingleton<AnomalyDetectionService>(
     () => const AnomalyDetectionService(),
   );
+  getIt.registerLazySingleton<EarlyWarningRuleChecker>(
+    () => const EarlyWarningRuleChecker(),
+  );
 
   // =========================================================================
   // BLOCS / CUBITS (Factory)
@@ -154,7 +159,14 @@ Future<void> setupInjection() async {
     ),
   );
   getIt.registerFactory<NotificationCubit>(
-    () => NotificationCubit(),
+    () => NotificationCubit(
+      familyProfileRepository: getIt<FamilyProfileRepository>(),
+      fvsCalculator: getIt<FvsCalculator>(),
+      anomalyDetectionService: getIt<AnomalyDetectionService>(),
+      ruleChecker: getIt<EarlyWarningRuleChecker>(),
+      notificationService: getIt<NotificationService>(),
+      hiveService: getIt<HiveService>(),
+    ),
   );
   getIt.registerFactory<LiteracyCubit>(
     () => LiteracyCubit(hiveService: getIt<HiveService>()),

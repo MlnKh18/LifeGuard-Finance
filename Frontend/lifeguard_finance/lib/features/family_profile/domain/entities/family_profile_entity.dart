@@ -9,6 +9,7 @@ class FamilyFinanceProfile extends Equatable {
   final int totalDependents;
   final bool hasBpjs;
   final bool hasAdditionalInsurance;
+  final DateTime? updatedAt;
 
   const FamilyFinanceProfile({
     required this.fixedIncome,
@@ -19,7 +20,22 @@ class FamilyFinanceProfile extends Equatable {
     required this.totalDependents,
     required this.hasBpjs,
     required this.hasAdditionalInsurance,
+    this.updatedAt,
   });
+
+  FamilyFinanceProfile copyWith({DateTime? updatedAt}) {
+    return FamilyFinanceProfile(
+      fixedIncome: fixedIncome,
+      variableIncome: variableIncome,
+      routineExpenses: routineExpenses,
+      debtPayments: debtPayments,
+      liquidSavings: liquidSavings,
+      totalDependents: totalDependents,
+      hasBpjs: hasBpjs,
+      hasAdditionalInsurance: hasAdditionalInsurance,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 
   @override
   List<Object?> get props => [
@@ -31,5 +47,6 @@ class FamilyFinanceProfile extends Equatable {
         totalDependents,
         hasBpjs,
         hasAdditionalInsurance,
+        updatedAt,
       ];
 }
