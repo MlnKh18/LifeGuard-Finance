@@ -6,6 +6,14 @@ enum SavingsVaultScope { family, personal }
 
 enum VaultPriority { high, medium, low }
 
+const List<String> vaultCategories = [
+  'Dana Darurat',
+  'Pendidikan Anak',
+  'Kesehatan',
+  'Pensiun',
+  'Kebutuhan Keluarga Lain',
+];
+
 class SavingsVault extends Equatable {
   final String id;
   final String? familyId;

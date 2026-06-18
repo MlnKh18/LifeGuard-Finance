@@ -126,7 +126,6 @@ class AddVaultForm extends StatefulWidget {
 class _AddVaultFormState extends State<AddVaultForm> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _categoryController = TextEditingController();
   final _targetController = TextEditingController();
   final _initialController = TextEditingController();
   final _deadlineController = TextEditingController();
@@ -136,6 +135,7 @@ class _AddVaultFormState extends State<AddVaultForm> {
   SavingsVaultScope _scope = SavingsVaultScope.personal;
   VaultPriority _priority = VaultPriority.medium;
   String _iconName = _vaultIconChoices.first.key;
+  String _category = vaultCategories.first;
 
   bool _loading = false;
 
@@ -166,7 +166,6 @@ class _AddVaultFormState extends State<AddVaultForm> {
   @override
   void dispose() {
     _nameController.dispose();
-    _categoryController.dispose();
     _targetController.dispose();
     _initialController.dispose();
     _deadlineController.dispose();
@@ -182,9 +181,9 @@ class _AddVaultFormState extends State<AddVaultForm> {
         final initial = double.tryParse(_initialController.text) ?? 0.0;
         final periodicTarget = double.tryParse(_periodicTargetController.text);
         final name = _nameController.text.trim();
-        final category = _categoryController.text.trim();
+        final category = _category;
 
-        final fullName = category.isNotEmpty ? '$name ($category)' : name;
+        final fullName = '$name ($category)';
 
         final authState = context.read<AuthBloc>().state;
         String? familyId;
@@ -210,7 +209,8 @@ class _AddVaultFormState extends State<AddVaultForm> {
               name: fullName,
               targetAmount: target,
               initialAmount: initial,
-              savingPurpose: category.isNotEmpty ? category : null,
+              savingPurpose: category,
+              category: category,
               savingFrequency: _frequency,
               periodicTargetAmount: periodicTarget,
               deadline: _selectedDeadline,
@@ -328,9 +328,13 @@ class _AddVaultFormState extends State<AddVaultForm> {
             },
           ),
           const SizedBox(height: 16),
-          TextFormField(
-            controller: _categoryController,
-            decoration: const InputDecoration(labelText: 'Kategori (Misal: Liburan, Medis, dll)', border: OutlineInputBorder()),
+          DropdownButtonFormField<String>(
+            initialValue: _category,
+            decoration: const InputDecoration(labelText: 'Kategori', border: OutlineInputBorder()),
+            items: vaultCategories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+            onChanged: (v) {
+              if (v != null) setState(() => _category = v);
+            },
           ),
           const SizedBox(height: 16),
           Text('Prioritas', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
