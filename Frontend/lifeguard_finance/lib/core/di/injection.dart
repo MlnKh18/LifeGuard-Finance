@@ -152,7 +152,7 @@ Future<void> setupInjection() async {
     () => NotificationCubit(),
   );
   getIt.registerFactory<LiteracyCubit>(
-    () => LiteracyCubit(),
+    () => LiteracyCubit(hiveService: getIt<HiveService>()),
   );
   getIt.registerFactory<VaultCubit>(
     () => VaultCubit(
@@ -164,7 +164,7 @@ Future<void> setupInjection() async {
     () => CommunityCubit(hiveService: getIt<HiveService>()),
   );
   getIt.registerFactory<RewardCubit>(
-    () => RewardCubit(),
+    () => RewardCubit(hiveService: getIt<HiveService>()),
   );
   getIt.registerFactory<ProfileBloc>(
     () => ProfileBloc(repository: getIt<ProfileRepository>()),
