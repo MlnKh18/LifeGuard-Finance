@@ -16,6 +16,11 @@ import '../../features/literacy/presentation/pages/literacy_page.dart';
 import '../../features/savings_vault/presentation/pages/savings_vault_page.dart';
 import '../../features/community/presentation/pages/community_page.dart';
 import '../../features/rewards/presentation/pages/reward_page.dart';
+import '../../features/auth/presentation/pages/register_role_selection_page.dart';
+import '../../features/auth/presentation/pages/register_head_of_family_page.dart';
+import '../../features/auth/presentation/pages/family_members_page.dart';
+import '../../features/auth/presentation/pages/add_family_member_page.dart';
+import '../../features/auth/presentation/pages/access_denied_page.dart';
 import '../../features/settings/presentation/pages/profile_settings_page.dart';
 import '../widgets/main_shell.dart';
 
@@ -36,6 +41,26 @@ class AppRouter {
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginPage(),
+      ),
+      GoRoute(
+        path: '/register-role',
+        builder: (context, state) => const RegisterRoleSelectionPage(),
+      ),
+      GoRoute(
+        path: '/register-head',
+        builder: (context, state) => const RegisterHeadOfFamilyPage(),
+      ),
+      GoRoute(
+        path: '/family-members',
+        builder: (context, state) => const FamilyMembersPage(),
+      ),
+      GoRoute(
+        path: '/add-family-member',
+        builder: (context, state) => const AddFamilyMemberPage(),
+      ),
+      GoRoute(
+        path: '/access-denied',
+        builder: (context, state) => const AccessDeniedPage(),
       ),
       GoRoute(
         path: '/family-profile',

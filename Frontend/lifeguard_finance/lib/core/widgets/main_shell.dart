@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../features/auth/presentation/bloc/auth_state.dart';
+import '../../features/auth/core/permission_helper.dart';
 
 /// Persistent bottom navigation shell for the 5 main app sections, matching
 /// the Stitch design system's canonical tab set: Komunitas, Ringkasan,
@@ -13,32 +17,59 @@ class MainShell extends StatelessWidget {
 
   const MainShell({super.key, required this.navigationShell});
 
-  static const _items = [
-    _NavItem(icon: Icons.dashboard_rounded, label: 'Ringkasan'),
-    _NavItem(icon: Icons.science_rounded, label: 'Sandbox'),
-    _NavItem(icon: Icons.groups_rounded, label: 'Komunitas'),
-    _NavItem(icon: Icons.shield_rounded, label: 'Mitigasi'),
-    _NavItem(icon: Icons.person_rounded, label: 'Profil'),
-  ];
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: navigationShell,
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: navigationShell.currentIndex,
-        onTap: (index) => navigationShell.goBranch(
-          index,
-          initialLocation: index == navigationShell.currentIndex,
-        ),
-        items: [
-          for (final item in _items)
-            BottomNavigationBarItem(
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
+        bool showCommunity = false;
+        if (state is AuthAuthenticated) {
+          showCommunity = PermissionHelper.canAccessCommunity(state.session.currentUserRole);
+        }
+
+        final visibleItems = <_NavItem>[];
+        final branchMapping = <int>[];
+
+        // Index 0: Dashboard
+        visibleItems.add(const _NavItem(icon: Icons.dashboard_rounded, label: 'Ringkasan'));
+        branchMapping.add(0);
+
+        // Index 1: Simulation
+        visibleItems.add(const _NavItem(icon: Icons.science_rounded, label: 'Sandbox'));
+        branchMapping.add(1);
+
+        // Index 2: Community
+        if (showCommunity) {
+          visibleItems.add(const _NavItem(icon: Icons.groups_rounded, label: 'Komunitas'));
+          branchMapping.add(2);
+        }
+
+        // Index 3: Recommendation
+        visibleItems.add(const _NavItem(icon: Icons.shield_rounded, label: 'Mitigasi'));
+        branchMapping.add(3);
+
+        // Index 4: Profile
+        visibleItems.add(const _NavItem(icon: Icons.person_rounded, label: 'Profil'));
+        branchMapping.add(4);
+
+        int currentBottomNavIndex = branchMapping.indexOf(navigationShell.currentIndex);
+        if (currentBottomNavIndex == -1) currentBottomNavIndex = 0; // fallback
+
+        return Scaffold(
+          body: navigationShell,
+          bottomNavigationBar: BottomNavigationBar(
+            type: BottomNavigationBarType.fixed,
+            currentIndex: currentBottomNavIndex,
+            onTap: (index) => navigationShell.goBranch(
+              branchMapping[index],
+              initialLocation: branchMapping[index] == navigationShell.currentIndex,
+            ),
+            items: visibleItems.map((item) => BottomNavigationBarItem(
               icon: Icon(item.icon),
               label: item.label,
-            ),
-        ],
-      ),
+            )).toList(),
+          ),
+        );
+      },
     );
   }
 }

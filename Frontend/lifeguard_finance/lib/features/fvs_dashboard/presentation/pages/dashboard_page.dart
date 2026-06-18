@@ -12,6 +12,9 @@ import '../../../family_profile/domain/entities/family_profile_entity.dart';
 import '../bloc/fvs_bloc.dart';
 import '../bloc/fvs_event.dart';
 import '../bloc/fvs_state.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../auth/core/permission_helper.dart';
 import '../widgets/score_card.dart';
 import '../widgets/indicator_breakdown.dart';
 import '../widgets/metric_bento_card.dart';
@@ -130,9 +133,20 @@ class DashboardView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SectionTitle(
-              title: 'Halo, Keluarga',
-              subtitle: 'Berikut adalah ringkasan kesehatan finansial Anda hari ini.',
+            BlocBuilder<AuthBloc, AuthState>(
+              builder: (context, authState) {
+                String greeting = 'Halo, Keluarga';
+                if (authState is AuthAuthenticated) {
+                  greeting = 'Halo, ${authState.user.fullName}';
+                  if (PermissionHelper.isFamilyMember(authState.session.currentUserRole)) {
+                    greeting += ' (Mode Anggota Keluarga)';
+                  }
+                }
+                return SectionTitle(
+                  title: greeting,
+                  subtitle: 'Berikut adalah ringkasan kesehatan finansial Anda hari ini.',
+                );
+              },
             ),
             const SizedBox(height: 12),
 

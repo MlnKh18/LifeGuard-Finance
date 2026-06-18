@@ -35,6 +35,10 @@ import '../../features/savings_vault/presentation/bloc/vault_cubit.dart';
 import '../../features/community/presentation/bloc/community_cubit.dart';
 import '../../features/rewards/presentation/bloc/reward_cubit.dart';
 import '../../features/settings/presentation/bloc/profile_bloc.dart';
+import '../../features/auth/data/datasources/auth_local_datasource.dart';
+import '../../features/auth/domain/repositories/auth_repository.dart';
+import '../../features/auth/data/repositories/auth_repository_impl.dart';
+import '../../features/auth/presentation/bloc/auth_bloc.dart';
 
 final getIt = GetIt.instance;
 
@@ -50,6 +54,12 @@ Future<void> setupInjection() async {
   );
   getIt.registerLazySingleton<ProfileRepository>(
     () => ProfileRepositoryImpl(localDataSource: getIt<ProfileLocalDataSource>()),
+  );
+  getIt.registerLazySingleton<AuthLocalDataSource>(
+    () => AuthLocalDataSourceImpl(hiveService: getIt<HiveService>()),
+  );
+  getIt.registerLazySingleton<AuthRepository>(
+    () => AuthRepositoryImpl(localDataSource: getIt<AuthLocalDataSource>()),
   );
 
   // =========================================================================
@@ -87,6 +97,9 @@ Future<void> setupInjection() async {
   // =========================================================================
   // BLOCS / CUBITS (Factory)
   // =========================================================================
+  getIt.registerFactory<AuthBloc>(
+    () => AuthBloc(repository: getIt<AuthRepository>()),
+  );
   getIt.registerFactory<FamilyProfileBloc>(
     () => FamilyProfileBloc(
       getFamilyProfile: getIt<GetFamilyProfile>(),

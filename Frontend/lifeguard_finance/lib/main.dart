@@ -5,6 +5,9 @@ import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 import 'core/di/injection.dart';
 import 'core/data/local/hive_service.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'features/auth/presentation/bloc/auth_bloc.dart';
+import 'features/auth/presentation/bloc/auth_event.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,11 +29,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'LifeGuard Finance',
-      theme: AppTheme.lightTheme,
-      routerConfig: AppRouter.router,
-      debugShowCheckedModeBanner: false,
+    return BlocProvider(
+      create: (context) => getIt<AuthBloc>()..add(CheckAuthSession()),
+      child: MaterialApp.router(
+        title: 'LifeGuard Finance',
+        theme: AppTheme.lightTheme,
+        routerConfig: AppRouter.router,
+        debugShowCheckedModeBanner: false,
+      ),
     );
   }
 }

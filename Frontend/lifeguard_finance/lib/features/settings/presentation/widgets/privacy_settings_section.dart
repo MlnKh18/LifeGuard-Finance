@@ -6,54 +6,90 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../bloc/profile_bloc.dart';
 import '../bloc/profile_event.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../auth/presentation/bloc/auth_event.dart';
+import '../../../auth/core/permission_helper.dart';
 
 class PrivacySettingsSection extends StatelessWidget {
   const PrivacySettingsSection({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return AppCard(
-      padding: EdgeInsets.zero,
-      child: Column(
-        children: [
-          _buildListTile(
-            context,
-            icon: Icons.edit_note,
-            title: 'Edit Profil Keuangan',
-            onTap: () => context.push('/family-profile'),
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, authState) {
+        bool isHead = false;
+        if (authState is AuthAuthenticated) {
+          isHead = PermissionHelper.isHeadOfFamily(authState.session.currentUserRole);
+        }
+
+        return AppCard(
+          padding: EdgeInsets.zero,
+          child: Column(
+            children: [
+              if (isHead) ...[
+                _buildListTile(
+                  context,
+                  icon: Icons.group_add,
+                  title: 'Kelola Anggota Keluarga',
+                  onTap: () => context.push('/family-members'),
+                ),
+                const Divider(height: 1, indent: 56),
+              ],
+              _buildListTile(
+                context,
+                icon: Icons.edit_note,
+                title: 'Edit Profil Keuangan',
+                onTap: () => context.push('/family-profile'),
+              ),
+              const Divider(height: 1, indent: 56),
+              _buildListTile(
+                context,
+                icon: Icons.dashboard,
+                title: 'Lihat Dashboard FVS',
+                onTap: () => context.push('/dashboard'),
+              ),
+              const Divider(height: 1, indent: 56),
+              _buildListTile(
+                context,
+                icon: Icons.privacy_tip_outlined,
+                title: 'Data & Privasi',
+                onTap: () => _showPrivacyDialog(context),
+              ),
+              const Divider(height: 1, indent: 56),
+              _buildListTile(
+                context,
+                icon: Icons.info_outline,
+                title: 'Tentang LifeGuard Finance',
+                onTap: () => _showAboutDialog(context),
+              ),
+              const Divider(height: 1, indent: 56),
+              _buildListTile(
+                context,
+                icon: Icons.logout,
+                title: 'Keluar (Logout)',
+                titleColor: AppColors.riskWarning,
+                iconColor: AppColors.riskWarning,
+                onTap: () {
+                  context.read<AuthBloc>().add(LogoutRequested());
+                  context.go('/login');
+                },
+              ),
+              if (isHead) ...[
+                const Divider(height: 1, indent: 56),
+                _buildListTile(
+                  context,
+                  icon: Icons.delete_forever,
+                  title: 'Hapus Data Lokal',
+                  titleColor: AppColors.riskCritical,
+                  iconColor: AppColors.riskCritical,
+                  onTap: () => _showDeleteConfirmation(context),
+                ),
+              ],
+            ],
           ),
-          const Divider(height: 1, indent: 56),
-          _buildListTile(
-            context,
-            icon: Icons.dashboard,
-            title: 'Lihat Dashboard FVS',
-            onTap: () => context.push('/dashboard'),
-          ),
-          const Divider(height: 1, indent: 56),
-          _buildListTile(
-            context,
-            icon: Icons.privacy_tip_outlined,
-            title: 'Data & Privasi',
-            onTap: () => _showPrivacyDialog(context),
-          ),
-          const Divider(height: 1, indent: 56),
-          _buildListTile(
-            context,
-            icon: Icons.info_outline,
-            title: 'Tentang LifeGuard Finance',
-            onTap: () => _showAboutDialog(context),
-          ),
-          const Divider(height: 1, indent: 56),
-          _buildListTile(
-            context,
-            icon: Icons.delete_forever,
-            title: 'Hapus Data Lokal',
-            titleColor: AppColors.riskCritical,
-            iconColor: AppColors.riskCritical,
-            onTap: () => _showDeleteConfirmation(context),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 

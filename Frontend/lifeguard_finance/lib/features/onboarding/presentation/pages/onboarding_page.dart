@@ -40,9 +40,9 @@ class OnboardingPage extends StatelessWidget {
             const Spacer(),
             AppCard(
               child: PrimaryButton(
-                text: 'Lanjut ke Login',
+                text: 'Mulai Sekarang',
                 onPressed: () {
-                  context.go('/login');
+                  context.go('/register-role');
                 },
               ),
             ),

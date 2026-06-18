@@ -11,6 +11,10 @@ import '../../domain/entities/community_post.dart';
 import '../../domain/entities/community_progress.dart';
 import '../bloc/community_cubit.dart';
 import '../bloc/community_state.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../auth/core/permission_helper.dart';
+import '../../../auth/presentation/widgets/auth_widgets.dart';
 
 const _availableTags = ['#SandwichGeneration', '#EmergencyFund', '#Menabung', '#Investasi'];
 
@@ -19,9 +23,21 @@ class CommunityPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<CommunityCubit>(
-      create: (context) => getIt<CommunityCubit>()..loadFeed(),
-      child: const CommunityView(),
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, authState) {
+        if (authState is AuthAuthenticated) {
+          if (!PermissionHelper.canAccessCommunity(authState.session.currentUserRole)) {
+            return const Scaffold(
+              body: AccessDeniedWidget(),
+            );
+          }
+        }
+        
+        return BlocProvider<CommunityCubit>(
+          create: (context) => getIt<CommunityCubit>()..loadFeed(),
+          child: const CommunityView(),
+        );
+      },
     );
   }
 }
