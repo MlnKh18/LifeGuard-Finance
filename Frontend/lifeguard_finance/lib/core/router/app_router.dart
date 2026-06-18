@@ -16,6 +16,7 @@ import '../../features/smart_routing/presentation/pages/smart_routing_page.dart'
 import '../../features/anomaly_detection/presentation/pages/expense_anomaly_page.dart';
 import '../../features/early_warning/presentation/pages/early_warning_page.dart';
 import '../../features/literacy/presentation/pages/literacy_page.dart';
+import '../../features/literacy/presentation/pages/literacy_detail_page.dart';
 import '../../features/savings_vault/presentation/pages/savings_vault_page.dart';
 import '../../features/community/presentation/pages/community_page.dart';
 import '../../features/rewards/presentation/pages/reward_page.dart';
@@ -102,6 +103,12 @@ class AppRouter {
       GoRoute(
         path: '/literacy',
         builder: (context, state) => const LiteracyPage(),
+        routes: [
+          GoRoute(
+            path: ':moduleId',
+            builder: (context, state) => LiteracyDetailPage(moduleId: state.pathParameters['moduleId'] ?? ''),
+          ),
+        ],
       ),
       GoRoute(
         path: '/savings-vault',

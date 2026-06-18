@@ -5,9 +5,13 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_card.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../domain/entities/savings_vault_entity.dart';
+import '../../core/vault_permission_helper.dart';
 import '../bloc/vault_cubit.dart';
 import '../bloc/vault_state.dart';
+import '../../../settings/presentation/widgets/profile_modals.dart';
 
 final _rupiahFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
@@ -16,43 +20,283 @@ class SavingsVaultPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<VaultCubit>(
-      create: (context) => getIt<VaultCubit>()..loadVaults(),
+    return BlocProvider<VaultCubit>.value(
+      value: getIt<VaultCubit>()..loadVaults(),
       child: const VaultView(),
     );
   }
 }
 
-class VaultView extends StatelessWidget {
+class VaultView extends StatefulWidget {
   const VaultView({super.key});
 
   @override
+  State<VaultView> createState() => _VaultViewState();
+}
+
+class _VaultViewState extends State<VaultView> {
+  int _selectedTabIndex = 0; // 0: Semua, 1: Keluarga, 2: Pribadi
+
+  void _showCreateVaultDialog(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => BlocProvider.value(
+        value: context.read<VaultCubit>(),
+        child: BlocProvider.value(
+          value: context.read<AuthBloc>(),
+          child: AppFormBottomSheet(
+            title: 'Tambah Pos Dana',
+            child: AddVaultForm(
+              onSuccess: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showAddDepositDialog(BuildContext context, SavingsVault vault) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => BlocProvider.value(
+        value: context.read<VaultCubit>(),
+        child: AppFormBottomSheet(
+          title: 'Tambah Setoran',
+          description: 'Masukkan nominal uang yang ingin ditambahkan ke tabungan ini.',
+          child: AddVaultDepositForm(
+            vault: vault,
+            onSuccess: () {},
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showSubtractBalanceDialog(BuildContext context, SavingsVault vault) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => BlocProvider.value(
+        value: context.read<VaultCubit>(),
+        child: AppFormBottomSheet(
+          title: 'Kurangi Saldo Tabungan',
+          description: 'Gunakan fitur ini jika ada dana yang diambil dari tabungan.',
+          child: SubtractVaultBalanceForm(
+            vault: vault,
+            onSuccess: () {},
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showVaultHistoryDialog(BuildContext context, SavingsVault vault) {
+    context.read<VaultCubit>().loadTransactions(vault.id);
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => BlocProvider.value(
+        value: context.read<VaultCubit>(),
+        child: AppFormBottomSheet(
+          title: 'Riwayat Transaksi',
+          description: 'Riwayat setoran dan penarikan untuk ${vault.name}.',
+          child: BlocBuilder<VaultCubit, VaultState>(
+            buildWhen: (previous, current) => current is VaultTransactionsLoaded,
+            builder: (context, state) {
+              if (state is VaultTransactionsLoaded) {
+                if (state.transactions.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.all(24.0),
+                    child: Center(child: Text('Belum ada riwayat transaksi.')),
+                  );
+                }
+                return ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: state.transactions.length,
+                  separatorBuilder: (context, index) => const Divider(),
+                  itemBuilder: (context, index) {
+                    final tx = state.transactions[index];
+                    final isDeposit = tx.type.name == 'deposit';
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: CircleAvatar(
+                        backgroundColor: isDeposit ? AppColors.riskSafe.withValues(alpha: 0.2) : AppColors.riskCritical.withValues(alpha: 0.2),
+                        child: Icon(
+                          isDeposit ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
+                          color: isDeposit ? AppColors.riskSafe : AppColors.riskCritical,
+                        ),
+                      ),
+                      title: Text(isDeposit ? 'Setoran Masuk' : 'Saldo Dikurangi', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(tx.userEmail, style: AppTextStyles.dataLabel),
+                          if (tx.note != null && tx.note!.isNotEmpty)
+                            Text('Catatan: ${tx.note}', style: AppTextStyles.dataLabel.copyWith(fontStyle: FontStyle.italic)),
+                        ],
+                      ),
+                      trailing: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            '${isDeposit ? "+" : "-"}${_rupiahFormat.format(tx.amount)}',
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: isDeposit ? AppColors.riskSafe : AppColors.riskCritical,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            DateFormat('dd MMM yy, HH:mm').format(tx.createdAt),
+                            style: AppTextStyles.dataLabel.copyWith(color: AppColors.textSecondary, fontSize: 10),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              }
+              return const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()));
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Pos Dana Darurat', style: AppTextStyles.heading3),
+    return BlocListener<VaultCubit, VaultState>(
+      listener: (context, state) {
+        if (state is VaultActionSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message), backgroundColor: AppColors.riskSafe),
+          );
+        } else if (state is VaultError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message), backgroundColor: AppColors.riskCritical),
+          );
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Pos Dana Darurat', style: AppTextStyles.heading3),
+        ),
+        body: Column(
+        children: [
+          _buildFilterTabs(),
+          Expanded(
+            child: BlocBuilder<AuthBloc, AuthState>(
+              builder: (context, authState) {
+                String currentUserId = '';
+                String currentFamilyId = '';
+                if (authState is AuthAuthenticated) {
+                  currentUserId = authState.user.userId;
+                  currentFamilyId = authState.user.familyId;
+                }
+
+                return BlocBuilder<VaultCubit, VaultState>(
+                  builder: (context, vaultState) {
+                    if (vaultState is VaultLoading) {
+                      return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+                    }
+
+                    if (vaultState is VaultError) {
+                      return _buildErrorView(context, vaultState.message);
+                    }
+
+                    if (vaultState is VaultLoaded) {
+                      debugPrint('================ SAVINGS VAULT PAGE LOADED ================');
+                      debugPrint('SAVINGS PAGE vault count: ${vaultState.vaults.length}');
+                      for (final vault in vaultState.vaults) {
+                        debugPrint(
+                          'SAVINGS PAGE VAULT => '
+                          'id=${vault.id}, '
+                          'name=${vault.name}, '
+                          'scope=${vault.scope.name}, '
+                          'familyId=${vault.familyId}, '
+                          'ownerUserId=${vault.ownerUserId}, '
+                          'ownerEmail=${vault.ownerEmail}',
+                        );
+                      }
+
+                      final vaults = vaultState.vaults.where((v) {
+                        final canView = VaultPermissionHelper.canViewVault(
+                          vault: v,
+                          currentUserId: currentUserId,
+                          currentFamilyId: currentFamilyId,
+                        );
+                        if (!canView) return false;
+
+                        if (_selectedTabIndex == 1) return v.scope == SavingsVaultScope.family;
+                        if (_selectedTabIndex == 2) return v.scope == SavingsVaultScope.personal;
+                        return true;
+                      }).toList();
+
+                      return _buildContent(context, vaults);
+                    }
+
+                    return const SizedBox.shrink();
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
-      body: BlocBuilder<VaultCubit, VaultState>(
-        builder: (context, state) {
-          if (state is VaultLoading) {
-            return const Center(child: CircularProgressIndicator(color: AppColors.primary));
-          }
-
-          if (state is VaultError) {
-            return _buildErrorView(context, state.message);
-          }
-
-          if (state is VaultLoaded) {
-            return _buildContent(context, state.vaults);
-          }
-
-          return const SizedBox.shrink();
-        },
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: AppColors.primary,
+          onPressed: () => _showCreateVaultDialog(context),
+          child: const Icon(Icons.add_rounded, color: Colors.white),
+        ),
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.primary,
-        onPressed: () => _showCreateVaultDialog(context),
-        child: const Icon(Icons.add_rounded, color: Colors.white),
+    );
+  }
+
+  Widget _buildFilterTabs() {
+    return Container(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          _buildTab(0, 'Semua'),
+          const SizedBox(width: 8),
+          _buildTab(1, 'Keluarga'),
+          const SizedBox(width: 8),
+          _buildTab(2, 'Pribadi'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTab(int index, String label) {
+    final isSelected = _selectedTabIndex == index;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedTabIndex = index),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.primary : AppColors.surface,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: isSelected ? AppColors.primary : AppColors.border),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: AppTextStyles.dataLabel.copyWith(
+              color: isSelected ? Colors.white : AppColors.textSecondary,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -90,7 +334,11 @@ class VaultView extends StatelessWidget {
                 const Icon(Icons.savings_outlined, size: 64, color: AppColors.border),
                 const SizedBox(height: 16),
                 Text(
-                  'Belum ada pos dana. Tambahkan pos dana darurat pertama Anda.',
+                  _selectedTabIndex == 1
+                      ? 'Belum ada tabungan keluarga.'
+                      : _selectedTabIndex == 2
+                          ? 'Belum ada tabungan pribadi.'
+                          : 'Belum ada tabungan yang bisa dipantau.',
                   style: AppTextStyles.bodyMedium,
                   textAlign: TextAlign.center,
                 ),
@@ -105,12 +353,38 @@ class VaultView extends StatelessWidget {
 
   Widget _buildVaultCard(BuildContext context, SavingsVault vault) {
     final percent = (vault.progress * 100).round();
+    final isFamily = vault.scope == SavingsVaultScope.family;
 
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isFamily ? AppColors.primary.withValues(alpha: 0.1) : AppColors.secondary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  isFamily ? 'Tabungan Keluarga' : 'Tabungan Pribadi',
+                  style: AppTextStyles.dataLabel.copyWith(
+                    color: isFamily ? AppColors.primary : AppColors.secondary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              if (!isFamily && vault.ownerEmail != null)
+                Text(
+                  vault.ownerEmail!,
+                  style: AppTextStyles.dataLabel.copyWith(color: AppColors.textSecondary),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -121,8 +395,13 @@ class VaultView extends StatelessWidget {
                     Text(vault.name, style: AppTextStyles.heading3.copyWith(fontSize: 16)),
                     const SizedBox(height: 2),
                     Text(
-                      'Target: ${_rupiahFormat.format(vault.targetAmount)}',
+                      'Keperluan: ${vault.savingPurpose ?? "Tidak disebutkan"}',
                       style: AppTextStyles.bodySmall,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Target: ${_rupiahFormat.format(vault.targetAmount)}',
+                      style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -195,145 +474,65 @@ class VaultView extends StatelessWidget {
           const SizedBox(height: 10),
           SizedBox(
             width: double.infinity,
-            child: vault.isCompleted
-                ? OutlinedButton.icon(
-                    onPressed: null,
-                    icon: const Icon(Icons.check_circle_rounded, size: 18),
-                    label: const Text('Completed'),
-                    style: OutlinedButton.styleFrom(
-                      disabledForegroundColor: AppColors.riskSafe,
-                      side: const BorderSide(color: AppColors.border),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                    ),
-                  )
-                : OutlinedButton.icon(
-                    onPressed: () => _showAddFundsDialog(context, vault),
-                    icon: const Icon(Icons.add_rounded, size: 18),
-                    label: const Text('Tabung'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      side: const BorderSide(color: AppColors.border),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                    ),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.end,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () => _showVaultHistoryDialog(context, vault),
+                  icon: const Icon(Icons.history, size: 18),
+                  label: const Text('Riwayat'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.textSecondary,
+                    side: const BorderSide(color: AppColors.border),
                   ),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => _showSubtractBalanceDialog(context, vault),
+                  icon: const Icon(Icons.remove, size: 18),
+                  label: const Text('Kurangi'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.riskCritical,
+                    side: const BorderSide(color: AppColors.riskCritical),
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: vault.isCompleted ? null : () => _showAddDepositDialog(context, vault),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Tambah'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  void _showCreateVaultDialog(BuildContext context) {
-    final cubit = context.read<VaultCubit>();
-    final nameController = TextEditingController();
-    final targetController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Tambah Pos Dana Baru'),
-          content: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Nama Pos Dana'),
-                  validator: (val) => (val == null || val.trim().isEmpty) ? 'Nama wajib diisi' : null,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: targetController,
-                  decoration: const InputDecoration(labelText: 'Target Dana (Rp)'),
-                  keyboardType: TextInputType.number,
-                  validator: (val) {
-                    final amount = double.tryParse(val ?? '');
-                    if (amount == null || amount <= 0) return 'Masukkan target yang valid';
-                    return null;
-                  },
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Batal'),
-            ),
-            TextButton(
-              onPressed: () {
-                if (!formKey.currentState!.validate()) return;
-                cubit.createVault(
-                  name: nameController.text.trim(),
-                  targetAmount: double.parse(targetController.text),
-                );
-                Navigator.of(dialogContext).pop();
-              },
-              child: const Text('Simpan'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showAddFundsDialog(BuildContext context, SavingsVault vault) {
-    final cubit = context.read<VaultCubit>();
-    final amountController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: Text('Tabung ke ${vault.name}'),
-          content: Form(
-            key: formKey,
-            child: TextFormField(
-              controller: amountController,
-              autofocus: true,
-              decoration: const InputDecoration(labelText: 'Jumlah (Rp)'),
-              keyboardType: TextInputType.number,
-              validator: (val) {
-                final amount = double.tryParse(val ?? '');
-                if (amount == null || amount <= 0) return 'Masukkan jumlah yang valid';
-                return null;
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Batal'),
-            ),
-            TextButton(
-              onPressed: () {
-                if (!formKey.currentState!.validate()) return;
-                cubit.addFunds(vault.id, double.parse(amountController.text));
-                Navigator.of(dialogContext).pop();
-              },
-              child: const Text('Tabung'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   Widget _buildErrorView(BuildContext context, String message) {
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.error_outline_rounded, size: 80, color: AppColors.riskCritical),
-          const SizedBox(height: 16),
-          Text('Terjadi Kesalahan', style: AppTextStyles.heading2),
-          const SizedBox(height: 8),
-          Text(message, textAlign: TextAlign.center, style: AppTextStyles.bodyMedium),
-        ],
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline_rounded, size: 48, color: AppColors.riskCritical),
+            const SizedBox(height: 16),
+            Text('Gagal Memuat Data', style: AppTextStyles.heading2),
+            const SizedBox(height: 8),
+            Text(message, style: AppTextStyles.bodyMedium, textAlign: TextAlign.center),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () => context.read<VaultCubit>().loadVaults(),
+              child: const Text('Coba Lagi'),
+            ),
+          ],
+        ),
       ),
     );
   }

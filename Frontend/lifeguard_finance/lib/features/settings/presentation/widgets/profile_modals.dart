@@ -9,7 +9,7 @@ import '../../../savings_vault/domain/entities/savings_vault_entity.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
-
+import '../../../auth/domain/entities/user_role.dart';
 class AppFormBottomSheet extends StatelessWidget {
   final String title;
   final String? description;
@@ -133,8 +133,20 @@ class _AddVaultFormState extends State<AddVaultForm> {
   final _periodicTargetController = TextEditingController();
   DateTime? _selectedDeadline;
   SavingFrequency _frequency = SavingFrequency.monthly;
+  SavingsVaultScope _scope = SavingsVaultScope.personal;
 
   bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      if (authState.user.role == UserRole.headOfFamily) {
+        _scope = SavingsVaultScope.family;
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -159,6 +171,26 @@ class _AddVaultFormState extends State<AddVaultForm> {
 
         final fullName = category.isNotEmpty ? '$name ($category)' : name;
 
+        final authState = context.read<AuthBloc>().state;
+        String? familyId;
+        String? ownerUserId;
+        String? ownerEmail;
+        String? ownerName;
+
+        if (authState is AuthAuthenticated) {
+          familyId = authState.user.familyId;
+          ownerUserId = authState.user.userId;
+          ownerEmail = authState.user.email;
+          ownerName = authState.user.fullName;
+        }
+
+        debugPrint('================ ADD VAULT SUBMIT ================');
+        debugPrint('ADD VAULT name: $fullName');
+        debugPrint('ADD VAULT scope: ${_scope.name}');
+        debugPrint('ADD VAULT familyId: $familyId');
+        debugPrint('ADD VAULT ownerUserId: $ownerUserId');
+        debugPrint('ADD VAULT ownerEmail: $ownerEmail');
+
         await context.read<VaultCubit>().createVault(
               name: fullName,
               targetAmount: target,
@@ -167,6 +199,11 @@ class _AddVaultFormState extends State<AddVaultForm> {
               savingFrequency: _frequency,
               periodicTargetAmount: periodicTarget,
               deadline: _selectedDeadline,
+              scope: _scope,
+              familyId: familyId,
+              ownerUserId: ownerUserId,
+              ownerEmail: ownerEmail,
+              ownerName: ownerName,
             );
 
         if (mounted) {
@@ -199,6 +236,44 @@ class _AddVaultFormState extends State<AddVaultForm> {
             controller: _nameController,
             decoration: const InputDecoration(labelText: 'Nama Pos Dana', border: OutlineInputBorder()),
             validator: (v) => v == null || v.trim().isEmpty ? 'Nama wajib diisi' : null,
+          ),
+          const SizedBox(height: 16),
+          BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) {
+              bool isHead = false;
+              if (state is AuthAuthenticated) {
+                isHead = state.user.role == UserRole.headOfFamily;
+              }
+              return DropdownButtonFormField<SavingsVaultScope>(
+                initialValue: _scope,
+                decoration: const InputDecoration(labelText: 'Jenis Tabungan', border: OutlineInputBorder()),
+                items: [
+                  if (isHead)
+                    const DropdownMenuItem(value: SavingsVaultScope.family, child: Text('Tabungan Keluarga')),
+                  const DropdownMenuItem(value: SavingsVaultScope.personal, child: Text('Tabungan Pribadi')),
+                ],
+                onChanged: isHead
+                    ? (v) {
+                        if (v != null) setState(() => _scope = v);
+                      }
+                    : null,
+                disabledHint: const Text('Tabungan Pribadi'),
+              );
+            },
+          ),
+          BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) {
+              if (state is AuthAuthenticated && state.user.role != UserRole.headOfFamily) {
+                return Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    'Tabungan Keluarga hanya dapat dibuat oleh Kepala Keluarga.',
+                    style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary, fontSize: 12),
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
           ),
           const SizedBox(height: 16),
           TextFormField(
@@ -371,25 +446,27 @@ class _InviteMemberFormState extends State<InviteMemberForm> {
   }
 }
 
-class UpdateVaultProgressForm extends StatefulWidget {
+class AddVaultDepositForm extends StatefulWidget {
   final SavingsVault vault;
   final VoidCallback onSuccess;
 
-  const UpdateVaultProgressForm({super.key, required this.vault, required this.onSuccess});
+  const AddVaultDepositForm({super.key, required this.vault, required this.onSuccess});
 
   @override
-  State<UpdateVaultProgressForm> createState() => _UpdateVaultProgressFormState();
+  State<AddVaultDepositForm> createState() => _AddVaultDepositFormState();
 }
 
-class _UpdateVaultProgressFormState extends State<UpdateVaultProgressForm> {
+class _AddVaultDepositFormState extends State<AddVaultDepositForm> {
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
+  final _noteController = TextEditingController();
 
   bool _loading = false;
 
   @override
   void dispose() {
     _amountController.dispose();
+    _noteController.dispose();
     super.dispose();
   }
 
@@ -398,21 +475,16 @@ class _UpdateVaultProgressFormState extends State<UpdateVaultProgressForm> {
       setState(() => _loading = true);
       try {
         final amount = double.parse(_amountController.text);
-        await context.read<VaultCubit>().addFunds(widget.vault.id, amount);
+        final note = _noteController.text.trim();
+        await context.read<VaultCubit>().addDeposit(widget.vault.id, amount, note: note.isNotEmpty ? note : null);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Berhasil menabung Rp ${NumberFormat('#,###', 'id_ID').format(amount)} ke ${widget.vault.name}!'),
-              backgroundColor: AppColors.riskSafe,
-            ),
-          );
           Navigator.pop(context);
           widget.onSuccess();
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Gagal menambah tabangan: $e'), backgroundColor: AppColors.riskCritical),
+            SnackBar(content: Text('Gagal menambah setoran: $e'), backgroundColor: AppColors.riskCritical),
           );
         }
       } finally {
@@ -428,23 +500,9 @@ class _UpdateVaultProgressFormState extends State<UpdateVaultProgressForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Pos: ${widget.vault.name}',
-            style: AppTextStyles.heading3,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Terkumpul: Rp ${NumberFormat('#,###', 'id_ID').format(widget.vault.savedAmount)} / Rp ${NumberFormat('#,###', 'id_ID').format(widget.vault.targetAmount)}',
-            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
-          ),
-          const SizedBox(height: 24),
           TextFormField(
             controller: _amountController,
-            decoration: const InputDecoration(
-              labelText: 'Jumlah Tabungan Baru (Rp)',
-              border: OutlineInputBorder(),
-              hintText: 'Masukkan nominal',
-            ),
+            decoration: const InputDecoration(labelText: 'Nominal Setoran (Rp)', border: OutlineInputBorder()),
             keyboardType: TextInputType.number,
             autofocus: true,
             validator: (v) {
@@ -453,9 +511,99 @@ class _UpdateVaultProgressFormState extends State<UpdateVaultProgressForm> {
               return null;
             },
           ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _noteController,
+            decoration: const InputDecoration(labelText: 'Catatan (Opsional)', border: OutlineInputBorder()),
+            keyboardType: TextInputType.text,
+          ),
           const SizedBox(height: 24),
           PrimaryButton(
-            text: 'Tabung Sekarang',
+            text: 'Simpan Setoran',
+            isLoading: _loading,
+            onPressed: _loading ? null : _submit,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SubtractVaultBalanceForm extends StatefulWidget {
+  final SavingsVault vault;
+  final VoidCallback onSuccess;
+
+  const SubtractVaultBalanceForm({super.key, required this.vault, required this.onSuccess});
+
+  @override
+  State<SubtractVaultBalanceForm> createState() => _SubtractVaultBalanceFormState();
+}
+
+class _SubtractVaultBalanceFormState extends State<SubtractVaultBalanceForm> {
+  final _formKey = GlobalKey<FormState>();
+  final _amountController = TextEditingController();
+  final _noteController = TextEditingController();
+
+  bool _loading = false;
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  void _submit() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() => _loading = true);
+      try {
+        final amount = double.parse(_amountController.text);
+        final note = _noteController.text.trim();
+        await context.read<VaultCubit>().subtractBalance(widget.vault.id, amount, note: note.isNotEmpty ? note : null);
+        if (mounted) {
+          Navigator.pop(context);
+          widget.onSuccess();
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Gagal mengurangi saldo: $e'), backgroundColor: AppColors.riskCritical),
+          );
+        }
+      } finally {
+        if (mounted) setState(() => _loading = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextFormField(
+            controller: _amountController,
+            decoration: const InputDecoration(labelText: 'Nominal Pengurangan (Rp)', border: OutlineInputBorder()),
+            keyboardType: TextInputType.number,
+            autofocus: true,
+            validator: (v) {
+              final val = double.tryParse(v ?? '');
+              if (val == null || val <= 0) return 'Masukkan jumlah nominal yang valid';
+              if (val > widget.vault.savedAmount) return 'Nominal pengurangan melebihi saldo tabungan.';
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _noteController,
+            decoration: const InputDecoration(labelText: 'Catatan (Opsional)', border: OutlineInputBorder()),
+            keyboardType: TextInputType.text,
+          ),
+          const SizedBox(height: 24),
+          PrimaryButton(
+            text: 'Kurangi Saldo',
             isLoading: _loading,
             onPressed: _loading ? null : _submit,
           ),

@@ -9,10 +9,12 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../../../core/widgets/section_title.dart';
+import '../../../../core/utils/url_launcher_helper.dart';
 import '../../../auth/domain/entities/user_role.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../savings_vault/presentation/bloc/vault_cubit.dart';
+import '../../../savings_vault/domain/entities/savings_vault_entity.dart';
 import '../bloc/profile_bloc.dart';
 import '../bloc/profile_event.dart';
 import '../bloc/profile_state.dart';
@@ -41,6 +43,7 @@ class ProfileSettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('================ PROFILE PAGE OPENED ================');
     // Shared root AuthBloc is used for logout / auth checks
     final authBloc = context.read<AuthBloc>();
 
@@ -80,6 +83,34 @@ class ProfileSettingsPage extends StatelessWidget {
             } else if (state is ProfileLoaded) {
               final summary = state.summary;
               final isHead = summary.role == UserRole.headOfFamily;
+
+              debugPrint('================ PROFILE LOADED STATE ================');
+              debugPrint('Profile userName: ${summary.userName}');
+              debugPrint('Profile email: ${summary.email}');
+              debugPrint('Profile role: ${summary.role.name}');
+              debugPrint('Profile familyCode: ${summary.familyCode}');
+              debugPrint('Profile visibleVaults count: ${summary.visibleVaults.length}');
+              debugPrint('Profile familyVaults count: ${summary.familyVaults.length}');
+              debugPrint('Profile personalVaults count: ${summary.personalVaults.length}');
+
+              for (final vault in summary.visibleVaults) {
+                debugPrint(
+                  'PROFILE VAULT => '
+                  'id=${vault.id}, '
+                  'name=${vault.name}, '
+                  'scope=${vault.scope.name}, '
+                  'familyId=${vault.familyId}, '
+                  'ownerUserId=${vault.ownerUserId}, '
+                  'ownerEmail=${vault.ownerEmail}, '
+                  'currentAmount=${vault.savedAmount}, '
+                  'targetAmount=${vault.targetAmount}',
+                );
+              }
+
+              if (summary.allVaults.isNotEmpty && summary.visibleVaults.isEmpty) {
+                debugPrint('WARNING: Vault data exists but no visible vault after filtering.');
+                debugPrint('Possible mismatch: familyId/currentFamilyId or ownerUserId/currentUserId.');
+              }
 
               return RefreshIndicator(
                 onRefresh: () async {
@@ -457,18 +488,58 @@ class ProfileSettingsPage extends StatelessWidget {
   }
 
   Widget _buildVaultSection(BuildContext context, ProfileSummary summary, bool isHead) {
-    final list = summary.vaults;
-    final displayed = list.take(3).toList();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildVaultList(
+          context: context,
+          title: 'Tabungan Keluarga',
+          vaults: summary.familyVaults,
+          totalTarget: summary.totalFamilyVaultTarget,
+          totalSaved: summary.totalFamilyVaultSaved,
+          isHead: isHead,
+          canAdd: isHead,
+          emptyMessage: 'Belum ada target tabungan keluarga.',
+          badgeLabel: 'Dapat dipantau oleh anggota keluarga',
+        ),
+        const SizedBox(height: 24),
+        _buildVaultList(
+          context: context,
+          title: 'Tabungan Pribadi Saya',
+          vaults: summary.personalVaults,
+          totalTarget: summary.totalPersonalVaultTarget,
+          totalSaved: summary.totalPersonalVaultSaved,
+          isHead: isHead,
+          canAdd: true,
+          emptyMessage: 'Belum ada target tabungan pribadi.',
+          badgeLabel: 'Hanya terlihat oleh akun ini',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVaultList({
+    required BuildContext context,
+    required String title,
+    required List<SavingsVault> vaults,
+    required double totalTarget,
+    required double totalSaved,
+    required bool isHead,
+    required bool canAdd,
+    required String emptyMessage,
+    required String badgeLabel,
+  }) {
+    final displayed = vaults.take(3).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SectionTitle(
-          title: 'Pos Dana Darurat (Vault)',
-          trailing: isHead
+          title: title,
+          trailing: canAdd
               ? Row(
                   children: [
-                    if (list.length > 3)
+                    if (vaults.length > 3)
                       TextButton(
                         onPressed: () => context.push('/savings-vault'),
                         child: const Text('Lihat Semua'),
@@ -484,11 +555,14 @@ class ProfileSettingsPage extends StatelessWidget {
                             return AppFormBottomSheet(
                               title: 'Tambah Pos Dana',
                               description: 'Buat pos alokasi dana darurat baru.',
-                              child: BlocProvider<VaultCubit>(
-                                create: (c) => getIt<VaultCubit>(),
-                                child: AddVaultForm(onSuccess: () {
-                                  context.read<ProfileBloc>().add(LoadProfileSummary());
-                                }),
+                              child: BlocProvider<VaultCubit>.value(
+                                value: getIt<VaultCubit>(),
+                                child: BlocProvider<AuthBloc>.value(
+                                  value: context.read<AuthBloc>(),
+                                  child: AddVaultForm(onSuccess: () {
+                                    context.read<ProfileBloc>().add(LoadProfileSummary());
+                                  }),
+                                ),
                               ),
                             );
                           },
@@ -499,7 +573,41 @@ class ProfileSettingsPage extends StatelessWidget {
                 )
               : null,
         ),
-        if (list.isEmpty)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Text(
+            badgeLabel,
+            style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary, fontStyle: FontStyle.italic),
+          ),
+        ),
+        if (vaults.isNotEmpty) ...[
+          AppCard(
+            margin: const EdgeInsets.only(bottom: 16),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Total Target:', style: AppTextStyles.bodySmall),
+                      Text(formatRupiah(totalTarget), style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Total Terkumpul:', style: AppTextStyles.bodySmall),
+                      Text(formatRupiah(totalSaved), style: AppTextStyles.heading3.copyWith(color: AppColors.primary)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+        if (vaults.isEmpty)
           AppCard(
             child: Padding(
               padding: const EdgeInsets.all(20.0),
@@ -508,7 +616,7 @@ class ProfileSettingsPage extends StatelessWidget {
                   const Icon(Icons.savings_outlined, size: 48, color: AppColors.border),
                   const SizedBox(height: 12),
                   Text(
-                    'Belum ada target tabungan keluarga.',
+                    emptyMessage,
                     style: AppTextStyles.bodyMedium,
                     textAlign: TextAlign.center,
                   ),
@@ -541,6 +649,13 @@ class ProfileSettingsPage extends StatelessWidget {
                           ),
                         ],
                       ),
+                      if (vault.scope == SavingsVaultScope.personal && vault.ownerEmail != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          vault.ownerEmail!,
+                          style: AppTextStyles.dataLabel.copyWith(color: AppColors.textSecondary),
+                        ),
+                      ],
                       const SizedBox(height: 8),
                       LinearProgressIndicator(
                         value: vault.progress,
@@ -557,30 +672,62 @@ class ProfileSettingsPage extends StatelessWidget {
                             '${formatRupiah(vault.savedAmount)} / ${formatRupiah(vault.targetAmount)}',
                             style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
                           ),
-                          TextButton(
-                            style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: const Size(50, 30)),
-                            onPressed: () {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                backgroundColor: Colors.transparent,
-                                builder: (sheetContext) {
-                                  return AppFormBottomSheet(
-                                    title: 'Tabung Dana',
-                                    child: BlocProvider<VaultCubit>(
-                                      create: (c) => getIt<VaultCubit>(),
-                                      child: UpdateVaultProgressForm(
-                                        vault: vault,
-                                        onSuccess: () {
-                                          context.read<ProfileBloc>().add(LoadProfileSummary());
-                                        },
-                                      ),
-                                    ),
+                          Row(
+                            children: [
+                              TextButton(
+                                style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: const Size(50, 30)),
+                                onPressed: () {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.transparent,
+                                    builder: (sheetContext) {
+                                      return AppFormBottomSheet(
+                                        title: 'Kurangi Saldo Tabungan',
+                                        description: 'Gunakan fitur ini jika ada dana yang diambil dari tabungan.',
+                                        child: BlocProvider<VaultCubit>.value(
+                                          value: getIt<VaultCubit>(),
+                                          child: SubtractVaultBalanceForm(
+                                            vault: vault,
+                                            onSuccess: () {
+                                              context.read<ProfileBloc>().add(LoadProfileSummary());
+                                            },
+                                          ),
+                                        ),
+                                      );
+                                    },
                                   );
                                 },
-                              );
-                            },
-                            child: const Text('Tabung'),
+                                child: const Text('Kurangi', style: TextStyle(color: AppColors.riskCritical)),
+                              ),
+                              const SizedBox(width: 8),
+                              TextButton(
+                                style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: const Size(50, 30)),
+                                onPressed: () {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.transparent,
+                                    builder: (sheetContext) {
+                                      return AppFormBottomSheet(
+                                        title: 'Tambah Setoran',
+                                        description: 'Masukkan nominal uang yang ingin ditambahkan ke tabungan ini.',
+                                        child: BlocProvider<VaultCubit>.value(
+                                          value: getIt<VaultCubit>(),
+                                          child: AddVaultDepositForm(
+                                            vault: vault,
+                                            onSuccess: () {
+                                              context.read<ProfileBloc>().add(LoadProfileSummary());
+                                            },
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                                child: const Text('Tambah'),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -627,28 +774,45 @@ class ProfileSettingsPage extends StatelessWidget {
                   valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
                 ),
                 const SizedBox(height: 16),
-                Text('Rekomendasi Modul Mitigasi:', style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.bold)),
+                Text('Rekomendasi Edukasi Keuangan:', style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                ...summary.recommendedLiteracyModules.take(2).map((mod) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: Row(
-                        children: [
-                          Icon(
-                            mod['read'] == true ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
-                            color: mod['read'] == true ? AppColors.riskSafe : AppColors.textSecondary,
-                            size: 16,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(mod['title'] as String, style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.bold)),
-                                Text(mod['indicator'] as String, style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary, fontSize: 10)),
-                              ],
+                ...summary.recommendedLiteracyModules.take(2).map((mod) => InkWell(
+                      onTap: () {
+                        if (mod.externalUrl != null && mod.externalUrl!.isNotEmpty) {
+                          UrlLauncherHelper.openExternalUrl(mod.externalUrl!);
+                        } else {
+                          context.push('/literacy/${mod.moduleId}');
+                        }
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withValues(alpha: 0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.menu_book_rounded,
+                                color: AppColors.primary,
+                                size: 20,
+                              ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(mod.title, style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.bold)),
+                                  Text(mod.relatedIndicator, style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary, fontSize: 10)),
+                                ],
+                              ),
+                            ),
+                            const Icon(Icons.chevron_right_rounded, color: AppColors.border, size: 20),
+                          ],
+                        ),
                       ),
                     )),
               ],

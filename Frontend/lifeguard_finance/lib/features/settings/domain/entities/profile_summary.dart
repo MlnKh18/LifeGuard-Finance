@@ -7,6 +7,7 @@ import '../../../savings_vault/domain/entities/savings_vault_entity.dart';
 import '../../../community/domain/entities/community_post.dart';
 import '../../../fvs_dashboard/domain/entities/fvs_score_entity.dart';
 import '../../../family_profile/domain/entities/family_profile_entity.dart';
+import '../../../literacy/domain/entities/literacy_module.dart';
 
 class ProfileSummary extends Equatable {
   final AppUser? currentUser;
@@ -38,9 +39,21 @@ class ProfileSummary extends Equatable {
   final DateTime? latestFvsCalculatedAt;
   final List<String> weakestIndicators;
   
-  final List<SavingsVault> vaults;
+  final List<SavingsVault> allVaults;
+  final List<SavingsVault> familyVaults;
+  final List<SavingsVault> personalVaults;
+  final List<SavingsVault> visibleVaults;
+  
+  final double totalFamilyVaultTarget;
+  final double totalFamilyVaultSaved;
+  final double totalPersonalVaultTarget;
+  final double totalPersonalVaultSaved;
+  
+  final int familyVaultCount;
+  final int personalVaultCount;
+
   final List<dynamic> literacyProgress;
-  final List<dynamic> recommendedLiteracyModules;
+  final List<LiteracyModule> recommendedLiteracyModules;
   final List<CommunityPost> communityPosts;
   final List<dynamic> communityComments;
   final List<AppUser> familyMembers;
@@ -77,7 +90,16 @@ class ProfileSummary extends Equatable {
     this.latestFvsCategory = 'Belum Tersedia',
     this.latestFvsCalculatedAt,
     this.weakestIndicators = const [],
-    this.vaults = const [],
+    this.allVaults = const [],
+    this.familyVaults = const [],
+    this.personalVaults = const [],
+    this.visibleVaults = const [],
+    this.totalFamilyVaultTarget = 0.0,
+    this.totalFamilyVaultSaved = 0.0,
+    this.totalPersonalVaultTarget = 0.0,
+    this.totalPersonalVaultSaved = 0.0,
+    this.familyVaultCount = 0,
+    this.personalVaultCount = 0,
     this.literacyProgress = const [],
     this.recommendedLiteracyModules = const [],
     this.communityPosts = const [],
@@ -117,7 +139,16 @@ class ProfileSummary extends Equatable {
         latestFvsCategory,
         latestFvsCalculatedAt,
         weakestIndicators,
-        vaults,
+        allVaults,
+        familyVaults,
+        personalVaults,
+        visibleVaults,
+        totalFamilyVaultTarget,
+        totalFamilyVaultSaved,
+        totalPersonalVaultTarget,
+        totalPersonalVaultSaved,
+        familyVaultCount,
+        personalVaultCount,
         literacyProgress,
         recommendedLiteracyModules,
         communityPosts,

@@ -27,3 +27,21 @@ class VaultError extends VaultState {
   @override
   List<Object?> get props => [message];
 }
+
+class VaultActionSuccess extends VaultState {
+  final String message;
+
+  const VaultActionSuccess(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class VaultTransactionsLoaded extends VaultState {
+  final List<dynamic> transactions; // Later typed as VaultTransaction
+
+  const VaultTransactionsLoaded(this.transactions);
+
+  @override
+  List<Object?> get props => [transactions];
+}

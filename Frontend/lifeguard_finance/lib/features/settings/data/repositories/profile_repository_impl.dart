@@ -1,4 +1,5 @@
 import '../../domain/entities/profile_summary.dart';
+import 'package:flutter/foundation.dart';
 import '../../domain/repositories/profile_repository.dart';
 import '../datasources/profile_local_datasource.dart';
 import '../../../auth/domain/entities/app_user.dart';
@@ -10,11 +11,18 @@ import '../../../savings_vault/domain/entities/savings_vault_entity.dart';
 import '../../../community/domain/entities/community_post.dart';
 import '../../../fvs_dashboard/domain/entities/fvs_score_entity.dart';
 import '../../../family_profile/domain/entities/family_profile_entity.dart';
+import '../../../literacy/domain/entities/literacy_module.dart';
+
+import '../../../savings_vault/domain/repositories/vault_repository.dart';
 
 class ProfileRepositoryImpl implements ProfileRepository {
   final ProfileLocalDataSource localDataSource;
+  final VaultRepository vaultRepository;
 
-  ProfileRepositoryImpl({required this.localDataSource});
+  ProfileRepositoryImpl({
+    required this.localDataSource,
+    required this.vaultRepository,
+  });
 
   @override
   Future<ProfileSummary> getProfileSummary() async {
@@ -22,7 +30,6 @@ class ProfileRepositoryImpl implements ProfileRepository {
 
     final familyProfileRaw = data['familyProfile'] as Map<dynamic, dynamic>? ?? {};
     final fvsScoreRaw = data['fvsScore'] as Map<dynamic, dynamic>? ?? {};
-    final vaultDataRaw = data['vaultData'] as List<dynamic>? ?? [];
     final literacyData = data['literacyData'] as Map<dynamic, dynamic>? ?? {};
     final communityData = data['communityData'] as Map<dynamic, dynamic>? ?? {};
     final rewardData = data['rewardData'] as Map<dynamic, dynamic>? ?? {};
@@ -43,6 +50,11 @@ class ProfileRepositoryImpl implements ProfileRepository {
         currentUser = AppUser.fromJson(userMap as Map<dynamic, dynamic>);
       } catch (_) {}
     }
+
+    debugPrint('PROFILE currentUserId: ${currentUser?.userId}');
+    debugPrint('PROFILE currentUserEmail: ${currentUser?.email}');
+    debugPrint('PROFILE currentFamilyId: ${session?.currentFamilyId}');
+    debugPrint('PROFILE currentRole: ${session?.currentUserRole}');
 
     final familiesListRaw = data['familiesRaw'] as List<dynamic>? ?? [];
     FamilyAccount? family;
@@ -125,40 +137,142 @@ class ProfileRepositoryImpl implements ProfileRepository {
       }
     }
 
-    // Map Vaults
-    final List<SavingsVault> vaults = vaultDataRaw
-        .map((e) => SavingsVault.fromJson(Map<String, dynamic>.from(e as Map)))
-        .toList();
+    final String actualUserId = currentUser?.userId ?? session?.currentUserId ?? '';
+    final String actualFamilyId = currentUser?.familyId ?? session?.currentFamilyId ?? '';
+
+    // Map Vaults from VaultRepository directly to ensure Single Source of Truth
+    final List<SavingsVault> allVaults = await vaultRepository.getVaults();
+
+    debugPrint('PROFILE allVaults FROM VaultRepository count: ${allVaults.length}');
+    for (final vault in allVaults) {
+      debugPrint(
+        'ALL VAULT => '
+        'id=${vault.id}, '
+        'name=${vault.name}, '
+        'scope=${vault.scope.name}, '
+        'familyId=${vault.familyId}, '
+        'ownerUserId=${vault.ownerUserId}, '
+        'ownerEmail=${vault.ownerEmail}, '
+        'currentAmount=${vault.savedAmount}, '
+        'targetAmount=${vault.targetAmount}',
+      );
+    }
+
+    final familyVaults = allVaults.where((v) {
+      final match = v.scope == SavingsVaultScope.family && v.familyId == actualFamilyId;
+      debugPrint(
+        'CHECK FAMILY VAULT ${v.name}: '
+        'vault.familyId=${v.familyId}, '
+        'currentFamilyId=$actualFamilyId, '
+        'match=$match',
+      );
+      return match;
+    }).toList();
+
+    final personalVaults = allVaults.where((v) {
+      final match = v.scope == SavingsVaultScope.personal && v.ownerUserId == actualUserId;
+      debugPrint(
+        'CHECK PERSONAL VAULT ${v.name}: '
+        'vault.ownerUserId=${v.ownerUserId}, '
+        'currentUserId=$actualUserId, '
+        'match=$match',
+      );
+      return match;
+    }).toList();
+
+    final visibleVaults = [...familyVaults, ...personalVaults];
+
+    debugPrint('PROFILE familyVaults count: ${familyVaults.length}');
+    debugPrint('PROFILE personalVaults count: ${personalVaults.length}');
+    debugPrint('PROFILE visibleVaults count: ${visibleVaults.length}');
+    debugPrint('================ GET PROFILE SUMMARY END ================');
+
+    double totalFamilyVaultTarget = 0.0;
+    double totalFamilyVaultSaved = 0.0;
+    for (var v in familyVaults) {
+      totalFamilyVaultTarget += v.targetAmount;
+      totalFamilyVaultSaved += v.savedAmount;
+    }
+
+    double totalPersonalVaultTarget = 0.0;
+    double totalPersonalVaultSaved = 0.0;
+    for (var v in personalVaults) {
+      totalPersonalVaultTarget += v.targetAmount;
+      totalPersonalVaultSaved += v.savedAmount;
+    }
 
     // Map Literacy
     final readCount = (literacyData['readCount'] as num?)?.toInt() ?? 0;
-    final List<Map<String, dynamic>> recommendedModules = [
-      {
-        'title': 'Dasar Manajemen Dana Darurat',
-        'indicator': 'Dana Darurat (S3)',
-        'read': readCount > 0,
-      },
-      {
-        'title': 'Mengendalikan Rasio Utang Keluarga',
-        'indicator': 'Beban Utang (S4)',
-        'read': readCount > 1,
-      },
-      {
-        'title': 'Pentingnya Proteksi Asuransi Kesehatan',
-        'indicator': 'Kesiapan Proteksi (S6)',
-        'read': readCount > 2,
-      },
-      {
-        'title': 'Mengatur Anggaran Rumah Tangga',
-        'indicator': 'Rasio Pengeluaran (S2)',
-        'read': false,
-      },
-      {
-        'title': 'Investasi Reksa Dana untuk Pemula',
-        'indicator': 'Kapasitas Penyerapan Guncangan (S7)',
-        'read': false,
-      },
+    
+    final List<LiteracyModule> mockModules = [
+      const LiteracyModule(
+        moduleId: 'edu-s3-1',
+        title: 'Membangun Dana Darurat Keluarga',
+        topic: 'Dana Darurat',
+        relatedIndicator: 'Dana Darurat (S3)',
+        summary: 'Pelajari cara menentukan target dana darurat berdasarkan kebutuhan keluarga.',
+        content: 'Konten modul...',
+        tips: 'Mulai dari yang kecil.',
+        durationMinutes: 5,
+        externalUrl: 'https://sikapiuangmu.ojk.go.id/',
+        isRecommended: true,
+      ),
+      const LiteracyModule(
+        moduleId: 'edu-s4-1',
+        title: 'Mengendalikan Rasio Utang Keluarga',
+        topic: 'Manajemen Utang',
+        relatedIndicator: 'Beban Utang (S4)',
+        summary: 'Strategi efektif mengelola dan melunasi utang konsumtif.',
+        content: 'Konten modul...',
+        tips: 'Gunakan metode snowball.',
+        durationMinutes: 7,
+        externalUrl: 'https://www.bi.go.id/id/edukasi/default.aspx',
+        isRecommended: false,
+      ),
+      const LiteracyModule(
+        moduleId: 'edu-s6-1',
+        title: 'Pentingnya Asuransi Kesehatan',
+        topic: 'Proteksi',
+        relatedIndicator: 'Kesiapan Proteksi (S6)',
+        summary: 'Memilih asuransi yang tepat untuk proteksi keluarga dari risiko kesehatan.',
+        content: 'Konten modul...',
+        tips: 'Pastikan premi sesuai budget.',
+        durationMinutes: 6,
+        externalUrl: 'https://sikapiuangmu.ojk.go.id/FrontEnd/CMS/Category/132',
+        isRecommended: false,
+      ),
+      const LiteracyModule(
+        moduleId: 'edu-s2-1',
+        title: 'Mengatur Anggaran Rumah Tangga',
+        topic: 'Anggaran',
+        relatedIndicator: 'Rasio Pengeluaran (S2)',
+        summary: 'Menerapkan formula 50-30-20 untuk pembagian gaji bulanan.',
+        content: 'Konten modul...',
+        tips: 'Catat pengeluaran harian.',
+        durationMinutes: 4,
+        externalUrl: null,
+        isRecommended: false,
+      ),
     ];
+
+    List<LiteracyModule> recommendedLiteracyModules = [];
+    if (weakestIndicators.isNotEmpty) {
+      final weakest = weakestIndicators.first;
+      final matched = mockModules.where((m) => m.relatedIndicator == weakest).toList();
+      if (matched.isNotEmpty) {
+        recommendedLiteracyModules = matched;
+      }
+    }
+    
+    if (recommendedLiteracyModules.isEmpty) {
+      recommendedLiteracyModules = mockModules.where((m) => m.isRecommended).toList();
+    }
+    
+    if (recommendedLiteracyModules.isEmpty && mockModules.isNotEmpty) {
+      recommendedLiteracyModules = [mockModules.first];
+    }
+
+    final literacyProgress = [readCount, mockModules.length];
 
     // Map Community activity
     final communityPostsRaw = communityData['posts'] as List<dynamic>? ?? [];
@@ -230,9 +344,18 @@ class ProfileRepositoryImpl implements ProfileRepository {
       latestFvsCategory: latestFvs?.category ?? 'Belum Tersedia',
       latestFvsCalculatedAt: latestFvs?.calculatedAt,
       weakestIndicators: weakestIndicators,
-      vaults: vaults,
-      literacyProgress: [readCount, recommendedModules.length],
-      recommendedLiteracyModules: recommendedModules,
+      allVaults: allVaults,
+      familyVaults: familyVaults,
+      personalVaults: personalVaults,
+      visibleVaults: visibleVaults,
+      totalFamilyVaultTarget: totalFamilyVaultTarget,
+      totalFamilyVaultSaved: totalFamilyVaultSaved,
+      totalPersonalVaultTarget: totalPersonalVaultTarget,
+      totalPersonalVaultSaved: totalPersonalVaultSaved,
+      familyVaultCount: familyVaults.length,
+      personalVaultCount: personalVaults.length,
+      literacyProgress: literacyProgress,
+      recommendedLiteracyModules: recommendedLiteracyModules,
       communityPosts: communityPosts,
       communityComments: communityComments,
       familyMembers: familyMembers,

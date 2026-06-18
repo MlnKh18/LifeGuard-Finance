@@ -17,6 +17,8 @@ import '../../features/family_profile/data/repositories/family_profile_repositor
 import '../../features/settings/data/datasources/profile_local_datasource.dart';
 import '../../features/settings/domain/repositories/profile_repository.dart';
 import '../../features/settings/data/repositories/profile_repository_impl.dart';
+import '../../features/savings_vault/domain/repositories/vault_repository.dart';
+import '../../features/savings_vault/data/repositories/vault_repository_impl.dart';
 
 // Import Use Cases
 import '../../features/family_profile/domain/usecases/get_family_profile.dart';
@@ -53,7 +55,16 @@ Future<void> setupInjection() async {
     () => ProfileLocalDataSourceImpl(hiveService: getIt<HiveService>()),
   );
   getIt.registerLazySingleton<ProfileRepository>(
-    () => ProfileRepositoryImpl(localDataSource: getIt<ProfileLocalDataSource>()),
+    () => ProfileRepositoryImpl(
+      localDataSource: getIt<ProfileLocalDataSource>(),
+      vaultRepository: getIt<VaultRepository>(),
+    ),
+  );
+  getIt.registerLazySingleton<VaultRepository>(
+    () => VaultRepositoryImpl(
+      hiveService: getIt<HiveService>(),
+      authRepository: getIt<AuthRepository>(),
+    ),
   );
   getIt.registerLazySingleton<AuthLocalDataSource>(
     () => AuthLocalDataSourceImpl(hiveService: getIt<HiveService>()),
@@ -144,7 +155,10 @@ Future<void> setupInjection() async {
     () => LiteracyCubit(),
   );
   getIt.registerFactory<VaultCubit>(
-    () => VaultCubit(hiveService: getIt<HiveService>()),
+    () => VaultCubit(
+      hiveService: getIt<HiveService>(),
+      vaultRepository: getIt<VaultRepository>(),
+    ),
   );
   getIt.registerFactory<CommunityCubit>(
     () => CommunityCubit(hiveService: getIt<HiveService>()),
