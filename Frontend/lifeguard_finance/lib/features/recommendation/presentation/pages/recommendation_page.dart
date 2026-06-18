@@ -198,15 +198,18 @@ class _RecommendationViewState extends State<RecommendationView> with SingleTick
       margin: const EdgeInsets.only(bottom: 10),
       borderRadius: 8.0,
       showShadow: true,
-      onTap: () => context.read<RecommendationCubit>().toggleTask(task.id),
+      onTap: () => context.push('/recommendation/${task.id}'),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 2),
-            child: Icon(
-              task.isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
-              color: AppColors.primary,
+            child: GestureDetector(
+              onTap: () => context.read<RecommendationCubit>().toggleTask(task.id),
+              child: Icon(
+                task.isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                color: AppColors.primary,
+              ),
             ),
           ),
           const SizedBox(width: 12),

@@ -12,6 +12,7 @@ import '../../features/family_profile/presentation/pages/family_profile_page.dar
 import '../../features/fvs_dashboard/presentation/pages/dashboard_page.dart';
 import '../../features/emergency_simulation/presentation/pages/simulation_page.dart';
 import '../../features/recommendation/presentation/pages/recommendation_page.dart';
+import '../../features/recommendation/presentation/pages/task_detail_page.dart';
 import '../../features/smart_routing/presentation/pages/smart_routing_page.dart';
 import '../../features/anomaly_detection/presentation/pages/expense_anomaly_page.dart';
 import '../../features/anomaly_detection/presentation/pages/transaction_detail_page.dart';
@@ -163,6 +164,14 @@ class AppRouter {
               GoRoute(
                 path: '/recommendation',
                 builder: (context, state) => const RecommendationPage(),
+                routes: [
+                  GoRoute(
+                    path: ':taskId',
+                    builder: (context, state) => TaskDetailPage(
+                      taskId: state.pathParameters['taskId'] ?? '',
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
