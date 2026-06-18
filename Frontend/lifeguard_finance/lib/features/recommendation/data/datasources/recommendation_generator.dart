@@ -1,5 +1,7 @@
 import 'package:uuid/uuid.dart';
 import '../../../fvs_dashboard/domain/entities/fvs_score_entity.dart';
+import '../../../literacy/data/mock_literacy_data.dart';
+import '../../../literacy/domain/entities/literacy_module.dart';
 import '../../domain/entities/recommendation_entity.dart';
 
 /// Scans the FVS sub-scores (S1-S7) and produces a prioritized action plan,
@@ -79,6 +81,43 @@ class RecommendationGenerator {
       ));
     }
 
+    // Aggressive recovery plan for Rentan/Kritis categories
+    if (score.category == 'Rentan' || score.category == 'Kritis') {
+      tasks.add(Recommendation(
+        id: uuid.v4(),
+        title: 'Rencana Pemulihan Agresif 90 Hari',
+        description:
+            'Kondisi keuangan keluarga Anda berada di kategori ${score.category}. Susun ulang anggaran secara menyeluruh: pangkas pengeluaran non-esensial hingga 30%, hentikan seluruh utang konsumtif baru, dan alokasikan setiap surplus arus kas ke dana darurat selama 90 hari ke depan untuk menaikkan skor FVS ke level Waspada.',
+        timeline: '90 Hari',
+        priority: RecommendationPriority.high,
+      ));
+    }
+
+    // Rekomendasi vault tabungan: dana darurat masih lemah
+    if (score.s3 < 60) {
+      tasks.add(Recommendation(
+        id: uuid.v4(),
+        title: 'Buat Pos Dana Darurat di Savings Vault',
+        description: 'Gunakan fitur Savings Vault untuk membuat target dana darurat dengan rekomendasi setoran bulanan otomatis agar lebih disiplin menabung.',
+        timeline: '60 Hari',
+        priority: RecommendationPriority.medium,
+        actionRoute: '/savings-vault',
+      ));
+    }
+
+    // Rekomendasi modul literasi untuk indikator FVS yang paling lemah
+    final weakestModule = _weakestLiteracyModule(score);
+    if (weakestModule != null) {
+      tasks.add(Recommendation(
+        id: uuid.v4(),
+        title: 'Pelajari: ${weakestModule.title}',
+        description: 'Indikator "${weakestModule.relatedIndicator}" adalah titik terlemah Anda saat ini. Baca modul edukasi ini untuk memahami cara memperbaikinya.',
+        timeline: '30 Hari',
+        priority: RecommendationPriority.medium,
+        actionRoute: '/literacy/${weakestModule.moduleId}',
+      ));
+    }
+
     if (tasks.isEmpty) {
       tasks.add(Recommendation(
         id: uuid.v4(),
@@ -90,5 +129,26 @@ class RecommendationGenerator {
     }
 
     return tasks;
+  }
+
+  /// Finds the literacy module mapped to the weakest FVS sub-indicator,
+  /// or null if every indicator is already healthy (score >= 80).
+  LiteracyModule? _weakestLiteracyModule(FvsScore score) {
+    final indicators = {
+      1: score.s1,
+      2: score.s2,
+      3: score.s3,
+      4: score.s4,
+      5: score.s5,
+      6: score.s6,
+      7: score.s7,
+    };
+
+    final weakestEntry = indicators.entries.reduce((a, b) => a.value <= b.value ? a : b);
+    if (weakestEntry.value >= 80) return null;
+
+    final moduleId = 'edu-s${weakestEntry.key}-1';
+    final matches = mockLiteracyModules.where((m) => m.moduleId == moduleId);
+    return matches.isEmpty ? null : matches.first;
   }
 }

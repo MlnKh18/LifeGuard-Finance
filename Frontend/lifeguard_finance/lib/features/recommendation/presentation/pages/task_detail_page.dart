@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -152,6 +153,21 @@ class TaskDetailView extends StatelessWidget {
                   ],
                 ),
               ),
+              if (task.actionRoute != null) ...[
+                const SizedBox(height: 16),
+                OutlinedButton.icon(
+                  onPressed: () => context.push(task.actionRoute!),
+                  icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+                  label: Text(_actionRouteLabel(task.actionRoute!)),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    side: const BorderSide(color: AppColors.primary),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    minimumSize: const Size(double.infinity, 0),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -215,6 +231,13 @@ class TaskDetailView extends StatelessWidget {
         return 'Tugas jangka panjang ini membangun fondasi ketahanan finansial yang lebih kuat — jangan terburu-buru, fokus pada konsistensi.';
     }
   }
+}
+
+String _actionRouteLabel(String route) {
+  if (route.startsWith('/literacy')) return 'Buka Modul Edukasi';
+  if (route.startsWith('/savings-vault')) return 'Buka Savings Vault';
+  if (route.startsWith('/smart-routing')) return 'Buka Smart Routing';
+  return 'Buka Halaman Terkait';
 }
 
 String _priorityLabel(RecommendationPriority p) {

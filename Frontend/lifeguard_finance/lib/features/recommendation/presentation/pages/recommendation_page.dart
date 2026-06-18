@@ -129,6 +129,30 @@ class _RecommendationViewState extends State<RecommendationView> with SingleTick
             ),
           ),
         ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          child: Row(
+            children: [
+              Expanded(
+                child: _buildQuickActionCard(
+                  context: context,
+                  icon: Icons.alt_route_rounded,
+                  label: 'Smart Routing',
+                  onTap: () => context.push('/smart-routing'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildQuickActionCard(
+                  context: context,
+                  icon: Icons.savings_rounded,
+                  label: 'Savings Vault',
+                  onTap: () => context.push('/savings-vault'),
+                ),
+              ),
+            ],
+          ),
+        ),
         TabBar(
           controller: _tabController,
           labelColor: AppColors.primary,
@@ -147,6 +171,27 @@ class _RecommendationViewState extends State<RecommendationView> with SingleTick
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildQuickActionCard({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return AppCard(
+      onTap: onTap,
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
+      borderRadius: 12.0,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 18, color: AppColors.primary),
+          const SizedBox(width: 8),
+          Text(label, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
+        ],
+      ),
     );
   }
 
