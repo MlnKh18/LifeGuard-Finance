@@ -27,6 +27,17 @@ class HiveService {
 
   /// Clears all keys and values in the current box.
   Future<void> clearAll() async {
+    await _box.delete(LocalKeys.familyProfile);
+    await _box.delete(LocalKeys.financeRecords);
+    await _box.delete(LocalKeys.earlyWarnings);
+    await _box.delete(LocalKeys.anomalyResults);
+    await _box.delete(LocalKeys.savingsVault);
+    await _box.delete(LocalKeys.communityPosts);
     await _box.clear();
+  }
+
+  /// Watches changes for a specific key in the box.
+  Stream<BoxEvent> watchKey(String key) {
+    return _box.watch(key: key);
   }
 }

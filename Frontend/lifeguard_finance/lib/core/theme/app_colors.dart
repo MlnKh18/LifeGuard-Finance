@@ -12,6 +12,7 @@ class AppColors {
   static const Color secondary = Color(0xFF3B82F6); // Electric Blue
   static const Color background = Color(0xFFF5FAF8); // Stitch light `background`
   static const Color surface = Colors.white; // Stitch light `surface-container-lowest`
+  static const Color surfaceContainer = Color(0xFFEAEFED); // Stitch light `surface-container`
   static const Color textPrimary = Color(0xFF171D1C); // Stitch light `on-surface`
   static const Color textSecondary = Color(0xFF3D4947); // Stitch light `on-surface-variant`
   static const Color border = Color(0xFFE2E8F0); // Stitch card border

@@ -158,6 +158,17 @@ class DashboardView extends StatelessWidget {
             _buildMetricGrid(state.profile),
             const SizedBox(height: 20),
 
+            // Feature Link: Catatan Harian
+            _buildFeatureLinkCard(
+              context: context,
+              icon: Icons.account_balance_wallet_rounded,
+              iconColor: AppColors.primary,
+              title: 'Catatan Harian',
+              subtitle: 'Catat pengeluaran & pemasukan sehari-hari',
+              onTap: () => context.push('/daily-finance'),
+            ),
+            const SizedBox(height: 12),
+
             // Feature Link: Simulasi Sandbox
             _buildFeatureLinkCard(
               context: context,
@@ -172,11 +183,11 @@ class DashboardView extends StatelessWidget {
             // Feature Link: Rekomendasi
             _buildFeatureLinkCard(
               context: context,
-              icon: Icons.lightbulb_outline_rounded,
+              icon: Icons.shield_rounded,
               iconColor: AppColors.secondary,
-              title: 'Rencana Mitigasi',
-              subtitle: 'Lihat rekomendasi prioritas untuk skor Anda',
-              onTap: () => context.push('/recommendation'),
+              title: 'Deteksi Anomali',
+              subtitle: 'Lihat peringatan pengeluaran tidak wajar',
+              onTap: () => context.push('/expense-anomaly'),
             ),
             const SizedBox(height: 24),
 

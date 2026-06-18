@@ -1,0 +1,114 @@
+import 'package:flutter/foundation.dart';
+import '../../../../core/data/local/hive_service.dart';
+import '../../../../core/data/local/local_keys.dart';
+import '../../../auth/domain/repositories/auth_repository.dart';
+import '../../domain/entities/finance_record_entity.dart';
+import '../../domain/repositories/finance_record_repository.dart';
+
+class FinanceRecordRepositoryImpl implements FinanceRecordRepository {
+  final HiveService hiveService;
+  final AuthRepository authRepository;
+
+  FinanceRecordRepositoryImpl({
+    required this.hiveService,
+    required this.authRepository,
+  });
+
+  static const String _recordKey = LocalKeys.financeRecords;
+
+  @override
+  Future<List<FinanceRecord>> getRecords() async {
+    final session = await authRepository.getCurrentSession();
+    final currentUser = await authRepository.getCurrentUser();
+
+    final currentUserId = currentUser?.userId ?? '';
+    final currentFamilyId = session?.currentFamilyId ?? currentUser?.familyId ?? '';
+
+    final rawData = hiveService.getData(_recordKey);
+    final rawList = rawData is List ? rawData : <dynamic>[];
+
+    final records = rawList.map((item) {
+      final json = Map<String, dynamic>.from(item as Map);
+      return FinanceRecord.fromJson(json);
+    }).toList();
+
+    debugPrint('================ FINANCE RECORD GET ================');
+    debugPrint('Current userId: $currentUserId');
+    debugPrint('Current familyId: $currentFamilyId');
+    debugPrint('Raw finance records count: ${rawList.length}');
+    debugPrint('Mapped finance records count: ${records.length}');
+
+    return records;
+  }
+
+  Future<void> _saveRecords(List<FinanceRecord> records) async {
+    final jsonList = records.map((record) => record.toJson()).toList();
+    await hiveService.saveData(_recordKey, jsonList);
+  }
+
+  @override
+  Future<List<FinanceRecord>> getRecordsByFamily(String familyId) async {
+    final records = await getRecords();
+    return records.where((r) => r.familyId == familyId).toList();
+  }
+
+  @override
+  Future<List<FinanceRecord>> getRecordsByUser(String userId) async {
+    final records = await getRecords();
+    return records.where((r) => r.userId == userId).toList();
+  }
+
+  @override
+  Future<void> createRecord(FinanceRecord record) async {
+    debugPrint('================ CREATE FINANCE RECORD ================');
+    debugPrint('type: ${record.type}');
+    debugPrint('category: ${record.category}');
+    debugPrint('amount: ${record.amount}');
+    debugPrint('familyId: ${record.familyId}');
+    debugPrint('userId: ${record.userId}');
+    debugPrint('userEmail: ${record.userEmail}');
+
+    final records = await getRecords();
+    final updatedRecords = [...records, record];
+    await _saveRecords(updatedRecords);
+  }
+
+  @override
+  Future<void> updateRecord(FinanceRecord updatedRecord) async {
+    final records = await getRecords();
+    final updatedRecords = records.map((r) {
+      if (r.recordId == updatedRecord.recordId) {
+        return updatedRecord;
+      }
+      return r;
+    }).toList();
+    await _saveRecords(updatedRecords);
+  }
+
+  @override
+  Future<void> deleteRecord(String recordId) async {
+    final records = await getRecords();
+    final updatedRecords = records.where((r) => r.recordId != recordId).toList();
+    await _saveRecords(updatedRecords);
+  }
+
+  @override
+  Future<List<FinanceRecord>> getExpenseRecords() async {
+    final records = await getRecords();
+    return records.where((r) => r.type == FinanceRecordType.expense).toList();
+  }
+
+  @override
+  Future<List<FinanceRecord>> getIncomeRecords() async {
+    final records = await getRecords();
+    return records.where((r) => r.type == FinanceRecordType.income).toList();
+  }
+
+  @override
+  Future<List<FinanceRecord>> getMonthlyRecords(DateTime month) async {
+    final records = await getRecords();
+    return records.where((r) {
+      return r.recordDate.year == month.year && r.recordDate.month == month.month;
+    }).toList();
+  }
+}

@@ -50,8 +50,8 @@ class MainShell extends StatelessWidget {
           branchMapping.add(2);
         }
 
-        // Index 3: Recommendation
-        visibleItems.add(const _NavItem(icon: Icons.shield_rounded, label: 'Mitigasi'));
+        // Index 3: Anomaly Detection
+        visibleItems.add(const _NavItem(icon: Icons.shield_rounded, label: 'Deteksi Anomali'));
         branchMapping.add(3);
 
         // Index 4: Profile

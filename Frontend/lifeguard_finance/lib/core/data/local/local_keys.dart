@@ -14,6 +14,9 @@ class LocalKeys {
   static const String literacyProgress = 'literacy_progress';
   static const String communityPosts = 'community_posts';
   static const String rewardPoints = 'reward_points';
+  static const String financeRecords = 'finance_records';
+  static const String anomalyResults = 'anomaly_results';
+  static const String earlyWarnings = 'early_warnings';
   
   // Auth & Family Role Keys
   static const String users = 'users';

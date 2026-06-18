@@ -1,22 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_card.dart';
-import '../../../../core/widgets/section_title.dart';
-import '../../domain/entities/expense_transaction.dart';
+import '../../domain/entities/anomaly_combined_record.dart';
+import '../../domain/entities/monthly_expense_trend.dart';
 import '../bloc/anomaly_cubit.dart';
 import '../bloc/anomaly_state.dart';
-import '../widgets/expense_trend_chart.dart';
 
-final _rupiahFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
-
-const _categories = ['Belanja Bulanan', 'Transportasi', 'Hiburan & Makan', 'Elektronik', 'Lainnya'];
-const _monthAbbr = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
-
-String _formatDate(DateTime date) => '${date.day} ${_monthAbbr[date.month]} ${date.year}';
+final _rupiahFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 2);
+final _dateFormat = DateFormat('MMM dd, yyyy');
 
 class ExpenseAnomalyPage extends StatelessWidget {
   const ExpenseAnomalyPage({super.key});
@@ -24,7 +21,7 @@ class ExpenseAnomalyPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<AnomalyCubit>(
-      create: (context) => getIt<AnomalyCubit>()..loadTransactions(),
+      create: (context) => getIt<AnomalyCubit>()..loadAnomalies(),
       child: const ExpenseAnomalyView(),
     );
   }
@@ -36,8 +33,12 @@ class ExpenseAnomalyView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Deteksi Anomali', style: AppTextStyles.heading3),
+        title: Text('Deteksi Anomali', style: AppTextStyles.heading1),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: false,
       ),
       body: BlocBuilder<AnomalyCubit, AnomalyState>(
         builder: (context, state) {
@@ -57,215 +58,333 @@ class ExpenseAnomalyView extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.primary,
-        onPressed: () => _showAddTransactionDialog(context),
-        child: const Icon(Icons.add_rounded, color: Colors.white),
+        heroTag: null,
+        onPressed: () => context.push('/daily-finance'),
+        backgroundColor: AppColors.primaryDark,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
 
   Widget _buildContent(BuildContext context, AnomalyLoaded state) {
-    final monthlyAnomalies = state.monthlyTrend.where((m) => m.isAnomaly).length;
-
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-      children: [
-        const SectionTitle(
-          title: 'Deteksi Anomali',
-          subtitle: 'Tren & anomali pengeluaran bulanan keluarga.',
-        ),
-        const SizedBox(height: 8),
-        AppCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Volatilitas Pengeluaran', style: AppTextStyles.heading3),
-                        const SizedBox(height: 2),
-                        Text('6 Bulan Terakhir', style: AppTextStyles.bodySmall),
-                      ],
-                    ),
-                  ),
-                  if (monthlyAnomalies > 0)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: AppColors.riskCriticalBg,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.warning_amber_rounded, size: 14, color: AppColors.riskCritical),
-                          const SizedBox(width: 4),
-                          Text(
-                            '$monthlyAnomalies Anomali Terdeteksi',
-                            style: AppTextStyles.label.copyWith(color: AppColors.riskCritical),
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              ExpenseTrendChart(trend: state.monthlyTrend),
-            ],
+    return RefreshIndicator(
+      onRefresh: () async {
+        await context.read<AnomalyCubit>().loadAnomalies(showLoading: false);
+      },
+      color: AppColors.primary,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        children: [
+          Text(
+            'Monthly Expense Trends & Outliers',
+            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
           ),
-        ),
-        const SizedBox(height: 24),
-        Text('Transaksi Terbaru', style: AppTextStyles.heading2),
-        const SizedBox(height: 12),
-        ...state.transactions.map((t) => _buildTransactionTile(t)),
-      ],
+          const SizedBox(height: 16),
+          _buildTrendChart(context, state),
+          const SizedBox(height: 24),
+          Text('Recent Transactions', style: AppTextStyles.heading3),
+          const SizedBox(height: 16),
+          if (state.recentCombinedRecords.isEmpty)
+            const Padding(
+              padding: EdgeInsets.only(top: 40),
+              child: Center(
+                child: Text('Belum ada transaksi.'),
+              ),
+            )
+          else
+            ...state.recentCombinedRecords.map((record) => _buildTransactionCard(context, record)),
+          const SizedBox(height: 80), // Padding for FAB
+        ],
+      ),
     );
   }
 
-  Widget _buildTransactionTile(ExpenseTransaction t) {
-    if (!t.isAnomaly) {
-      return AppCard(
-        margin: const EdgeInsets.only(bottom: 10),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(color: AppColors.background, shape: BoxShape.circle),
-              child: Icon(_categoryIcon(t.category), color: AppColors.primary, size: 20),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(t.category, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
-                  Text(_formatDate(t.date), style: AppTextStyles.bodySmall),
-                ],
-              ),
-            ),
-            Text(_rupiahFormat.format(t.amount), style: AppTextStyles.dataLabel),
-          ],
-        ),
-      );
+  void _showAnomalySelection(BuildContext context, AnomalyLoaded state) {
+    final currentMonthAnomalies = state.recentCombinedRecords.where((record) {
+      if (!record.isAnomaly) return false;
+      final now = DateTime.now();
+      final recordDate = record.record.recordDate;
+      return recordDate.year == now.year && recordDate.month == now.month;
+    }).toList();
+
+    final targetList = currentMonthAnomalies.isNotEmpty 
+        ? currentMonthAnomalies 
+        : state.recentCombinedRecords.where((r) => r.isAnomaly).toList();
+
+    if (targetList.isEmpty) return;
+
+    if (targetList.length == 1) {
+      context.push('/anomaly-detail', extra: targetList.first);
+      return;
     }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.riskCriticalBg.withAlpha(120),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.riskCritical.withAlpha(80)),
-      ),
-      child: Row(
-        children: [
-          Container(width: 4, height: 36, color: AppColors.riskCritical),
-          const SizedBox(width: 10),
-          Container(
-            width: 40,
-            height: 40,
-            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-            child: Icon(_categoryIcon(t.category), color: AppColors.riskCritical, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(t.category, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(color: AppColors.riskCritical, borderRadius: BorderRadius.circular(4)),
-                      child: Text(
-                        'ANOMALI',
-                        style: AppTextStyles.label.copyWith(color: Colors.white, fontSize: 9),
-                      ),
-                    ),
-                  ],
-                ),
-                Text(_formatDate(t.date), style: AppTextStyles.bodySmall),
-              ],
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text('Anomali Terdeteksi', style: AppTextStyles.heading2),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: targetList.length,
+              itemBuilder: (context, index) {
+                final rec = targetList[index];
+                final r = rec.record;
+                final anomaly = rec.anomaly;
+                
+                final amountStr = _rupiahFormat.format(r.amount);
+                final pctStr = anomaly != null ? anomaly.increasePercentage.toStringAsFixed(0) : '0';
+
+                return ListTile(
+                  leading: const Icon(Icons.warning_rounded, color: AppColors.riskCritical),
+                  title: Text(r.category, style: AppTextStyles.heading3),
+                  subtitle: Text(
+                    'Nominal: $amountStr (Naik $pctStr%)',
+                    style: AppTextStyles.bodySmall,
+                  ),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () {
+                    Navigator.pop(dialogContext);
+                    context.push('/anomaly-detail', extra: rec);
+                  },
+                );
+              },
             ),
           ),
-          const SizedBox(width: 8),
-          Text(
-            _rupiahFormat.format(t.amount),
-            style: AppTextStyles.dataLabel.copyWith(color: AppColors.riskCritical, fontWeight: FontWeight.bold),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Tutup'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildTrendChart(BuildContext context, AnomalyLoaded state) {
+    final anomalyCount = state.anomalies.where((a) {
+      final now = DateTime.now();
+      return a.createdAt.year == now.year && a.createdAt.month == now.month;
+    }).length;
+
+    return AppCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Expense', style: AppTextStyles.heading2),
+                  Text('Volatility', style: AppTextStyles.heading2),
+                  const SizedBox(height: 4),
+                  Text('Last 6 Months', style: AppTextStyles.bodySmall),
+                ],
+              ),
+              if (anomalyCount > 0)
+                InkWell(
+                  onTap: () => _showAnomalySelection(context, state),
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.riskCriticalBg,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.warning_rounded, color: AppColors.riskCritical, size: 16),
+                        const SizedBox(width: 4),
+                        Text(
+                          '$anomalyCount Anomali\nTerdeteksi',
+                          style: AppTextStyles.label.copyWith(color: AppColors.riskCritical),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 32),
+          SizedBox(
+            height: 180,
+            child: _buildFlChart(state.monthlyTrend),
           ),
         ],
       ),
     );
   }
 
-  void _showAddTransactionDialog(BuildContext context) {
-    final cubit = context.read<AnomalyCubit>();
-    final amountController = TextEditingController();
-    String category = _categories.first;
-    final formKey = GlobalKey<FormState>();
+  Widget _buildFlChart(List<MonthlyExpenseTrend> trend) {
+    if (trend.isEmpty) {
+      return const Center(child: Text('Belum ada data historis.'));
+    }
 
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (dialogContext, setDialogState) {
-            return AlertDialog(
-              title: const Text('Tambah Transaksi'),
-              content: Form(
-                key: formKey,
+    final spots = <FlSpot>[];
+    for (int i = 0; i < trend.length; i++) {
+      spots.add(FlSpot(i.toDouble(), trend[i].totalAmount));
+    }
+
+    double maxY = trend.map((e) => e.totalAmount).reduce((a, b) => a > b ? a : b);
+    if (maxY == 0) maxY = 1000;
+
+    return LineChart(
+      LineChartData(
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          horizontalInterval: maxY / 3,
+          getDrawingHorizontalLine: (value) {
+            return FlLine(
+              color: AppColors.primaryLight.withValues(alpha: 0.2),
+              strokeWidth: 1,
+              dashArray: [5, 5],
+            );
+          },
+        ),
+        titlesData: FlTitlesData(
+          show: true,
+          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (value, meta) {
+                final int index = value.toInt();
+                if (index < 0 || index >= trend.length) return const SizedBox.shrink();
+                final t = trend[index];
+                final monthStr = DateFormat('MMM').format(t.month);
+                
+                return Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    monthStr,
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: t.isAnomaly ? AppColors.riskCritical : AppColors.textSecondary,
+                      fontWeight: t.isAnomaly ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        borderData: FlBorderData(show: false),
+        minX: 0,
+        maxX: (trend.length - 1).toDouble(),
+        minY: 0,
+        maxY: maxY * 1.2,
+        lineBarsData: [
+          LineChartBarData(
+            spots: spots,
+            isCurved: true,
+            color: AppColors.primaryDark,
+            barWidth: 3,
+            isStrokeCapRound: true,
+            dotData: FlDotData(
+              show: true,
+              checkToShowDot: (spot, barData) {
+                final index = spot.x.toInt();
+                if (index < 0 || index >= trend.length) return false;
+                return trend[index].isAnomaly;
+              },
+              getDotPainter: (spot, percent, barData, index) {
+                return FlDotCirclePainter(
+                  radius: 6,
+                  color: AppColors.riskCritical,
+                  strokeWidth: 4,
+                  strokeColor: AppColors.riskCritical.withValues(alpha: 0.3),
+                );
+              },
+            ),
+            belowBarData: BarAreaData(
+              show: true,
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primaryDark.withValues(alpha: 0.2),
+                  AppColors.primaryDark.withValues(alpha: 0.0),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTransactionCard(BuildContext context, AnomalyCombinedRecord record) {
+    final bool isAnomaly = record.isAnomaly;
+    final r = record.record;
+
+    // Map category to icon
+    IconData iconData = Icons.receipt_long;
+    if (r.category.toLowerCase().contains('groceries')) iconData = Icons.shopping_cart;
+    if (r.category.toLowerCase().contains('transport')) iconData = Icons.directions_car;
+    if (r.category.toLowerCase().contains('dining') || r.category.toLowerCase().contains('food')) iconData = Icons.restaurant;
+    if (r.category.toLowerCase().contains('electronic')) iconData = Icons.devices;
+
+    return GestureDetector(
+      onTap: () {
+        if (isAnomaly) {
+          context.push('/anomaly-detail', extra: record);
+        }
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isAnomaly ? AppColors.riskCritical : AppColors.border,
+            width: isAnomaly ? 2 : 1,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceContainer,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(iconData, color: AppColors.primaryDark),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    DropdownButtonFormField<String>(
-                      initialValue: category,
-                      decoration: const InputDecoration(labelText: 'Kategori'),
-                      items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-                      onChanged: (val) => setDialogState(() => category = val ?? category),
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: amountController,
-                      decoration: const InputDecoration(labelText: 'Jumlah (Rp)'),
-                      keyboardType: TextInputType.number,
-                      validator: (val) {
-                        final amount = double.tryParse(val ?? '');
-                        if (amount == null || amount <= 0) return 'Masukkan jumlah yang valid';
-                        return null;
-                      },
-                    ),
+                    Text(r.category, style: AppTextStyles.heading3),
+                    const SizedBox(height: 4),
+                    Text(_dateFormat.format(r.recordDate), style: AppTextStyles.bodySmall),
                   ],
                 ),
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('Batal'),
+              Text(
+                _rupiahFormat.format(r.amount),
+                style: AppTextStyles.bodyMedium.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: isAnomaly ? AppColors.riskCritical : AppColors.textPrimary,
                 ),
-                TextButton(
-                  onPressed: () {
-                    if (!formKey.currentState!.validate()) return;
-                    cubit.addTransaction(
-                      category: category,
-                      amount: double.parse(amountController.text),
-                      date: DateTime.now(),
-                    );
-                    Navigator.of(dialogContext).pop();
-                  },
-                  child: const Text('Simpan'),
-                ),
-              ],
-            );
-          },
-        );
-      },
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -283,20 +402,5 @@ class ExpenseAnomalyView extends StatelessWidget {
         ],
       ),
     );
-  }
-}
-
-IconData _categoryIcon(String category) {
-  switch (category) {
-    case 'Belanja Bulanan':
-      return Icons.shopping_cart_rounded;
-    case 'Transportasi':
-      return Icons.directions_car_rounded;
-    case 'Hiburan & Makan':
-      return Icons.restaurant_rounded;
-    case 'Elektronik':
-      return Icons.devices_other_rounded;
-    default:
-      return Icons.receipt_long_rounded;
   }
 }
