@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -14,8 +15,6 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../auth/core/permission_helper.dart';
 import '../../../auth/presentation/widgets/auth_widgets.dart';
-
-const _availableTags = ['#SandwichGeneration', '#EmergencyFund', '#Menabung', '#Investasi'];
 
 class CommunityPage extends StatelessWidget {
   const CommunityPage({super.key});
@@ -49,7 +48,7 @@ class CommunityView extends StatefulWidget {
 }
 
 class _CommunityViewState extends State<CommunityView> {
-  String? _tagFilter;
+  String? _categoryFilter;
 
   @override
   Widget build(BuildContext context) {
@@ -83,9 +82,11 @@ class _CommunityViewState extends State<CommunityView> {
   }
 
   Widget _buildContent(BuildContext context, CommunityLoaded state) {
-    final visiblePosts = _tagFilter == null
-        ? state.posts
-        : state.posts.where((p) => p.tag == _tagFilter).toList();
+    final visiblePosts = state.posts.where((p) {
+      if (p.status == PostStatus.removed) return false;
+      if (_categoryFilter != null && p.category != _categoryFilter) return false;
+      return true;
+    }).toList();
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
@@ -101,17 +102,17 @@ class _CommunityViewState extends State<CommunityView> {
           children: [
             Text('Diskusi Terbaru', style: AppTextStyles.heading2),
             PopupMenuButton<String?>(
-              initialValue: _tagFilter,
-              onSelected: (value) => setState(() => _tagFilter = value),
+              initialValue: _categoryFilter,
+              onSelected: (value) => setState(() => _categoryFilter = value),
               itemBuilder: (context) => [
                 const PopupMenuItem(value: null, child: Text('Semua Topik')),
-                ..._availableTags.map((t) => PopupMenuItem(value: t, child: Text(t))),
+                ...communityCategories.map((t) => PopupMenuItem(value: t, child: Text(t))),
               ],
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    _tagFilter ?? 'Filter',
+                    _categoryFilter ?? 'Filter',
                     style: AppTextStyles.dataLabel.copyWith(color: AppColors.primary, fontWeight: FontWeight.w600),
                   ),
                   const Icon(Icons.filter_list_rounded, size: 18, color: AppColors.primary),
@@ -205,6 +206,7 @@ class _CommunityViewState extends State<CommunityView> {
   Widget _buildPostCard(BuildContext context, CommunityPost post) {
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
+      onTap: () => context.push('/community/${post.id}'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -228,7 +230,7 @@ class _CommunityViewState extends State<CommunityView> {
                   children: [
                     Row(
                       children: [
-                        if (post.isFlagged) ...[
+                        if (post.status == PostStatus.flagged) ...[
                           const Icon(Icons.warning_amber_rounded, color: AppColors.riskCritical, size: 16),
                           const SizedBox(width: 4),
                         ],
@@ -240,13 +242,13 @@ class _CommunityViewState extends State<CommunityView> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: post.isFlagged ? AppColors.errorContainer : AppColors.secondaryContainer,
+                        color: post.status == PostStatus.flagged ? AppColors.errorContainer : AppColors.secondaryContainer,
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        post.tag,
+                        post.category,
                         style: AppTextStyles.bodySmall.copyWith(
-                          color: post.isFlagged ? AppColors.onErrorContainer : AppColors.onSecondaryContainer,
+                          color: post.status == PostStatus.flagged ? AppColors.onErrorContainer : AppColors.onSecondaryContainer,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -386,7 +388,7 @@ class _CommunityViewState extends State<CommunityView> {
   void _showAddPostDialog(BuildContext context) {
     final cubit = context.read<CommunityCubit>();
     final contentController = TextEditingController();
-    String tag = _availableTags.first;
+    String category = communityCategories.first;
     final formKey = GlobalKey<FormState>();
 
     showDialog(
@@ -410,10 +412,10 @@ class _CommunityViewState extends State<CommunityView> {
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
-                      initialValue: tag,
-                      decoration: const InputDecoration(labelText: 'Topik'),
-                      items: _availableTags.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
-                      onChanged: (val) => setDialogState(() => tag = val ?? tag),
+                      initialValue: category,
+                      decoration: const InputDecoration(labelText: 'Kategori'),
+                      items: communityCategories.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                      onChanged: (val) => setDialogState(() => category = val ?? category),
                     ),
                   ],
                 ),
@@ -426,7 +428,7 @@ class _CommunityViewState extends State<CommunityView> {
                 TextButton(
                   onPressed: () {
                     if (!formKey.currentState!.validate()) return;
-                    cubit.addPost(content: contentController.text.trim(), tag: tag);
+                    cubit.addPost(content: contentController.text.trim(), category: category);
                     Navigator.of(dialogContext).pop();
                   },
                   child: const Text('Posting'),

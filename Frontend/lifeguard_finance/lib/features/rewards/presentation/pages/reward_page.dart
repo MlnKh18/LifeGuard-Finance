@@ -4,9 +4,8 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_card.dart';
+import '../../domain/entities/reward_badge.dart';
 import '../bloc/reward_cubit.dart';
-
-const _badgeOrder = ['Starter Saver', 'Emergency Builder', 'Helpful Family', 'Financial Guardian'];
 
 class RewardPage extends StatelessWidget {
   const RewardPage({super.key});
@@ -51,7 +50,7 @@ class RewardView extends StatelessWidget {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        'Badge: ${state.badge}',
+                        'Badge: ${state.badge.name}',
                         style: AppTextStyles.bodyMedium.copyWith(color: AppColors.onPrimaryContainer, fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -69,7 +68,7 @@ class RewardView extends StatelessWidget {
               const SizedBox(height: 24),
               Text('Tingkatan Badge', style: AppTextStyles.heading2),
               const SizedBox(height: 12),
-              ..._badgeOrder.map((badge) => _badgeTile(badge, badge == state.badge)),
+              ...rewardBadges.map((badge) => _badgeTile(badge.name, badge == state.badge)),
             ],
           );
         },

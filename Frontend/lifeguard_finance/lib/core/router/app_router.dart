@@ -21,6 +21,7 @@ import '../../features/literacy/presentation/pages/literacy_page.dart';
 import '../../features/literacy/presentation/pages/literacy_detail_page.dart';
 import '../../features/savings_vault/presentation/pages/savings_vault_page.dart';
 import '../../features/community/presentation/pages/community_page.dart';
+import '../../features/community/presentation/pages/community_detail_page.dart';
 import '../../features/rewards/presentation/pages/reward_page.dart';
 import '../../features/auth/presentation/pages/auth_entry_page.dart';
 import '../../features/auth/presentation/pages/register_head_of_family_page.dart';
@@ -156,6 +157,12 @@ class AppRouter {
               GoRoute(
                 path: '/community',
                 builder: (context, state) => const CommunityPage(),
+                routes: [
+                  GoRoute(
+                    path: ':postId',
+                    builder: (context, state) => CommunityDetailPage(postId: state.pathParameters['postId'] ?? ''),
+                  ),
+                ],
               ),
             ],
           ),

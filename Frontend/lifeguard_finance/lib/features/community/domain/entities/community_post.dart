@@ -1,53 +1,81 @@
 import 'package:equatable/equatable.dart';
+import 'community_comment.dart';
+
+enum PostStatus { published, flagged, removed }
+
+const List<String> communityCategories = [
+  'Utang dan Cicilan',
+  'Dana Darurat',
+  'Biaya Pendidikan',
+  'Biaya Kesehatan',
+  'Inflasi',
+  'Generasi Sandwich',
+];
 
 class CommunityPost extends Equatable {
   final String id;
   final String authorName;
-  final String tag;
+  final String category;
   final String content;
   final int likeCount;
-  final int commentCount;
   final bool isLiked;
-  final bool isFlagged;
+  final PostStatus status;
   final DateTime createdAt;
+  final List<CommunityComment> comments;
 
   const CommunityPost({
     required this.id,
     required this.authorName,
-    required this.tag,
+    required this.category,
     required this.content,
     required this.likeCount,
-    required this.commentCount,
     required this.createdAt,
     this.isLiked = false,
-    this.isFlagged = false,
+    this.status = PostStatus.published,
+    this.comments = const [],
   });
 
-  CommunityPost copyWith({int? likeCount, bool? isLiked}) {
+  int get commentCount => comments.length;
+
+  CommunityPost copyWith({
+    int? likeCount,
+    bool? isLiked,
+    PostStatus? status,
+    List<CommunityComment>? comments,
+  }) {
     return CommunityPost(
       id: id,
       authorName: authorName,
-      tag: tag,
+      category: category,
       content: content,
       likeCount: likeCount ?? this.likeCount,
-      commentCount: commentCount,
       createdAt: createdAt,
       isLiked: isLiked ?? this.isLiked,
-      isFlagged: isFlagged,
+      status: status ?? this.status,
+      comments: comments ?? this.comments,
     );
+  }
+
+  static PostStatus parseStatus(dynamic value) {
+    final raw = value?.toString().toLowerCase().trim();
+    if (raw == 'flagged') return PostStatus.flagged;
+    if (raw == 'removed') return PostStatus.removed;
+    return PostStatus.published;
   }
 
   factory CommunityPost.fromJson(Map<String, dynamic> json) {
     return CommunityPost(
       id: json['id'] as String,
       authorName: json['authorName'] as String,
-      tag: json['tag'] as String,
+      category: json['category'] as String? ?? communityCategories.first,
       content: json['content'] as String,
       likeCount: json['likeCount'] as int,
-      commentCount: json['commentCount'] as int,
       createdAt: DateTime.parse(json['createdAt'] as String),
       isLiked: json['isLiked'] as bool? ?? false,
-      isFlagged: json['isFlagged'] as bool? ?? false,
+      status: parseStatus(json['status']),
+      comments: (json['comments'] as List? ?? [])
+          .map((e) => CommunityComment.fromJson(Map<String, dynamic>.from(e as Map)))
+          .toList(),
     );
   }
 
@@ -55,16 +83,16 @@ class CommunityPost extends Equatable {
     return {
       'id': id,
       'authorName': authorName,
-      'tag': tag,
+      'category': category,
       'content': content,
       'likeCount': likeCount,
-      'commentCount': commentCount,
       'createdAt': createdAt.toIso8601String(),
       'isLiked': isLiked,
-      'isFlagged': isFlagged,
+      'status': status.name,
+      'comments': comments.map((c) => c.toJson()).toList(),
     };
   }
 
   @override
-  List<Object?> get props => [id, authorName, tag, content, likeCount, commentCount, isLiked, isFlagged, createdAt];
+  List<Object?> get props => [id, authorName, category, content, likeCount, isLiked, status, createdAt, comments];
 }

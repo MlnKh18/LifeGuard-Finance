@@ -23,6 +23,9 @@ import '../../features/savings_vault/domain/repositories/vault_repository.dart';
 import '../../features/savings_vault/data/repositories/vault_repository_impl.dart';
 import '../../features/literacy/domain/repositories/literacy_repository.dart';
 import '../../features/literacy/data/repositories/literacy_repository_impl.dart';
+import '../../features/community/domain/repositories/community_repository.dart';
+import '../../features/community/data/repositories/community_repository_impl.dart';
+import '../../features/rewards/data/datasources/reward_service.dart';
 
 // Import Use Cases
 import '../../features/family_profile/domain/usecases/get_family_profile.dart';
@@ -79,6 +82,9 @@ Future<void> setupInjection() async {
   getIt.registerLazySingleton<LiteracyRepository>(
     () => LiteracyRepositoryImpl(hiveService: getIt<HiveService>()),
   );
+  getIt.registerLazySingleton<CommunityRepository>(
+    () => CommunityRepositoryImpl(hiveService: getIt<HiveService>()),
+  );
 
   // =========================================================================
   // USE CASES
@@ -113,6 +119,9 @@ Future<void> setupInjection() async {
   );
   getIt.registerLazySingleton<EarlyWarningRuleChecker>(
     () => const EarlyWarningRuleChecker(),
+  );
+  getIt.registerLazySingleton<RewardService>(
+    () => RewardService(hiveService: getIt<HiveService>()),
   );
 
   // =========================================================================
@@ -180,13 +189,17 @@ Future<void> setupInjection() async {
     () => VaultCubit(
       hiveService: getIt<HiveService>(),
       vaultRepository: getIt<VaultRepository>(),
+      rewardService: getIt<RewardService>(),
     ),
   );
   getIt.registerFactory<CommunityCubit>(
-    () => CommunityCubit(hiveService: getIt<HiveService>()),
+    () => CommunityCubit(
+      communityRepository: getIt<CommunityRepository>(),
+      rewardService: getIt<RewardService>(),
+    ),
   );
   getIt.registerFactory<RewardCubit>(
-    () => RewardCubit(hiveService: getIt<HiveService>()),
+    () => RewardCubit(rewardService: getIt<RewardService>()),
   );
   getIt.registerFactory<ProfileBloc>(
     () => ProfileBloc(repository: getIt<ProfileRepository>()),

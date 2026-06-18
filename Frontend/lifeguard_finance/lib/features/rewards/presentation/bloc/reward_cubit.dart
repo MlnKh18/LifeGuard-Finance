@@ -1,43 +1,34 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/data/local/hive_service.dart';
-import '../../../../core/data/local/local_keys.dart';
+import '../../data/datasources/reward_service.dart';
+import '../../domain/entities/reward_badge.dart';
+import '../../domain/entities/reward_point.dart';
 
 class RewardState extends Equatable {
   final int points;
-  final String badge;
+  final RewardBadge badge;
+  final List<RewardPoint> ledger;
 
-  const RewardState({this.points = 0, this.badge = 'Starter Saver'});
+  const RewardState({this.points = 0, this.badge = starterSaverBadge, this.ledger = const []});
 
   @override
-  List<Object?> get props => [points, badge];
+  List<Object?> get props => [points, badge, ledger];
 }
 
 class RewardCubit extends Cubit<RewardState> {
-  final HiveService hiveService;
+  final RewardService rewardService;
 
-  RewardCubit({required this.hiveService}) : super(const RewardState());
+  RewardCubit({required this.rewardService}) : super(const RewardState());
 
-  void loadPoints() {
-    final raw = hiveService.getData<Map<dynamic, dynamic>>(LocalKeys.rewardPoints);
-    final points = (raw?['points'] as num?)?.toInt() ?? 0;
-    emit(RewardState(points: points, badge: _badgeForPoints(points)));
+  Future<void> loadPoints() async {
+    final ledger = await rewardService.getLedger();
+    final points = rewardService.totalPoints(ledger);
+    emit(RewardState(points: points, badge: rewardService.badgeForPoints(points), ledger: ledger));
   }
 
-  Future<void> addPoints(int amount) async {
-    final updatedPoints = state.points + amount;
-    final updated = RewardState(points: updatedPoints, badge: _badgeForPoints(updatedPoints));
-    emit(updated);
-    await hiveService.saveData(LocalKeys.rewardPoints, {
-      'points': updated.points,
-      'badge': updated.badge,
-    });
-  }
-
-  String _badgeForPoints(int points) {
-    if (points >= 200) return 'Financial Guardian';
-    if (points >= 100) return 'Helpful Family';
-    if (points >= 50) return 'Emergency Builder';
-    return 'Starter Saver';
+  Future<void> addPoints(int amount, {RewardSource source = RewardSource.literacyModule}) async {
+    final ledger = await rewardService.addPoints(source, amount);
+    final points = rewardService.totalPoints(ledger);
+    emit(RewardState(points: points, badge: rewardService.badgeForPoints(points), ledger: ledger));
   }
 }
