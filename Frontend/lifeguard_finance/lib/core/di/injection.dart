@@ -140,7 +140,12 @@ Future<void> setupInjection() async {
     ),
   );
   getIt.registerFactory<SmartRoutingCubit>(
-    () => SmartRoutingCubit(),
+    () => SmartRoutingCubit(
+      familyProfileRepository: getIt<FamilyProfileRepository>(),
+      fvsCalculator: getIt<FvsCalculator>(),
+      smartRoutingCalculator: getIt<SmartRoutingCalculator>(),
+      hiveService: getIt<HiveService>(),
+    ),
   );
   getIt.registerFactory<AnomalyCubit>(
     () => AnomalyCubit(

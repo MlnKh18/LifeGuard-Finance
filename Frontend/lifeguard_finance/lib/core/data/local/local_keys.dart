@@ -11,6 +11,7 @@ class LocalKeys {
   static const String emergencySimulation = 'emergency_simulation';
   static const String recommendations = 'recommendations';
   static const String savingsVault = 'savings_vault';
+  static const String smartRoutingPlan = 'smart_routing_plan';
   static const String literacyProgress = 'literacy_progress';
   static const String communityPosts = 'community_posts';
   static const String rewardPoints = 'reward_points';
