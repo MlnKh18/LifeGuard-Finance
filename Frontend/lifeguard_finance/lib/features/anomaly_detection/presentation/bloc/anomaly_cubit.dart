@@ -46,6 +46,17 @@ class AnomalyCubit extends Cubit<AnomalyState> {
     _emitAnalyzed(updated);
   }
 
+  Future<void> setReviewStatus(String transactionId, TransactionReviewStatus status) async {
+    final current = state;
+    if (current is! AnomalyLoaded) return;
+
+    final updated = current.transactions
+        .map((t) => t.id == transactionId ? t.copyWith(reviewStatus: status) : t)
+        .toList();
+    await _persist(updated);
+    _emitAnalyzed(updated);
+  }
+
   void _emitAnalyzed(List<ExpenseTransaction> transactions) {
     final flagged = anomalyDetectionService.flagAnomalies(transactions);
     final monthlyTrend = anomalyDetectionService.computeMonthlyTrend(transactions);

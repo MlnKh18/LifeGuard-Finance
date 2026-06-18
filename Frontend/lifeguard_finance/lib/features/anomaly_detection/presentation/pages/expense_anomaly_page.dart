@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -122,16 +123,17 @@ class ExpenseAnomalyView extends StatelessWidget {
         const SizedBox(height: 24),
         Text('Transaksi Terbaru', style: AppTextStyles.heading2),
         const SizedBox(height: 12),
-        ...state.transactions.map((t) => _buildTransactionTile(t)),
+        ...state.transactions.map((t) => _buildTransactionTile(context, t)),
       ],
     );
   }
 
-  Widget _buildTransactionTile(ExpenseTransaction t) {
+  Widget _buildTransactionTile(BuildContext context, ExpenseTransaction t) {
     if (!t.isAnomaly) {
       return AppCard(
         margin: const EdgeInsets.only(bottom: 10),
         borderRadius: 8.0,
+        onTap: () => context.push('/expense-anomaly/${t.id}'),
         child: Row(
           children: [
             Container(
@@ -156,7 +158,10 @@ class ExpenseAnomalyView extends StatelessWidget {
       );
     }
 
-    return Container(
+    return InkWell(
+      onTap: () => context.push('/expense-anomaly/${t.id}'),
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -204,6 +209,7 @@ class ExpenseAnomalyView extends StatelessWidget {
             style: AppTextStyles.dataLabel.copyWith(color: AppColors.error, fontWeight: FontWeight.bold),
           ),
         ],
+      ),
       ),
     );
   }

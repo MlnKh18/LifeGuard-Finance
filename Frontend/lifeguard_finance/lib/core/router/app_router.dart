@@ -14,6 +14,7 @@ import '../../features/emergency_simulation/presentation/pages/simulation_page.d
 import '../../features/recommendation/presentation/pages/recommendation_page.dart';
 import '../../features/smart_routing/presentation/pages/smart_routing_page.dart';
 import '../../features/anomaly_detection/presentation/pages/expense_anomaly_page.dart';
+import '../../features/anomaly_detection/presentation/pages/transaction_detail_page.dart';
 import '../../features/early_warning/presentation/pages/early_warning_page.dart';
 import '../../features/literacy/presentation/pages/literacy_page.dart';
 import '../../features/literacy/presentation/pages/literacy_detail_page.dart';
@@ -95,6 +96,14 @@ class AppRouter {
       GoRoute(
         path: '/expense-anomaly',
         builder: (context, state) => const ExpenseAnomalyPage(),
+        routes: [
+          GoRoute(
+            path: ':transactionId',
+            builder: (context, state) => TransactionDetailPage(
+              transactionId: state.pathParameters['transactionId'] ?? '',
+            ),
+          ),
+        ],
       ),
       GoRoute(
         path: '/early-warning',

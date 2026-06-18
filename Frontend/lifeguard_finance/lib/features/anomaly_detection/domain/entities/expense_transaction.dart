@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+enum TransactionReviewStatus { pending, confirmed, disputed }
+
 class ExpenseTransaction extends Equatable {
   final String id;
   final String category;
@@ -7,6 +9,7 @@ class ExpenseTransaction extends Equatable {
   final DateTime date;
   final bool isAnomaly;
   final double? zScore;
+  final TransactionReviewStatus reviewStatus;
 
   const ExpenseTransaction({
     required this.id,
@@ -15,9 +18,10 @@ class ExpenseTransaction extends Equatable {
     required this.date,
     this.isAnomaly = false,
     this.zScore,
+    this.reviewStatus = TransactionReviewStatus.pending,
   });
 
-  ExpenseTransaction copyWith({bool? isAnomaly, double? zScore}) {
+  ExpenseTransaction copyWith({bool? isAnomaly, double? zScore, TransactionReviewStatus? reviewStatus}) {
     return ExpenseTransaction(
       id: id,
       category: category,
@@ -25,6 +29,7 @@ class ExpenseTransaction extends Equatable {
       date: date,
       isAnomaly: isAnomaly ?? this.isAnomaly,
       zScore: zScore ?? this.zScore,
+      reviewStatus: reviewStatus ?? this.reviewStatus,
     );
   }
 
@@ -34,6 +39,10 @@ class ExpenseTransaction extends Equatable {
       category: json['category'] as String,
       amount: (json['amount'] as num).toDouble(),
       date: DateTime.parse(json['date'] as String),
+      reviewStatus: TransactionReviewStatus.values.firstWhere(
+        (s) => s.name == json['reviewStatus'],
+        orElse: () => TransactionReviewStatus.pending,
+      ),
     );
   }
 
@@ -43,9 +52,10 @@ class ExpenseTransaction extends Equatable {
       'category': category,
       'amount': amount,
       'date': date.toIso8601String(),
+      'reviewStatus': reviewStatus.name,
     };
   }
 
   @override
-  List<Object?> get props => [id, category, amount, date, isAnomaly, zScore];
+  List<Object?> get props => [id, category, amount, date, isAnomaly, zScore, reviewStatus];
 }
