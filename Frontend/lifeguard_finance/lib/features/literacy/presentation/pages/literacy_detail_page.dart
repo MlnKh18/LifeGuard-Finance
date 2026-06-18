@@ -5,8 +5,8 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../rewards/presentation/bloc/reward_cubit.dart';
-import '../../data/mock_literacy_data.dart';
 import '../../domain/entities/literacy_module.dart';
+import '../../domain/repositories/literacy_repository.dart';
 import '../bloc/literacy_cubit.dart';
 
 class LiteracyDetailPage extends StatelessWidget {
@@ -33,7 +33,7 @@ class LiteracyDetailView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final matches = mockLiteracyModules.where((m) => m.moduleId == moduleId);
+    final matches = getIt<LiteracyRepository>().getModules().where((m) => m.moduleId == moduleId);
     final module = matches.isEmpty ? null : matches.first;
 
     return Scaffold(

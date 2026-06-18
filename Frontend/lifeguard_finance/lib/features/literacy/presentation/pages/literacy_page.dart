@@ -5,8 +5,8 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_card.dart';
-import '../../data/mock_literacy_data.dart';
 import '../../domain/entities/literacy_module.dart';
+import '../../domain/repositories/literacy_repository.dart';
 import '../bloc/literacy_cubit.dart';
 
 class LiteracyPage extends StatelessWidget {
@@ -26,6 +26,7 @@ class LiteracyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final modules = getIt<LiteracyRepository>().getModules();
     return Scaffold(
       appBar: AppBar(title: Text('Literasi Finansial', style: AppTextStyles.heading3)),
       body: BlocBuilder<LiteracyCubit, LiteracyProgressState>(
@@ -44,7 +45,7 @@ class LiteracyView extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '${state.readCount} dari ${mockLiteracyModules.length} modul dibaca',
+                            '${state.readCount} dari ${modules.length} modul dibaca',
                             style: AppTextStyles.heading3.copyWith(color: AppColors.onPrimaryContainer, fontSize: 15),
                           ),
                           const SizedBox(height: 2),
@@ -61,7 +62,7 @@ class LiteracyView extends StatelessWidget {
               const SizedBox(height: 20),
               Text('Modul Edukasi', style: AppTextStyles.heading2),
               const SizedBox(height: 12),
-              ...mockLiteracyModules.map((module) => _buildModuleTile(context, module, state.isRead(module.moduleId))),
+              ...modules.map((module) => _buildModuleTile(context, module, state.isRead(module.moduleId))),
             ],
           );
         },

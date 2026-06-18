@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/data/local/hive_service.dart';
-import '../../../../core/data/local/local_keys.dart';
+import '../../domain/repositories/literacy_repository.dart';
 
 class LiteracyProgressState extends Equatable {
   final Set<String> readModuleIds;
@@ -21,23 +20,18 @@ class LiteracyProgressState extends Equatable {
 }
 
 class LiteracyCubit extends Cubit<LiteracyProgressState> {
-  final HiveService hiveService;
+  final LiteracyRepository literacyRepository;
 
-  LiteracyCubit({required this.hiveService}) : super(const LiteracyProgressState());
+  LiteracyCubit({required this.literacyRepository}) : super(const LiteracyProgressState());
 
-  void loadProgress() {
-    final raw = hiveService.getData<Map<dynamic, dynamic>>(LocalKeys.literacyProgress);
-    final ids = (raw?['readModuleIds'] as List<dynamic>?)?.map((e) => e.toString()).toSet() ?? <String>{};
+  Future<void> loadProgress() async {
+    final ids = await literacyRepository.getReadModuleIds();
     emit(LiteracyProgressState(readModuleIds: ids));
   }
 
   Future<void> markAsRead(String moduleId) async {
     if (state.isRead(moduleId)) return;
-    final updated = state.copyWith(readModuleIds: {...state.readModuleIds, moduleId});
-    emit(updated);
-    await hiveService.saveData(LocalKeys.literacyProgress, {
-      'readCount': updated.readCount,
-      'readModuleIds': updated.readModuleIds.toList(),
-    });
+    await literacyRepository.markAsRead(moduleId);
+    emit(state.copyWith(readModuleIds: {...state.readModuleIds, moduleId}));
   }
 }
