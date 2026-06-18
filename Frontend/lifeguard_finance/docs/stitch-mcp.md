@@ -3,32 +3,49 @@
 Get the images and code for the following Stitch project's screens:
 
 ## Project
+
 Title: Lifeguard Mobile Design System
 ID: 10086180151253735914
 
 ## Screens:
-1. Komunitas (Light) - Logo Update
-    ID: 5b28e046ee87446e9f017cd92c506b15
 
-2. Deteksi Anomali (Light) - Logo Update
-    ID: 25158933ac9444ce82919b8bc532430b
+1. Pos Dana Darurat (Final Sync)
+   ID: 41de31c9834c44d2879d136c90183fa8
 
-3. Rencana Mitigasi (Light) - Logo Update
-    ID: 7d718c5421f14853a46127efb108bf89
+2. Onboarding - Step 2 (Stylish)
+   ID: 34c86735162348e286efc80548747988
 
-4. Pos Dana Darurat (Light) - Logo Update
-    ID: f3b7218fc430414682339f2607f93121
+3. Deteksi Anomali (Light)
+   ID: 3ca16dc65cd54822a02a3f314ce5be6c
 
-5. Simulasi Sandbox (Light) - Logo Update
-    ID: ffe7127e42d64a7dabc6d5f0988d369f
+4. Komunitas (Light)
+   ID: 9856f1848ccd4feab27805b482e9fa55
 
-6. Dashboard Utama (Light) - Logo Update
-    ID: 0521c04288a44fcfa3263987591a1b26
+5. Rencana Mitigasi (Final Sync)
+   ID: dd18b4d0b5794f93bf93ac73c182956c
 
-7. Splash Screen (Light) - Logo Update
-    ID: 315c36399e64414db7f31741054cf788
+6. Onboarding - Step 3 (Refined)
+   ID: 24404c35efdf42b0a8a171d3b1d97c6f
 
-8. Onboarding - Step 1 (Refined UI/UX)
-    ID: 311db9429ddb46cf8aa60f2d7d918e2e
+7. Simulasi Sandbox (Light) - Final Sync
+   ID: c6ab493747524d0f88b7cef0b2a4679a
+
+8. Detail Transaksi (Light)
+   ID: c6e88ba516584b859e265c7821a89370
+
+9. Detail Tugas Mitigasi (Light)
+   ID: 88451fc7bc1f4d2992446ca389493dfc
+
+10. Dashboard Utama (Final Sync)
+    ID: 01e62fb66dbd476ba509c5dc44eb4d85
+
+11. Onboarding - Step 1 (Stylish)
+    ID: bc7ac959edca43028f538a028f3e3e5b
+
+12. Tambah Pos Dana Darurat
+    ID: 1b4b125fe37a4ee2845ca6088830e33a
+
+13. Splash Screen (Light) - Refined Final
+    ID: 3b311e0fe15c48feb670c33b3e16f1df
 
 Use a utility like `curl -L` to download the hosted URLs.

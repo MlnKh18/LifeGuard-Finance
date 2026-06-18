@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+
+<html class="light" lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LifeGuard Finance - Detail Transaksi</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Shared Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-container": "#6c748b",
+                    "inverse-on-surface": "#edf2f0",
+                    "surface-dim": "#d6dbd9",
+                    "secondary": "#505f76",
+                    "secondary-fixed-dim": "#b7c8e1",
+                    "primary-container": "#008378",
+                    "surface-variant": "#dee4e1",
+                    "on-background": "#171d1c",
+                    "on-primary-fixed": "#00201d",
+                    "surface-container-high": "#e4e9e7",
+                    "on-primary-fixed-variant": "#005049",
+                    "tertiary-fixed": "#dae2fd",
+                    "on-secondary": "#ffffff",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-bright": "#f5faf8",
+                    "outline-variant": "#bcc9c6",
+                    "surface": "#f5faf8",
+                    "primary-fixed-dim": "#6bd8cb",
+                    "primary-fixed": "#89f5e7",
+                    "on-primary": "#ffffff",
+                    "background": "#f5faf8",
+                    "inverse-primary": "#6bd8cb",
+                    "on-surface-variant": "#3d4947",
+                    "error": "#ba1a1a",
+                    "on-tertiary-container": "#fefcff",
+                    "on-primary-container": "#f4fffc",
+                    "inverse-surface": "#2c3130",
+                    "on-error-container": "#93000a",
+                    "secondary-container": "#d0e1fb",
+                    "on-secondary-fixed": "#0b1c30",
+                    "surface-container": "#eaefed",
+                    "secondary-fixed": "#d3e4fe",
+                    "on-tertiary-fixed": "#131b2e",
+                    "on-surface": "#171d1c",
+                    "on-error": "#ffffff",
+                    "tertiary-fixed-dim": "#bec6e0",
+                    "surface-tint": "#006a61",
+                    "outline": "#6d7a77",
+                    "error-container": "#ffdad6",
+                    "on-tertiary-fixed-variant": "#3f465c",
+                    "surface-container-highest": "#dee4e1",
+                    "tertiary": "#545c72",
+                    "on-secondary-container": "#54647a",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-fixed-variant": "#38485d",
+                    "surface-container-low": "#f0f5f2",
+                    "primary": "#00685f"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "base": "4px",
+                    "md": "16px",
+                    "xs": "4px",
+                    "sm": "8px",
+                    "gutter": "16px",
+                    "container-margin": "24px",
+                    "xl": "32px",
+                    "lg": "24px"
+            },
+            "fontFamily": {
+                    "label-md": ["Inter"],
+                    "headline-lg": ["Outfit"],
+                    "data-tabular": ["Inter"],
+                    "body-lg": ["Outfit"],
+                    "body-sm": ["Outfit"],
+                    "title-md": ["Outfit"],
+                    "headline-lg-mobile": ["Outfit"],
+                    "display-lg": ["Outfit"]
+            },
+            "fontSize": {
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                    "data-tabular": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "title-md": ["18px", {"lineHeight": "24px", "fontWeight": "500"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #ffffff;
+            color: #171d1c;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+        }
+        .animate-slide-up {
+            animation: slideUp 0.5s ease-out;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-lg text-body-lg antialiased">
+<!-- Top Navigation Bar -->
+<header class="w-full top-0 sticky bg-surface z-50 border-b border-outline-variant flex justify-between items-center px-container-margin py-sm">
+<div class="flex items-center gap-md">
+<button class="p-sm rounded-full hover:bg-surface-container-low transition-colors duration-200">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<h1 class="font-title-md text-title-md text-on-surface">Detail Transaksi</h1>
+</div>
+<button class="px-md py-sm text-error font-title-md text-label-md rounded-full border border-error hover:bg-error-container transition-colors duration-200">
+            Laporkan
+        </button>
+</header>
+<main class="max-w-2xl mx-auto px-container-margin py-lg space-y-lg pb-32">
+<!-- Header Section: Amount & Anomaly Badge -->
+<section class="text-center space-y-sm animate-slide-up">
+<div class="inline-flex items-center gap-xs px-md py-xs bg-error-container text-on-error-container rounded-full animate-pulse">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">warning</span>
+<span class="font-label-md text-label-md tracking-wider">ANOMALI TERDETEKSI</span>
+</div>
+<div class="space-y-xs">
+<h2 class="font-display-lg text-display-lg text-on-surface">Rp 4.500.000</h2>
+<p class="text-on-surface-variant font-body-sm text-body-sm">Apple Store Jakarta</p>
+</div>
+</section>
+<!-- Transaction Info Card -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg space-y-md animate-slide-up" style="animation-delay: 0.1s">
+<div class="grid grid-cols-2 gap-md">
+<div class="space-y-xs">
+<p class="text-on-surface-variant font-label-md text-label-md">Kategori</p>
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary">devices</span>
+<span class="font-title-md text-body-lg">Electronics</span>
+</div>
+</div>
+<div class="space-y-xs">
+<p class="text-on-surface-variant font-label-md text-label-md">Waktu</p>
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-on-surface-variant">schedule</span>
+<span class="font-body-lg text-body-lg">12 Oct 2025, 14:20</span>
+</div>
+</div>
+<div class="space-y-xs">
+<p class="text-on-surface-variant font-label-md text-label-md">Metode Pembayaran</p>
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-on-surface-variant">credit_card</span>
+<span class="font-body-lg text-body-lg">Credit Card (**** 1234)</span>
+</div>
+</div>
+<div class="space-y-xs">
+<p class="text-on-surface-variant font-label-md text-label-md">Status</p>
+<div class="flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-error"></span>
+<span class="font-body-lg text-body-lg">Menunggu Verifikasi</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Anomaly Analysis Section -->
+<section class="space-y-md animate-slide-up" style="animation-delay: 0.2s">
+<h3 class="font-title-md text-title-md text-on-surface">Analisis Keamanan</h3>
+<div class="bg-surface-container-low border border-error-container rounded-xl p-md">
+<div class="flex gap-md">
+<div class="bg-error-container rounded-lg p-sm h-fit">
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">insights</span>
+</div>
+<div class="space-y-md w-full">
+<p class="text-on-surface-variant font-body-lg leading-relaxed">
+                            Pengeluaran ini <span class="text-error font-bold">210% lebih tinggi</span> dari rata-rata kategori Elektronik Anda (Rp 1.450.000).
+                        </p>
+<!-- Visual Comparison Chart -->
+<div class="space-y-sm">
+<div class="space-y-xs">
+<div class="flex justify-between text-label-md font-label-md text-on-surface-variant">
+<span>Rata-rata Bulanan</span>
+<span>Rp 1.450k</span>
+</div>
+<div class="w-full bg-outline-variant rounded-full h-2">
+<div class="bg-secondary-container h-2 rounded-full" style="width: 32%"></div>
+</div>
+</div>
+<div class="space-y-xs">
+<div class="flex justify-between text-label-md font-label-md text-on-surface">
+<span class="font-bold">Transaksi Ini</span>
+<span class="text-error font-bold">Rp 4.500k</span>
+</div>
+<div class="w-full bg-outline-variant rounded-full h-2 overflow-hidden">
+<div class="bg-error h-2 rounded-full transition-all duration-1000" style="width: 100%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Mitigation Tip -->
+<div class="bg-primary-container/5 border border-primary-container/20 rounded-xl p-md flex gap-md animate-slide-up" style="animation-delay: 0.3s">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">lightbulb</span>
+<p class="text-on-primary-fixed-variant font-body-sm text-body-sm italic">
+                Saran: Pertimbangkan untuk membagi cicilan jika ini adalah pembelian aset jangka panjang agar arus kas bulanan Anda tetap terjaga.
+            </p>
+</div>
+<!-- Action Buttons -->
+<div class="fixed bottom-0 left-0 w-full bg-white border-t border-outline-variant p-lg px-container-margin flex flex-col gap-sm md:static md:bg-transparent md:border-0 md:px-0 animate-slide-up" style="animation-delay: 0.4s">
+<button class="w-full bg-primary-container text-on-primary-container font-title-md py-md rounded-xl hover:bg-opacity-90 transition-all active:scale-[0.98]">
+                Konfirmasi Transaksi
+            </button>
+<button class="w-full bg-white border border-error text-error font-title-md py-md rounded-xl hover:bg-error-container/20 transition-all active:scale-[0.98]">
+                Bukan Saya (Sanggah)
+            </button>
+</div>
+</main>
+<!-- Bottom Navigation Mockup (Suppressed for transactional focus per rule, but shell is listed in JSON) -->
+<!-- We skip BottomNavBar to prioritize focus on the Transaction Details and Action buttons -->
+<script>
+        // Micro-interaction: Hover effects and chart animation
+        document.addEventListener('DOMContentLoaded', () => {
+            const chartBar = document.querySelector('.bg-error');
+            setTimeout(() => {
+                chartBar.style.width = '100%';
+            }, 300);
+        });
+
+        // Simple confirmation dialogue simulation
+        const primaryBtn = document.querySelector('button.bg-primary-container');
+        primaryBtn.addEventListener('click', () => {
+            primaryBtn.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span> Memproses...';
+            setTimeout(() => {
+                primaryBtn.innerHTML = 'Transaksi Berhasil Dikonfirmasi';
+                primaryBtn.classList.remove('bg-primary-container');
+                primaryBtn.classList.add('bg-emerald-500');
+            }, 1500);
+        });
+    </script>
+</body></html>

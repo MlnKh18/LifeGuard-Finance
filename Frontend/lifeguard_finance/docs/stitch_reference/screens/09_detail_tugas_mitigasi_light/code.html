@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Mitigation Task Detail - LifeGuard Finance</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-high": "#e4e9e7",
+                        "on-tertiary-fixed": "#131b2e",
+                        "primary": "#00685f",
+                        "error": "#ba1a1a",
+                        "secondary-container": "#d0e1fb",
+                        "secondary": "#505f76",
+                        "surface-tint": "#006a61",
+                        "on-tertiary-fixed-variant": "#3f465c",
+                        "primary-fixed": "#89f5e7",
+                        "on-tertiary-container": "#fefcff",
+                        "inverse-primary": "#6bd8cb",
+                        "surface-container-highest": "#dee4e1",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "tertiary-fixed-dim": "#bec6e0",
+                        "error-container": "#ffdad6",
+                        "on-tertiary": "#ffffff",
+                        "background": "#f5faf8",
+                        "secondary-fixed": "#d3e4fe",
+                        "inverse-surface": "#2c3130",
+                        "on-secondary-container": "#54647a",
+                        "on-secondary": "#ffffff",
+                        "tertiary-container": "#6c748b",
+                        "surface": "#f5faf8",
+                        "primary-fixed-dim": "#6bd8cb",
+                        "on-primary-container": "#f4fffc",
+                        "surface-container-low": "#f0f5f2",
+                        "on-error": "#ffffff",
+                        "on-background": "#171d1c",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container": "#eaefed",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed": "#0b1c30",
+                        "primary-container": "#008378",
+                        "tertiary-fixed": "#dae2fd",
+                        "tertiary": "#545c72",
+                        "surface-bright": "#f5faf8",
+                        "on-primary-fixed-variant": "#005049",
+                        "outline": "#6d7a77",
+                        "on-surface-variant": "#3d4947",
+                        "surface-variant": "#dee4e1",
+                        "outline-variant": "#bcc9c6",
+                        "on-surface": "#171d1c",
+                        "inverse-on-surface": "#edf2f0",
+                        "secondary-fixed-dim": "#b7c8e1",
+                        "on-primary-fixed": "#00201d",
+                        "surface-dim": "#d6dbd9",
+                        "on-error-container": "#93000a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xl": "32px",
+                        "lg": "24px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "gutter": "16px",
+                        "container-margin": "24px",
+                        "xs": "4px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Outfit"],
+                        "title-md": ["Outfit"],
+                        "label-md": ["Inter"],
+                        "data-tabular": ["Inter"],
+                        "headline-lg-mobile": ["Outfit"],
+                        "display-lg": ["Outfit"],
+                        "body-sm": ["Outfit"],
+                        "body-lg": ["Outfit"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "title-md": ["18px", {"lineHeight": "24px", "fontWeight": "500"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500"}],
+                        "data-tabular": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "fontWeight": "700"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #f5faf8;
+            color: #171d1c;
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            border: 1px solid #E2E8F0;
+        }
+        .step-number {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-lg text-body-lg pb-32">
+<!-- Top AppBar (From JSON Reference) -->
+<header class="w-full top-0 sticky bg-surface dark:bg-surface-dim border-b border-outline-variant dark:border-outline z-40 transition-colors duration-200">
+<div class="flex justify-between items-center px-container-margin py-sm w-full">
+<div class="flex items-center gap-md">
+<button class="p-2 hover:bg-surface-container-low rounded-full transition-all">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-primary">Mitigation Detail</span>
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<span class="px-3 py-1 rounded-full bg-error-container text-on-error-container text-label-md font-label-md">
+                    Prioritas Tinggi
+                </span>
+</div>
+</div>
+</header>
+<main class="max-w-3xl mx-auto px-container-margin mt-lg animate-in fade-in slide-in-from-bottom-4 duration-700">
+<!-- Hero Section & Title -->
+<section class="space-y-md">
+<div class="flex flex-wrap items-center gap-sm">
+<span class="px-3 py-1 rounded-full bg-primary-container text-on-primary-container text-label-md font-label-md">
+                    Dana Darurat
+                </span>
+<span class="flex items-center gap-1 text-on-surface-variant text-label-md font-label-md">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+                    Target: 30 Hari Pertama
+                </span>
+</div>
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface tracking-tight leading-tight">
+                Bangun Dana Darurat 3 Bulan Pengeluaran
+            </h1>
+<!-- Decorative Visual -->
+<div class="relative w-full h-48 md:h-64 rounded-xl overflow-hidden border border-outline-variant">
+<div class="w-full h-full bg-cover bg-center" data-alt="A serene and organized workspace with a clean white desk, an elegant piggy bank, a financial journal, and soft sunlight streaming through a window. The atmosphere is professional, airy, and high-end light mode, featuring soft emerald and slate accents to symbolize financial growth and security." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDr9q59gIy2NkIOEvTTrQIb0ClgOR5KSd5mtFhF5LScsxCwNpxmTtBepFLgD3Q-f13RM0DMsiQ8uEPOTl8XneC7nwjWWy9K92wGjS2E_WD43Nc4jyAPX4nV0PFEelmLWjQt3iVIy_F9_E1mVkVD7YiBulv0fDEGrI8q6C79nNm6EhNpdBm8q546-FP-yXlD54Ll_Is-jT_Q7tCTmjRoyZ4zij9IrlhMSvkFuVuviDUgvO8bzFGOxgrztE5sIRhc3Ig14Zy-PTNKq-uk')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+</div>
+</section>
+<!-- Description -->
+<section class="mt-xl space-y-md">
+<h2 class="font-title-md text-title-md text-primary">Mengapa Ini Penting?</h2>
+<p class="text-on-surface-variant leading-relaxed">
+                Dana darurat adalah fondasi utama dari keamanan finansial Anda. Tanpa dana darurat, satu kejadian tak terduga—seperti perbaikan mobil mendadak atau tagihan medis—dapat merusak rencana keuangan jangka panjang Anda dan memaksa Anda mengambil hutang berbunga tinggi. Memiliki cadangan 3 bulan pengeluaran memberikan ketenangan pikiran dan perlindungan terhadap volatilitas ekonomi.
+            </p>
+</section>
+<!-- Instructions -->
+<section class="mt-xl space-y-lg">
+<h2 class="font-title-md text-title-md text-primary">Langkah-langkah Pelaksanaan</h2>
+<div class="space-y-md">
+<!-- Step 1 -->
+<div class="flex gap-md p-md bg-white border border-outline-variant rounded-lg hover:border-primary/30 transition-colors">
+<div class="step-number bg-primary text-white rounded-full font-bold text-sm">1</div>
+<div>
+<h3 class="font-bold text-on-surface">Hitung Pengeluaran Rutin</h3>
+<p class="text-body-sm text-on-surface-variant mt-1">Audit mutasi rekening Anda selama 3 bulan terakhir. Ambil rata-rata biaya sewa, makanan, transportasi, dan tagihan wajib lainnya.</p>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="flex gap-md p-md bg-white border border-outline-variant rounded-lg hover:border-primary/30 transition-colors">
+<div class="step-number bg-primary text-white rounded-full font-bold text-sm">2</div>
+<div>
+<h3 class="font-bold text-on-surface">Alokasikan 20% Pendapatan</h3>
+<p class="text-body-sm text-on-surface-variant mt-1">Gunakan aturan 50/30/20. Prioritaskan 20% pendapatan bulanan Anda langsung ke pos dana darurat sebelum melakukan pengeluaran lainnya.</p>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="flex gap-md p-md bg-white border border-outline-variant rounded-lg hover:border-primary/30 transition-colors">
+<div class="step-number bg-primary text-white rounded-full font-bold text-sm">3</div>
+<div>
+<h3 class="font-bold text-on-surface">Pindahkan ke Rekening Terpisah</h3>
+<p class="text-body-sm text-on-surface-variant mt-1">Buka rekening bank digital tanpa biaya administrasi yang terpisah dari rekening operasional harian untuk menghindari godaan belanja.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Expert Tips Card -->
+<section class="mt-xl">
+<div class="bg-tertiary-fixed text-on-tertiary-fixed p-lg rounded-xl border border-tertiary/20 flex gap-md items-start">
+<div class="p-2 bg-white/50 rounded-lg">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">lightbulb</span>
+</div>
+<div>
+<h3 class="font-title-md text-title-md mb-1">Tips Ahli: Saving Accelerator</h3>
+<p class="text-body-sm opacity-90 leading-snug">
+                        Aktifkan fitur "Auto-Debit" di hari penggajian. Membayar diri sendiri di awal (Pay Yourself First) terbukti secara psikologis meningkatkan tingkat keberhasilan menabung hingga 60% dibandingkan menabung sisa pengeluaran di akhir bulan.
+                    </p>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer Actions -->
+<footer class="fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-md border-t border-outline-variant p-md md:p-lg z-50">
+<div class="max-w-3xl mx-auto flex flex-col md:flex-row gap-md">
+<button class="flex-1 bg-primary text-white font-bold py-3 px-lg rounded-full flex items-center justify-center gap-sm hover:bg-primary-container transition-all active:scale-95 shadow-sm">
+<span class="material-symbols-outlined">check_circle</span>
+                Tandai Selesai
+            </button>
+<button class="flex-1 bg-surface-container-low text-on-surface-variant font-bold py-3 px-lg rounded-full flex items-center justify-center gap-sm border border-outline-variant hover:bg-surface-variant transition-all active:scale-95">
+<span class="material-symbols-outlined">share</span>
+                Bagikan Panduan
+            </button>
+</div>
+</footer>
+<!-- Bottom Navigation Bar (Contextual Check: Not rendered as this is a Task-Focused sub-page) -->
+<script>
+        // Simple micro-interaction for buttons
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const icon = this.querySelector('.material-symbols-outlined');
+                if (icon) {
+                    icon.style.transform = 'scale(1.2)';
+                    setTimeout(() => icon.style.transform = 'scale(1)', 200);
+                }
+            });
+        });
+    </script>
+</body></html>

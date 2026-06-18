@@ -5,8 +5,7 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>LifeGuard Finance - Dashboard</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;family=Inter:wght@400;500&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script id="tailwind-config">
         tailwind.config = {
@@ -45,7 +44,7 @@
                         "inverse-surface": "#2c3130",
                         "on-error": "#ffffff",
                         "on-background": "#171d1c",
-                        "primary": "#00685f",
+                        "primary": "#0d9488",
                         "on-surface": "#171d1c",
                         "on-secondary-fixed": "#0b1c30",
                         "surface-dim": "#d6dbd9",
@@ -66,6 +65,7 @@
                         "DEFAULT": "0.25rem",
                         "lg": "0.5rem",
                         "xl": "0.75rem",
+                        "2xl": "1rem",
                         "full": "9999px"
                     },
                     "spacing": {
@@ -79,14 +79,14 @@
                         "md": "16px"
                     },
                     "fontFamily": {
-                        "body-sm": ["Outfit"],
-                        "headline-lg-mobile": ["Outfit"],
-                        "label-md": ["Inter"],
-                        "headline-lg": ["Outfit"],
-                        "title-md": ["Outfit"],
-                        "display-lg": ["Outfit"],
-                        "data-tabular": ["Inter"],
-                        "body-lg": ["Outfit"]
+                        "body-sm": ["Outfit", "sans-serif"],
+                        "headline-lg-mobile": ["Outfit", "sans-serif"],
+                        "label-md": ["Outfit", "sans-serif"],
+                        "headline-lg": ["Outfit", "sans-serif"],
+                        "title-md": ["Outfit", "sans-serif"],
+                        "display-lg": ["Outfit", "sans-serif"],
+                        "data-tabular": ["Outfit", "sans-serif"],
+                        "body-lg": ["Outfit", "sans-serif"]
                     },
                     "fontSize": {
                         "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
@@ -132,14 +132,14 @@
     }
   </style>
 </head>
-<body class="bg-surface-container-lowest text-on-surface font-body-sm pb-24 selection:bg-primary-container selection:text-on-primary-container">
+<body class="bg-[#f5faf8] text-on-surface font-body-sm pb-24 selection:bg-primary-container selection:text-on-primary-container">
 <!-- TopAppBar -->
 <header class="fixed top-0 w-full z-40 border-b border-outline-variant bg-surface-container-lowest">
 <div class="flex items-center justify-between px-md w-full h-16">
-<button aria-label="Menu" class="text-on-surface-variant hover:bg-surface-container-low transition-colors p-2 rounded-full active:scale-95 transition-transform duration-150">
-<span class="material-symbols-outlined text-[24px]" style='font-variation-settings: "FILL" 0;'>menu</span>
-</button>
-<div class="flex items-center h-10 w-auto">https://lh3.googleusercontent.com/aida-public/AB6AXuD4m9qst3s93aPEKp-2bOs1j8FjO1XuqhexUS2L02SFPOYoya8wshKMoiXQnxELq29UPryxgQ0PTE-J-dAyvq03SZ2EyinduX4qyJ9Cjh-OPm1m5lPxDZGFabgVI3E54HZFRQiC1rbvb6TchHd64nTM-lruCRF6RE6JhlskyQp-_Pe8QTQasVtT4Me25KwlVe-Zur509dV32Snn0J7A3p6LLpvaK31blpKvm8GxP2CK4CNAPC8vX3D1ZRWYgyneRZunV5pTRPj_tRf-</div>
+<div class="flex items-center gap-3">
+<img alt="LifeGuard Finance Logo" class="w-8 h-8 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvsU0ZgB_tFNvHymf9WREUL98iH0cuWJrrwZmi0xgGoFbs029Da81Ua9KRuao8JEn2osO0w4TIpFO6xncU-sLz0FYJmcHC4lDtIWNVSiu3Y50k2tRhJ4lP8H0ubMCOeZ2VyUZSMB0qOz1jKParFaDNPIsweAKHRMhw1r_8_kSY-vIpI3WidbzdesZYwMS0aGI9tjUbB-fCxe3t993A_ByWwns_Ah5FXB73ZChxsSCH5Al_7Ys-8G18vxMoDdxgQJZSKAKCMEYo0fi7"/>
+<span class="font-title-md text-title-md font-semibold text-on-surface">LifeGuard Finance</span>
+</div>
 <button aria-label="Account" class="text-on-surface-variant hover:bg-surface-container-low transition-colors p-2 rounded-full active:scale-95 transition-transform duration-150">
 <span class="material-symbols-outlined text-[24px]" style='font-variation-settings: "FILL" 0;'>account_circle</span>
 </button>
@@ -153,7 +153,7 @@
 <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Berikut adalah ringkasan kesehatan finansial Anda hari ini.</p>
 </div>
 <!-- Vitality Score Card -->
-<section class="bg-surface-container-lowest rounded-lg border border-[#E2E8F0] p-lg flex flex-col items-center justify-center">
+<section class="bg-surface-container-lowest rounded-2xl border border-[#d6dbd9] p-lg flex flex-col items-center justify-center">
 <div class="w-full flex justify-between items-center mb-md">
 <h3 class="font-title-md text-title-md text-on-surface font-semibold">Financial Vitality Score</h3>
 <button aria-label="More Info" class="text-primary hover:bg-surface-container-low p-1 rounded-full transition-colors">
@@ -179,7 +179,7 @@
 <!-- Bento Grid for Metrics -->
 <div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
 <!-- Dana Darurat (Emergency Fund) -->
-<div class="bg-surface-container-lowest rounded-lg border border-[#E2E8F0] p-md flex flex-col justify-between group hover:border-outline-variant transition-colors">
+<div class="bg-surface-container-lowest rounded-2xl border border-[#d6dbd9] p-md flex flex-col justify-between group hover:border-outline-variant transition-colors">
 <div class="flex justify-between items-start mb-md">
 <div class="flex items-center gap-2">
 <div class="p-2 bg-error-container rounded-full text-on-error-container">
@@ -198,7 +198,7 @@
 </p>
 </div>
 <!-- Rasio Hutang (Debt Ratio) -->
-<div class="bg-surface-container-lowest rounded-lg border border-[#E2E8F0] p-md flex flex-col justify-between group hover:border-outline-variant transition-colors">
+<div class="bg-surface-container-lowest rounded-2xl border border-[#d6dbd9] p-md flex flex-col justify-between group hover:border-outline-variant transition-colors">
 <div class="flex justify-between items-start mb-md">
 <div class="flex items-center gap-2">
 <div class="p-2 bg-surface-container-low rounded-full text-primary">
@@ -217,10 +217,10 @@
 </p>
 </div>
 <!-- Rasio Menabung (Savings Ratio) -->
-<div class="bg-surface-container-lowest rounded-lg border border-[#E2E8F0] p-md flex flex-col justify-between group hover:border-outline-variant transition-colors">
+<div class="bg-surface-container-lowest rounded-2xl border border-[#d6dbd9] p-md flex flex-col justify-between group hover:border-outline-variant transition-colors">
 <div class="flex justify-between items-start mb-md">
 <div class="flex items-center gap-2">
-<div class="p-2 bg-secondary-container rounded-full text-on-secondary-container">
+<div class="p-2 bg-surface-container-low rounded-full text-[#F59E0B]">
 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">savings</span>
 </div>
 <h4 class="font-title-md text-title-md text-on-surface font-medium">Rasio Menabung</h4>
@@ -236,10 +236,10 @@
 </p>
 </div>
 <!-- Aset Likuid (Liquid Assets) -->
-<div class="bg-surface-container-lowest rounded-lg border border-[#E2E8F0] p-md flex flex-col justify-between group hover:border-outline-variant transition-colors">
+<div class="bg-surface-container-lowest rounded-2xl border border-[#d6dbd9] p-md flex flex-col justify-between group hover:border-outline-variant transition-colors">
 <div class="flex justify-between items-start mb-md">
 <div class="flex items-center gap-2">
-<div class="p-2 bg-tertiary-container rounded-full text-on-tertiary-container">
+<div class="p-2 bg-surface-container-low rounded-full text-primary">
 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">account_balance</span>
 </div>
 <h4 class="font-title-md text-title-md text-on-surface font-medium">Aset Likuid</h4>
@@ -247,7 +247,7 @@
 <span class="font-data-tabular text-data-tabular font-semibold text-on-surface">Rp 45.5M</span>
 </div>
 <div class="w-full bg-[#F1F5F9] rounded-full h-2 mb-2">
-<div class="bg-tertiary h-2 rounded-full" style="width: 60%"></div>
+<div class="bg-primary h-2 rounded-full" style="width: 60%"></div>
 </div>
 <p class="font-label-md text-label-md text-on-surface-variant flex justify-between">
 <span class="">Target: Rp 75.0M</span>
@@ -257,9 +257,9 @@
 </div>
 <!-- Feature Link -->
 <div class="mt-lg">
-<button class="w-full bg-surface-container-lowest rounded-lg border border-[#E2E8F0] p-md flex items-center justify-between group hover:border-outline-variant transition-colors text-left shadow-sm">
+<button class="w-full bg-surface-container-lowest rounded-2xl border border-[#d6dbd9] p-md flex items-center justify-between group hover:border-outline-variant transition-colors text-left shadow-sm">
 <div class="flex items-center gap-md">
-<div class="p-2 bg-primary-container text-on-primary-container rounded-full">
+<div class="p-2 bg-surface-container-low text-primary rounded-full">
 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">science</span>
 </div>
 <div>
@@ -272,7 +272,7 @@
 </div>
 <!-- Action Button -->
 <div class="mt-lg">
-<button class="w-full bg-primary text-on-primary font-title-md text-title-md py-3 rounded-full hover:bg-on-primary-fixed-variant transition-colors shadow-sm flex items-center justify-center gap-2">
+<button class="w-full bg-[#0d9488] text-white font-title-md text-title-md py-3 rounded-full hover:bg-opacity-90 transition-colors shadow-sm flex items-center justify-center gap-2">
 <span class="material-symbols-outlined text-[24px]" style='font-variation-settings: "FILL" 0;'>add_task</span>
                 Perbarui Target Keuangan
             </button>

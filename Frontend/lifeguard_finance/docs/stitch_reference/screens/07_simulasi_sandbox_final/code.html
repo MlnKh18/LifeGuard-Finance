@@ -1,0 +1,236 @@
+<!DOCTYPE html><html lang="id"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>LifeGuard Finance - Simulasi Sandbox</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary": "#0d9488",
+                    "on-primary": "#ffffff",
+                    "primary-container": "#ccfbf1",
+                    "on-primary-container": "#00201d",
+                    "secondary": "#52606d",
+                    "on-secondary": "#ffffff",
+                    "secondary-container": "#dbe3eb",
+                    "on-secondary-container": "#0f1b26",
+                    "tertiary": "#a75d22",
+                    "on-tertiary": "#ffffff",
+                    "tertiary-container": "#ffdbc4",
+                    "on-tertiary-container": "#381a00",
+                    "error": "#ba1a1a",
+                    "on-error": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "on-error-container": "#410002",
+                    "background": "#f5faf8",
+                    "on-background": "#171d1c",
+                    "surface": "#f5faf8",
+                    "on-surface": "#171d1c",
+                    "surface-variant": "#dae5e1",
+                    "on-surface-variant": "#3f4946",
+                    "outline": "#6f7976",
+                    "outline-variant": "#bec9c5",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-low": "#eff5f2",
+                    "surface-container": "#e9f0ec",
+                    "surface-container-high": "#e3eae7",
+                    "surface-container-highest": "#dee4e1"
+            },
+            "borderRadius": {
+                    "DEFAULT": "8px",
+                    "lg": "12px",
+                    "xl": "16px",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xl": "32px",
+                    "gutter": "16px",
+                    "xs": "4px",
+                    "margin-desktop": "24px",
+                    "lg": "24px",
+                    "base": "4px",
+                    "md": "16px",
+                    "margin-mobile": "16px",
+                    "sm": "8px"
+            },
+            "fontFamily": {
+                    "label-large": ["Outfit"],
+                    "display-large": ["Outfit"],
+                    "title-medium": ["Outfit"],
+                    "title-large": ["Outfit"],
+                    "headline-large": ["Outfit"],
+                    "body-medium": ["Outfit"],
+                    "headline-medium": ["Outfit"],
+                    "body-large": ["Outfit"],
+                    "label-medium": ["Outfit"]
+            },
+            "fontSize": {
+                    "label-large": ["14px", {"lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500"}],
+                    "display-large": ["57px", {"lineHeight": "64px", "letterSpacing": "-0.25px", "fontWeight": "400"}],
+                    "title-medium": ["16px", {"lineHeight": "24px", "letterSpacing": "0.15px", "fontWeight": "500"}],
+                    "title-large": ["22px", {"lineHeight": "28px", "fontWeight": "500"}],
+                    "headline-large": ["32px", {"lineHeight": "40px", "fontWeight": "400"}],
+                    "body-medium": ["14px", {"lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400"}],
+                    "headline-medium": ["28px", {"lineHeight": "36px", "fontWeight": "400"}],
+                    "body-large": ["16px", {"lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400"}],
+                    "label-medium": ["12px", {"lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Outfit', sans-serif; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(13, 148, 136, 0.1);
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: #0d9488;
+            cursor: pointer;
+            margin-top: -10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            border: 2px solid white;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            background: #dae5e1;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased min-h-screen flex flex-col selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-40 bg-surface/80 border-b border-outline-variant flex items-center justify-between px-md h-16 backdrop-blur-md">
+<button class="text-on-surface-variant hover:bg-surface-container-high transition-colors active:scale-95 duration-150 p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">arrow_back</span>
+</button>
+<h1 class="font-headline-medium text-title-large font-bold text-primary absolute left-1/2 transform -translate-x-1/2">
+            Simulasi Sandbox
+        </h1>
+<div class="w-10 h-10 flex items-center justify-center overflow-hidden rounded-full border border-outline-variant bg-surface-container">
+<img alt="LifeGuard Logo" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvsU0ZgB_tFNvHymf9WREUL98iH0cuWJrrwZmi0xgGoFbs029Da81Ua9KRuao8JEn2osO0w4TIpFO6xncU-sLz0FYJmcHC4lDtIWNVSiu3Y50k2tRhJ4lP8H0ubMCOeZ2VyUZSMB0qOz1jKParFaDNPIsweAKHRMhw1r_8_kSY-vIpI3WidbzdesZYwMS0aGI9tjUbB-fCxe3t993A_ByWwns_Ah5FXB73ZChxsSCH5Al_7Ys-8G18vxMoDdxgQJZSKAKCMEYo0fi7">
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow pt-[80px] px-margin-mobile md:px-margin-desktop max-w-4xl mx-auto w-full space-y-6 pb-24">
+<!-- Scenario Selector (Filter Chips) -->
+<section class="space-y-3">
+<h2 class="font-title-medium text-title-medium text-on-surface-variant">Skenario Bencana</h2>
+<div class="flex flex-wrap gap-2">
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-on-primary font-label-large text-label-large transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">work_off</span>
+                    Job Loss
+                </button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-container text-on-surface-variant font-label-large text-label-large border border-outline-variant transition-colors hover:bg-surface-container-highest">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 0;">local_hospital</span>
+                    Medical
+                </button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-container text-on-surface-variant font-label-large text-label-large border border-outline-variant transition-colors hover:bg-surface-container-highest">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 0;">trending_up</span>
+                    Inflation
+                </button>
+</div>
+</section>
+<!-- Parameter Slider Card -->
+<section class="bg-surface-container-lowest rounded-xl p-5 shadow-sm border border-outline-variant">
+<div class="flex justify-between items-end mb-4">
+<h3 class="font-title-medium text-title-medium text-on-surface">Estimasi Menganggur</h3>
+<span class="font-headline-medium text-title-large text-primary font-bold" id="sliderValue">6 Bulan</span>
+</div>
+<div class="relative w-full pt-2 pb-4">
+<input class="w-full h-1.5 bg-surface-variant rounded-full appearance-none outline-none" id="durationSlider" max="12" min="1" oninput="document.getElementById('sliderValue').innerText = this.value + ' Bulan'" type="range" value="6">
+<div class="flex justify-between text-on-surface-variant font-label-medium text-label-medium mt-3">
+<span class="">1m</span>
+<span class="">12m</span>
+</div>
+</div>
+</section>
+<!-- Projections Card -->
+<section class="bg-surface-container-lowest rounded-xl p-6 border border-outline-variant shadow-sm relative overflow-hidden">
+<!-- Decorative blur blob -->
+<div class="absolute -top-10 -right-10 w-32 h-32 bg-error/10 rounded-full blur-2xl"></div>
+<h3 class="font-title-medium text-title-medium text-on-surface-variant mb-6 text-center">Financial Vitality Score Impact</h3>
+<div class="flex items-center justify-center gap-4 md:gap-8">
+<!-- Current Score -->
+<div class="flex flex-col items-center">
+<div class="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-primary flex items-center justify-center bg-white shadow-lg">
+<span class="font-display-large text-headline-large text-on-background font-bold">75</span>
+</div>
+<span class="font-label-medium text-label-medium text-on-surface-variant mt-2 uppercase tracking-wider">Saat Ini</span>
+</div>
+<!-- Arrow -->
+<div class="flex flex-col items-center justify-center flex-grow max-w-[80px]">
+<div class="h-[2px] w-full bg-outline-variant relative">
+<span class="material-symbols-outlined text-outline absolute -right-2 -top-[11px] text-[24px]">arrow_forward</span>
+</div>
+<span class="font-label-medium text-label-medium text-error mt-2 font-semibold">-37 Pts</span>
+</div>
+<!-- Projected Score -->
+<div class="flex flex-col items-center">
+<div class="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-error flex items-center justify-center bg-white shadow-lg">
+<span class="font-display-large text-headline-large text-on-background font-bold">38</span>
+</div>
+<span class="font-label-medium text-label-medium text-on-surface-variant mt-2 uppercase tracking-wider">Proyeksi</span>
+</div>
+</div>
+</section>
+<!-- Stats List (Bento-style Grid) -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="bg-surface-container-lowest p-4 rounded-xl flex flex-col justify-between border border-outline-variant border-l-4 border-l-tertiary">
+<span class="font-label-large text-label-large text-on-surface-variant mb-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">flight_takeoff</span> Runway
+                </span>
+<span class="font-headline-medium text-title-large text-on-surface font-semibold">2.4 Bulan</span>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-xl flex flex-col justify-between border border-outline-variant border-l-4 border-l-error">
+<span class="font-label-large text-label-large text-on-surface-variant mb-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">money_off</span> Monthly Deficit
+                </span>
+<span class="font-headline-medium text-title-large text-error font-semibold">-Rp 3,5M</span>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-xl flex flex-col justify-between border border-outline-variant border-l-4 border-l-primary">
+<span class="font-label-large text-label-large text-on-surface-variant mb-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">savings</span> Remaining Emergency
+                </span>
+<span class="font-headline-medium text-title-large text-primary font-semibold">Rp 12M</span>
+</div>
+</section>
+</main>
+<!-- Bottom Action Area -->
+<div class="fixed bottom-0 w-full p-4 bg-surface/90 border-t border-outline-variant z-40 pb-safe backdrop-blur-md flex justify-center">
+<nav class="w-full max-w-md mx-auto flex justify-around items-center py-2">
+<button class="flex flex-col items-center gap-1 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 0;">home</span>
+<span class="text-label-medium font-label-medium">Ringkasan</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary transition-colors">
+<span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 1;">science</span>
+<span class="text-label-medium font-label-medium">Sandbox</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 0;">security</span>
+<span class="text-label-medium font-label-medium">Mitigasi</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 0;">account_circle</span>
+<span class="text-label-medium font-label-medium">Profil</span>
+</button>
+</nav>
+</div>
+
+
+</body></html>

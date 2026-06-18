@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+
+<html class="light" lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LifeGuard Finance - Tambah Pos Dana Darurat</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error": "#ba1a1a",
+                        "tertiary-fixed-dim": "#bec6e0",
+                        "on-background": "#171d1c",
+                        "surface-dim": "#d6dbd9",
+                        "surface-container": "#eaefed",
+                        "on-error-container": "#93000a",
+                        "surface-tint": "#006a61",
+                        "on-primary-fixed": "#00201d",
+                        "on-primary-container": "#f4fffc",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f0f5f2",
+                        "tertiary": "#545c72",
+                        "inverse-on-surface": "#edf2f0",
+                        "on-tertiary-fixed": "#131b2e",
+                        "on-primary-fixed-variant": "#005049",
+                        "primary-fixed-dim": "#6bd8cb",
+                        "inverse-primary": "#6bd8cb",
+                        "primary-container": "#008378",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed": "#dae2fd",
+                        "secondary-fixed-dim": "#b7c8e1",
+                        "primary-fixed": "#89f5e7",
+                        "primary": "#00685f",
+                        "surface-container-high": "#e4e9e7",
+                        "background": "#f5faf8",
+                        "secondary-fixed": "#d3e4fe",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "outline-variant": "#bcc9c6",
+                        "outline": "#6d7a77",
+                        "on-tertiary-container": "#fefcff",
+                        "on-surface": "#171d1c",
+                        "on-error": "#ffffff",
+                        "surface-variant": "#dee4e1",
+                        "surface": "#f5faf8",
+                        "on-tertiary-fixed-variant": "#3f465c",
+                        "on-secondary-container": "#54647a",
+                        "tertiary-container": "#6c748b",
+                        "on-surface-variant": "#3d4947",
+                        "on-secondary-fixed": "#0b1c30",
+                        "surface-bright": "#f5faf8",
+                        "surface-container-highest": "#dee4e1",
+                        "on-secondary": "#ffffff",
+                        "secondary-container": "#d0e1fb",
+                        "secondary": "#505f76",
+                        "on-primary": "#ffffff",
+                        "inverse-surface": "#2c3130"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "lg": "24px",
+                        "gutter": "16px",
+                        "xs": "4px",
+                        "container-margin": "24px",
+                        "sm": "8px",
+                        "xl": "32px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "data-tabular": ["Inter"],
+                        "body-sm": ["Outfit"],
+                        "label-md": ["Inter"],
+                        "title-md": ["Outfit"],
+                        "body-lg": ["Outfit"],
+                        "display-lg": ["Outfit"],
+                        "headline-lg": ["Outfit"],
+                        "headline-lg-mobile": ["Outfit"]
+                    },
+                    "fontSize": {
+                        "data-tabular": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500"}],
+                        "title-md": ["18px", {"lineHeight": "24px", "fontWeight": "500"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #f5faf8;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .scroll-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scroll-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .priority-chip-active {
+            box-shadow: 0 0 0 2px currentColor;
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        .icon-active {
+            @apply border-primary bg-primary-container/20;
+        }
+    </style>
+</head>
+<body class="font-body-lg text-on-background min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky z-40 bg-surface border-b border-outline-variant">
+<div class="flex items-center px-gutter h-16 w-full max-w-7xl mx-auto gap-4">
+<button class="material-symbols-outlined text-primary hover:bg-surface-container-low transition-colors rounded-full p-2 active:opacity-80">
+                arrow_back
+            </button>
+<h1 class="font-title-md text-title-md text-primary flex-1 truncate">Tambah Pos Dana Darurat</h1>
+<div class="w-10 h-10 overflow-hidden rounded-full opacity-40">
+<img alt="LifeGuard" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZmFER4Z3L0xZVBJ_HuNwm9rmSdd5Dt_gZbOKkFXR4Rwna2Z119Yfevz6vFCdVed4FQDmEUAdYpa-K2D2NgkElF153z9vxhVL60twkYlXgrAyiUi6CQ_Vlr6z_Nrz5xyhldyG5P6lEvQxiifaoxg8wQo-_uOmDhxGuxWKFHWseKe2tyYmUzH9PvFmDn23zzerXXpeZLlk-S-t2afquWQbTIAvspAfGvmo_RcuelaJE6n--Tr96Bki7MsDoVNQNcGKtoiER_-2L_x6d"/>
+</div>
+</div>
+</header>
+<main class="max-w-xl mx-auto px-gutter pt-8 space-y-8 relative">
+<!-- Subtle Branding Watermark -->
+<div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-[0.03]">
+<img alt="Background Logo" class="w-[400px] h-[400px]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZmFER4Z3L0xZVBJ_HuNwm9rmSdd5Dt_gZbOKkFXR4Rwna2Z119Yfevz6vFCdVed4FQDmEUAdYpa-K2D2NgkElF153z9vxhVL60twkYlXgrAyiUi6CQ_Vlr6z_Nrz5xyhldyG5P6lEvQxiifaoxg8wQo-_uOmDhxGuxWKFHWseKe2tyYmUzH9PvFmDn23zzerXXpeZLlk-S-t2afquWQbTIAvspAfGvmo_RcuelaJE6n--Tr96Bki7MsDoVNQNcGKtoiER_-2L_x6d"/>
+</div>
+<section class="relative z-10 space-y-6">
+<!-- Form Card -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm">
+<div class="space-y-5">
+<!-- Nama Pos -->
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-on-surface-variant ml-1">Nama Pos</label>
+<input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-on-surface placeholder:text-outline" placeholder="Misal: Dana Medis Darurat" type="text"/>
+</div>
+<!-- Target Dana -->
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-on-surface-variant ml-1">Target Dana</label>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 font-data-tabular text-data-tabular text-on-surface-variant">Rp</span>
+<input class="w-full bg-white border border-outline-variant rounded-lg pl-12 pr-4 py-3 font-data-tabular text-data-tabular focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-on-surface" type="text" value="0"/>
+</div>
+</div>
+<!-- Target Bulanan -->
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-on-surface-variant ml-1">Target Bulanan</label>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 font-data-tabular text-data-tabular text-on-surface-variant">Rp</span>
+<input class="w-full bg-white border border-outline-variant rounded-lg pl-12 pr-4 py-3 font-data-tabular text-data-tabular focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-on-surface" type="text" value="0"/>
+</div>
+</div>
+<!-- Prioritas -->
+<div class="space-y-3">
+<label class="font-label-md text-label-md text-on-surface-variant ml-1">Prioritas</label>
+<div class="flex gap-2">
+<button class="flex-1 py-2 px-3 rounded-full border border-error/20 text-error font-label-md text-label-md bg-error-container/10 transition-all hover:bg-error/5 flex items-center justify-center gap-1" onclick="selectPriority(this, 'error')">
+<span class="w-2 h-2 rounded-full bg-error"></span>
+                                Tinggi
+                            </button>
+<button class="flex-1 py-2 px-3 rounded-full border border-amber-500/20 text-amber-600 font-label-md text-label-md bg-amber-500/10 transition-all hover:bg-amber-500/5 flex items-center justify-center gap-1" onclick="selectPriority(this, 'amber-500')">
+<span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                                Sedang
+                            </button>
+<button class="flex-1 py-2 px-3 rounded-full border border-primary/20 text-primary font-label-md text-label-md bg-primary-container/10 transition-all hover:bg-primary/5 flex items-center justify-center gap-1" onclick="selectPriority(this, 'primary')">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+                                Rendah
+                            </button>
+</div>
+</div>
+<!-- Pilih Ikon -->
+<div class="space-y-3">
+<label class="font-label-md text-label-md text-on-surface-variant ml-1">Pilih Ikon</label>
+<div class="grid grid-cols-5 gap-3">
+<button class="aspect-square flex items-center justify-center rounded-xl border border-outline-variant hover:border-primary transition-all bg-white text-on-surface-variant hover:text-primary" onclick="selectIcon(this)">
+<span class="material-symbols-outlined">health_and_safety</span>
+</button>
+<button class="aspect-square flex items-center justify-center rounded-xl border border-outline-variant hover:border-primary transition-all bg-white text-on-surface-variant hover:text-primary" onclick="selectIcon(this)">
+<span class="material-symbols-outlined">family_restroom</span>
+</button>
+<button class="aspect-square flex items-center justify-center rounded-xl border border-outline-variant hover:border-primary transition-all bg-white text-on-surface-variant hover:text-primary" onclick="selectIcon(this)">
+<span class="material-symbols-outlined">school</span>
+</button>
+<button class="aspect-square flex items-center justify-center rounded-xl border border-outline-variant hover:border-primary transition-all bg-white text-on-surface-variant hover:text-primary" onclick="selectIcon(this)">
+<span class="material-symbols-outlined">home</span>
+</button>
+<button class="aspect-square flex items-center justify-center rounded-xl border border-outline-variant hover:border-primary transition-all bg-white text-on-surface-variant hover:text-primary" onclick="selectIcon(this)">
+<span class="material-symbols-outlined">directions_car</span>
+</button>
+<button class="aspect-square flex items-center justify-center rounded-xl border border-outline-variant hover:border-primary transition-all bg-white text-on-surface-variant hover:text-primary" onclick="selectIcon(this)">
+<span class="material-symbols-outlined">work</span>
+</button>
+<button class="aspect-square flex items-center justify-center rounded-xl border border-outline-variant hover:border-primary transition-all bg-white text-on-surface-variant hover:text-primary" onclick="selectIcon(this)">
+<span class="material-symbols-outlined">pets</span>
+</button>
+<button class="aspect-square flex items-center justify-center rounded-xl border border-outline-variant hover:border-primary transition-all bg-white text-on-surface-variant hover:text-primary" onclick="selectIcon(this)">
+<span class="material-symbols-outlined">flight</span>
+</button>
+<button class="aspect-square flex items-center justify-center rounded-xl border border-outline-variant hover:border-primary transition-all bg-white text-on-surface-variant hover:text-primary" onclick="selectIcon(this)">
+<span class="material-symbols-outlined">shopping_bag</span>
+</button>
+<button class="aspect-square flex items-center justify-center rounded-xl border border-outline-variant hover:border-primary transition-all bg-white text-on-surface-variant hover:text-primary" onclick="selectIcon(this)">
+<span class="material-symbols-outlined">bolt</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Button -->
+<button class="w-full bg-primary text-on-primary py-4 rounded-xl font-title-md text-title-md shadow-lg shadow-primary/20 hover:bg-primary-container transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">save</span>
+                Simpan Pos Baru
+            </button>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 bg-surface border-t border-outline-variant">
+<div class="flex justify-around items-center h-20 px-4 w-full max-w-7xl mx-auto">
+<!-- Beranda -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-5 py-1 hover:text-primary transition-colors active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-md text-label-md">Beranda</span>
+</a>
+<!-- Tabungan -->
+<a class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full px-5 py-1 active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+<span class="font-label-md text-label-md">Tabungan</span>
+</a>
+<!-- Laporan -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-5 py-1 hover:text-primary transition-colors active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined">query_stats</span>
+<span class="font-label-md text-label-md">Laporan</span>
+</a>
+<!-- Profil -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-5 py-1 hover:text-primary transition-colors active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-md text-label-md">Profil</span>
+</a>
+</div>
+</nav>
+<script>
+        function selectPriority(element, color) {
+            // Remove active styles from siblings
+            const container = element.parentElement;
+            container.querySelectorAll('button').forEach(btn => {
+                btn.classList.remove('ring-2', 'ring-offset-2', 'ring-' + color, 'bg-white', 'shadow-sm');
+                btn.style.boxShadow = 'none';
+            });
+            
+            // Add active styles
+            element.classList.add('bg-white', 'shadow-sm');
+            element.style.boxShadow = `0 0 0 2px ${color === 'primary' ? '#00685f' : (color === 'error' ? '#ba1a1a' : '#f59e0b')}`;
+        }
+
+        function selectIcon(element) {
+            const container = element.parentElement;
+            container.querySelectorAll('button').forEach(btn => {
+                btn.classList.remove('border-primary', 'bg-primary-container/10', 'text-primary');
+                btn.querySelector('span').style.fontVariationSettings = "'FILL' 0";
+            });
+
+            element.classList.add('border-primary', 'bg-primary-container/10', 'text-primary');
+            element.querySelector('span').style.fontVariationSettings = "'FILL' 1";
+        }
+
+        // Initialize first icon as selected
+        window.onload = () => {
+            const firstIcon = document.querySelector('.grid button');
+            if(firstIcon) selectIcon(firstIcon);
+            
+            const mediumPriority = document.querySelectorAll('.flex.gap-2 button')[1];
+            if(mediumPriority) selectPriority(mediumPriority, 'amber-500');
+        };
+    </script>
+</body></html>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LifeGuard Finance - Splash Screen</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;family=Inter:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-dim": "#d6dbd9",
+                      "on-secondary-fixed": "#0b1c30",
+                      "on-secondary": "#ffffff",
+                      "primary": "#00685f",
+                      "on-secondary-fixed-variant": "#38485d",
+                      "outline-variant": "#bcc9c6",
+                      "on-error-container": "#93000a",
+                      "on-tertiary-fixed": "#131b2e",
+                      "inverse-primary": "#6bd8cb",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-container-low": "#f0f5f2",
+                      "surface-container": "#eaefed",
+                      "on-tertiary-container": "#fefcff",
+                      "error-container": "#ffdad6",
+                      "on-surface": "#171d1c",
+                      "on-surface-variant": "#3d4947",
+                      "on-primary": "#ffffff",
+                      "tertiary": "#545c72",
+                      "secondary-fixed-dim": "#b7c8e1",
+                      "secondary": "#505f76",
+                      "on-tertiary-fixed-variant": "#3f465c",
+                      "tertiary-fixed": "#dae2fd",
+                      "surface-container-highest": "#dee4e1",
+                      "secondary-fixed": "#d3e4fe",
+                      "on-primary-fixed": "#00201d",
+                      "background": "#f5faf8",
+                      "surface-tint": "#006a61",
+                      "outline": "#6d7a77",
+                      "on-background": "#171d1c",
+                      "inverse-on-surface": "#edf2f0",
+                      "surface-container-high": "#e4e9e7",
+                      "surface-bright": "#f5faf8",
+                      "on-tertiary": "#ffffff",
+                      "surface": "#f5faf8",
+                      "on-error": "#ffffff",
+                      "primary-fixed": "#89f5e7",
+                      "primary-container": "#008378",
+                      "inverse-surface": "#2c3130",
+                      "tertiary-container": "#6c748b",
+                      "on-secondary-container": "#54647a",
+                      "on-primary-fixed-variant": "#005049",
+                      "on-primary-container": "#f4fffc"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "xl": "32px",
+                      "md": "16px",
+                      "container-margin": "24px",
+                      "xs": "4px",
+                      "lg": "24px",
+                      "base": "4px",
+                      "sm": "8px",
+                      "gutter": "16px"
+              },
+              "fontFamily": {
+                      "title-md": ["Outfit"],
+                      "display-lg": ["Outfit"],
+                      "body-lg": ["Outfit"],
+                      "data-tabular": ["Inter"],
+                      "headline-lg-mobile": ["Outfit"],
+                      "headline-lg": ["Outfit"],
+                      "body-sm": ["Outfit"],
+                      "label-md": ["Inter"]
+              },
+              "fontSize": {
+                      "title-md": ["18px", {"lineHeight": "24px", "fontWeight": "500"}],
+                      "display-lg": ["48px", {"lineHeight": "56px", "fontWeight": "700"}],
+                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "data-tabular": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                      "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .fade-in-up {
+            animation: fadeInUp 1s cubic-bezier(0.2, 0, 0.2, 1) forwards;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .shimmer {
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite linear;
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .pulse-soft {
+            animation: pulseSoft 2s infinite ease-in-out;
+        }
+        @keyframes pulseSoft {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+    </style>
+</head>
+<body class="bg-surface h-screen w-full flex flex-col items-center justify-between overflow-hidden relative">
+<!-- Ambient Background -->
+<div aria-hidden="true" class="absolute inset-0 pointer-events-none -z-10 overflow-hidden">
+<div class="absolute -top-1/4 -right-1/4 w-[120%] h-[120%] bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary-fixed/30 via-transparent to-transparent"></div>
+<div class="absolute -bottom-1/4 -left-1/4 w-[100%] h-[100%] bg-[radial-gradient(circle_at_bottom_left,_var(--tw-gradient-stops))] from-secondary-container/20 via-transparent to-transparent"></div>
+</div>
+<!-- Main Content -->
+<main class="flex-grow flex flex-col items-center justify-center z-10 w-full px-container-margin md:max-w-md fade-in-up">
+<!-- Glassmorphic Logo Container -->
+<div class="relative mb-xl w-40 h-40 md:w-56 md:h-56 rounded-3xl bg-white/40 backdrop-blur-md border border-white/60 shadow-xl flex items-center justify-center overflow-hidden p-6">
+<img alt="LifeGuard Finance Logo" class="w-full h-full object-contain drop-shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKroGNgvAHSeuSxZ-xVt4hs0r2sFJ3nU01JLIw_vveg3Isa3zDP1l2b2pGNVfEq8eiiOh5SGY7Y5y0PAllNyA42hT9FWSptgDY1xmuW6laZ6ENoOPuFMRQ2ZY43cmkqhEckGKMnyc3utIm0tpRaFQJ-hKOMNrNTE4xkwZejDjdTth5a7bDcHM24m7drUokmAjGRvfHUDZo-Odsj7-2er68LQxtLiaE_sDSAeviMzMc0WOnHjYvIrqWUNI962kd1JPaskqFVmzqc2wM"/>
+</div>
+<!-- Branding Section -->
+<div class="text-center space-y-2">
+<h1 class="font-display-lg text-4xl md:text-5xl text-primary tracking-tight font-bold">
+                LifeGuard Finance
+            </h1>
+<p class="font-body-lg text-lg text-on-surface-variant tracking-wide opacity-80">
+                Your Personal Financial Guardian
+            </p>
+</div>
+</main>
+<!-- Footer / Loading Section -->
+<footer class="w-full pb-xl flex flex-col items-center space-y-8 fade-in-up" style="animation-delay: 0.3s;">
+<!-- Subtle Loading Indicator -->
+<div class="flex items-center space-y-4 flex-col">
+<div class="w-48 h-1 bg-surface-container-highest rounded-full overflow-hidden relative">
+<div class="absolute inset-0 bg-primary/40 shimmer"></div>
+<div class="h-full bg-primary rounded-full transition-all duration-1000 w-1/3"></div>
+</div>
+<span class="text-label-md text-on-surface-variant font-medium tracking-widest uppercase opacity-60">Initializing Security...</span>
+</div>
+<!-- CTA Button (Appears if needed, or for onboarding) -->
+<button class="bg-primary hover:bg-primary-container text-on-primary font-title-md py-4 px-12 rounded-xl shadow-lg transition-all active:scale-95 group flex items-center gap-2">
+            Get Started
+            <span class="material-symbols-outlined text-xl group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</footer>
+<!-- Script to simulate loading and transition -->
+<script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const progressBar = document.querySelector('.bg-primary.rounded-full');
+            // Simulate progress
+            setTimeout(() => {
+                progressBar.style.width = '70%';
+            }, 500);
+            setTimeout(() => {
+                progressBar.style.width = '100%';
+            }, 1800);
+            
+            // Logic for transition (optional, if this is purely a splash)
+            // setTimeout(() => {
+            //     document.body.classList.add('transition-opacity', 'duration-700', 'opacity-0');
+            // }, 2500);
+        });
+    </script>
+</body></html>
