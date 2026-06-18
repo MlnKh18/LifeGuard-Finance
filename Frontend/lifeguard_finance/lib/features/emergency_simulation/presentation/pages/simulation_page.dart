@@ -33,67 +33,129 @@ class SimulationView extends StatefulWidget {
   State<SimulationView> createState() => _SimulationViewState();
 }
 
+/// Min/max/step configuration for the scenario's primary parameter slider.
+class _SliderConfig {
+  final double min;
+  final double max;
+  final int divisions;
+  final double initial;
+
+  const _SliderConfig({
+    required this.min,
+    required this.max,
+    required this.divisions,
+    required this.initial,
+  });
+}
+
 class _SimulationViewState extends State<SimulationView> {
   final _formKey = GlobalKey<FormState>();
-  final _paramController = TextEditingController();
   final _secondaryParamController = TextEditingController();
 
   ScenarioType _selectedScenario = ScenarioType.lossOfIncome;
+  late double _primaryParamValue = _getSliderConfig(_selectedScenario).initial;
 
   @override
   void dispose() {
-    _paramController.dispose();
     _secondaryParamController.dispose();
     super.dispose();
   }
 
-  void _onScenarioChanged(ScenarioType? scenario) {
-    if (scenario == null) return;
+  void _onScenarioChanged(ScenarioType scenario) {
+    if (scenario == _selectedScenario) return;
     setState(() {
       _selectedScenario = scenario;
-      _paramController.clear();
+      _primaryParamValue = _getSliderConfig(scenario).initial;
       _secondaryParamController.clear();
     });
+  }
+
+  static IconData _getScenarioIcon(ScenarioType type) {
+    switch (type) {
+      case ScenarioType.lossOfIncome:
+        return Icons.work_off_rounded;
+      case ScenarioType.medicalEmergency:
+        return Icons.local_hospital_rounded;
+      case ScenarioType.interestRateIncrease:
+        return Icons.credit_card_rounded;
+      case ScenarioType.inflationNeeds:
+        return Icons.trending_up_rounded;
+      case ScenarioType.educationEmergency:
+        return Icons.school_rounded;
+      case ScenarioType.increasedDependents:
+        return Icons.family_restroom_rounded;
+    }
+  }
+
+  static String _getScenarioChipLabel(ScenarioType type) {
+    switch (type) {
+      case ScenarioType.lossOfIncome:
+        return 'PHK';
+      case ScenarioType.medicalEmergency:
+        return 'Medis';
+      case ScenarioType.interestRateIncrease:
+        return 'Cicilan';
+      case ScenarioType.inflationNeeds:
+        return 'Inflasi';
+      case ScenarioType.educationEmergency:
+        return 'Pendidikan';
+      case ScenarioType.increasedDependents:
+        return 'Tanggungan';
+    }
+  }
+
+  static _SliderConfig _getSliderConfig(ScenarioType type) {
+    switch (type) {
+      case ScenarioType.lossOfIncome:
+        return const _SliderConfig(min: 1, max: 12, divisions: 11, initial: 6);
+      case ScenarioType.medicalEmergency:
+        return const _SliderConfig(min: 1000000, max: 50000000, divisions: 49, initial: 15000000);
+      case ScenarioType.interestRateIncrease:
+        return const _SliderConfig(min: 100000, max: 5000000, divisions: 49, initial: 500000);
+      case ScenarioType.inflationNeeds:
+        return const _SliderConfig(min: 1, max: 50, divisions: 49, initial: 10);
+      case ScenarioType.educationEmergency:
+        return const _SliderConfig(min: 1000000, max: 50000000, divisions: 49, initial: 8000000);
+      case ScenarioType.increasedDependents:
+        return const _SliderConfig(min: 1, max: 5, divisions: 4, initial: 1);
+    }
   }
 
   String _getParamLabel() {
     switch (_selectedScenario) {
       case ScenarioType.lossOfIncome:
-        return 'Durasi Kehilangan Pendapatan (Bulan)';
+        return 'Estimasi Lama Kehilangan Pendapatan';
       case ScenarioType.medicalEmergency:
-        return 'Estimasi Biaya Medis Darurat (Rp)';
+        return 'Estimasi Biaya Medis Darurat';
       case ScenarioType.interestRateIncrease:
-        return 'Kenaikan Cicilan Per Bulan (Rp)';
+        return 'Kenaikan Cicilan Per Bulan';
       case ScenarioType.inflationNeeds:
-        return 'Laju Inflasi Pokok (%)';
+        return 'Laju Inflasi Pokok';
       case ScenarioType.educationEmergency:
-        return 'Biaya Pendidikan Mendadak (Rp)';
+        return 'Biaya Pendidikan Mendadak';
       case ScenarioType.increasedDependents:
-        return 'Jumlah Tanggungan yang Bertambah';
+        return 'Jumlah Tanggungan Bertambah';
     }
   }
 
-  String _getParamHint() {
-    switch (_selectedScenario) {
+  String _formatSliderValue(ScenarioType type, double value) {
+    switch (type) {
       case ScenarioType.lossOfIncome:
-        return 'Contoh: 6 (bulan)';
+        return '${value.toStringAsFixed(0)} Bulan';
       case ScenarioType.medicalEmergency:
-        return 'Contoh: 15000000';
       case ScenarioType.interestRateIncrease:
-        return 'Contoh: 500000';
-      case ScenarioType.inflationNeeds:
-        return 'Contoh: 10 (%)';
       case ScenarioType.educationEmergency:
-        return 'Contoh: 8000000';
+        return 'Rp ${_formatRupiah(value)}';
+      case ScenarioType.inflationNeeds:
+        return '${value.toStringAsFixed(0)}%';
       case ScenarioType.increasedDependents:
-        return 'Contoh: 1 (jiwa)';
+        return '${value.toStringAsFixed(0)} Orang';
     }
   }
 
   void _runSimulation() {
     if (!_formKey.currentState!.validate()) return;
 
-    final value = double.parse(_paramController.text);
     double? secondaryValue;
     if (_selectedScenario == ScenarioType.inflationNeeds) {
       secondaryValue = double.tryParse(_secondaryParamController.text);
@@ -101,7 +163,7 @@ class _SimulationViewState extends State<SimulationView> {
 
     final input = SimulationInput(
       scenarioType: _selectedScenario,
-      parameterValue: value,
+      parameterValue: _primaryParamValue,
       secondaryParameterValue: secondaryValue,
     );
 
@@ -112,7 +174,7 @@ class _SimulationViewState extends State<SimulationView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Simulasi Skenario Darurat'),
+        title: Text('Simulasi Sandbox', style: AppTextStyles.heading3),
       ),
       body: BlocBuilder<SimulationBloc, SimulationState>(
         builder: (context, state) {
@@ -139,50 +201,83 @@ class _SimulationViewState extends State<SimulationView> {
                 ),
                 const SizedBox(height: 12),
 
-                // Form Simulation Selector
+                // Scenario Selector (Chips)
+                Text('Skenario Bencana', style: AppTextStyles.heading3.copyWith(fontSize: 14)),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: ScenarioType.values.map((type) {
+                    final isSelected = type == _selectedScenario;
+                    return ChoiceChip(
+                      selected: isSelected,
+                      showCheckmark: false,
+                      avatar: Icon(
+                        _getScenarioIcon(type),
+                        size: 16,
+                        color: isSelected ? Colors.white : AppColors.textSecondary,
+                      ),
+                      label: Text(_getScenarioChipLabel(type)),
+                      labelStyle: AppTextStyles.bodySmall.copyWith(
+                        color: isSelected ? Colors.white : AppColors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      selectedColor: AppColors.primary,
+                      backgroundColor: AppColors.surface,
+                      side: BorderSide(color: isSelected ? Colors.transparent : AppColors.border),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      onSelected: (_) => _onScenarioChanged(type),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 16),
+
+                // Parameter Slider Card
                 AppCard(
                   child: Form(
                     key: _formKey,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Pilih Skenario Darurat', style: AppTextStyles.heading3),
-                        const SizedBox(height: 12),
-                        DropdownButtonFormField<ScenarioType>(
-                          initialValue: _selectedScenario,
-                          items: _buildDropdownItems(),
-                          onChanged: _onScenarioChanged,
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                          ),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Expanded(
+                              child: Text(_getParamLabel(), style: AppTextStyles.heading3.copyWith(fontSize: 14)),
+                            ),
+                            Text(
+                              _formatSliderValue(_selectedScenario, _primaryParamValue),
+                              style: AppTextStyles.heading3.copyWith(color: AppColors.primary),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _paramController,
-                          keyboardType: TextInputType.number,
-                          style: AppTextStyles.bodyMedium,
-                          decoration: InputDecoration(
-                            labelText: _getParamLabel(),
-                            hintText: _getParamHint(),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        Slider(
+                          value: _primaryParamValue,
+                          min: _getSliderConfig(_selectedScenario).min,
+                          max: _getSliderConfig(_selectedScenario).max,
+                          divisions: _getSliderConfig(_selectedScenario).divisions,
+                          activeColor: AppColors.primary,
+                          inactiveColor: AppColors.border,
+                          onChanged: (val) => setState(() => _primaryParamValue = val),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _formatSliderValue(_selectedScenario, _getSliderConfig(_selectedScenario).min),
+                                style: AppTextStyles.bodySmall,
+                              ),
+                              Text(
+                                _formatSliderValue(_selectedScenario, _getSliderConfig(_selectedScenario).max),
+                                style: AppTextStyles.bodySmall,
+                              ),
+                            ],
                           ),
-                          validator: (val) {
-                            if (val == null || val.trim().isEmpty) {
-                              return 'Parameter wajib diisi';
-                            }
-                            final parsed = double.tryParse(val);
-                            if (parsed == null) {
-                              return 'Harus berupa angka';
-                            }
-                            if (parsed <= 0) {
-                              return 'Harus lebih besar dari 0';
-                            }
-                            return null;
-                          },
                         ),
                         if (_selectedScenario == ScenarioType.inflationNeeds) ...[
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12),
                           TextFormField(
                             controller: _secondaryParamController,
                             keyboardType: TextInputType.number,
@@ -194,7 +289,7 @@ class _SimulationViewState extends State<SimulationView> {
                             ),
                             validator: (val) {
                               if (val == null || val.trim().isEmpty) {
-                                return 'Pengeluaran kebutuhan pokok wajib diisi';
+                                return null; // Optional - calculator falls back to a default
                               }
                               final parsed = double.tryParse(val);
                               if (parsed == null) {
@@ -227,14 +322,14 @@ class _SimulationViewState extends State<SimulationView> {
                     padding: const EdgeInsets.all(24),
                     child: Center(
                       child: Column(
-                        children: const [
-                          Icon(Icons.query_stats_rounded, size: 48, color: AppColors.border),
-                          SizedBox(height: 12),
+                        children: [
+                          const Icon(Icons.query_stats_rounded, size: 48, color: AppColors.border),
+                          const SizedBox(height: 12),
                           Text(
                             'Belum Ada Hasil Simulasi',
                             style: AppTextStyles.heading3,
                           ),
-                          SizedBox(height: 4),
+                          const SizedBox(height: 4),
                           Text(
                             'Silakan pilih skenario di atas dan klik tombol Jalankan Simulasi.',
                             style: AppTextStyles.bodySmall,
@@ -254,35 +349,6 @@ class _SimulationViewState extends State<SimulationView> {
     );
   }
 
-  List<DropdownMenuItem<ScenarioType>> _buildDropdownItems() {
-    return const [
-      DropdownMenuItem(
-        value: ScenarioType.lossOfIncome,
-        child: Text('Kehilangan Pendapatan / PHK'),
-      ),
-      DropdownMenuItem(
-        value: ScenarioType.medicalEmergency,
-        child: Text('Biaya Medis Mendadak'),
-      ),
-      DropdownMenuItem(
-        value: ScenarioType.interestRateIncrease,
-        child: Text('Kenaikan Cicilan/Hutang'),
-      ),
-      DropdownMenuItem(
-        value: ScenarioType.inflationNeeds,
-        child: Text('Inflasi Kebutuhan Pokok'),
-      ),
-      DropdownMenuItem(
-        value: ScenarioType.educationEmergency,
-        child: Text('Biaya Pendidikan Mendadak'),
-      ),
-      DropdownMenuItem(
-        value: ScenarioType.increasedDependents,
-        child: Text('Bertambah Tanggungan Keluarga'),
-      ),
-    ];
-  }
-
   Widget _buildSimulationResultContent(SimulationResult result) {
     Color beforeColor = _getScoreColor(result.fvsBefore.score);
     Color afterColor = _getScoreColor(result.fvsAfter.score);
@@ -296,48 +362,35 @@ class _SimulationViewState extends State<SimulationView> {
         ),
         const SizedBox(height: 8),
 
-        // Score Comparison Card
+        // Financial Vitality Score Impact (rings)
         AppCard(
+          padding: const EdgeInsets.all(20),
           child: Column(
             children: [
+              Text(
+                'Dampak Skor Vitalitas Finansial',
+                style: AppTextStyles.heading3,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  Column(
-                    children: [
-                      const Text('FVS Sebelum', style: AppTextStyles.bodySmall),
-                      const SizedBox(height: 4),
-                      Text(
-                        result.fvsBefore.score.toStringAsFixed(0),
-                        style: AppTextStyles.heading1.copyWith(fontSize: 32, color: beforeColor),
-                      ),
-                      Text(result.fvsBefore.category, style: TextStyle(color: beforeColor, fontWeight: FontWeight.bold, fontSize: 12)),
-                    ],
+                  _ScoreRing(score: result.fvsBefore.score, color: beforeColor, label: 'SAAT INI'),
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.arrow_forward_rounded, color: AppColors.textSecondary, size: 28),
+                        const SizedBox(height: 4),
+                        Text(
+                          '-${result.scoreDrop.toStringAsFixed(0)} Pts',
+                          style: AppTextStyles.bodySmall.copyWith(color: AppColors.riskCritical, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
                   ),
-                  const Icon(Icons.arrow_forward_rounded, color: AppColors.textSecondary, size: 28),
-                  Column(
-                    children: [
-                      const Text('FVS Setelah', style: AppTextStyles.bodySmall),
-                      const SizedBox(height: 4),
-                      Text(
-                        result.fvsAfter.score.toStringAsFixed(0),
-                        style: AppTextStyles.heading1.copyWith(fontSize: 32, color: afterColor),
-                      ),
-                      Text(result.fvsAfter.category, style: TextStyle(color: afterColor, fontWeight: FontWeight.bold, fontSize: 12)),
-                    ],
-                  ),
-                ],
-              ),
-              const Divider(height: 24, color: AppColors.border),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.trending_down_rounded, color: AppColors.riskCritical, size: 20),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Skor Menurun Sebesar: -${result.scoreDrop.toStringAsFixed(1)} Poin',
-                    style: AppTextStyles.heading3.copyWith(color: AppColors.riskCritical),
-                  ),
+                  _ScoreRing(score: result.fvsAfter.score, color: afterColor, label: 'PROYEKSI'),
                 ],
               ),
             ],
@@ -345,61 +398,60 @@ class _SimulationViewState extends State<SimulationView> {
         ),
         const SizedBox(height: 16),
 
+        // Stats (Runway, Defisit, Sisa Dana Darurat)
+        _buildStatTile(
+          icon: Icons.flight_takeoff_rounded,
+          label: 'Daya Tahan Dana Darurat (Runway)',
+          value: result.monthsEmergencyFundLasts >= 99.0
+              ? 'Aman / Tidak Terpengaruh'
+              : '${result.monthsEmergencyFundLasts.toStringAsFixed(1)} Bulan',
+          accentColor: result.monthsEmergencyFundLasts < 3.0 ? AppColors.riskCritical : AppColors.riskSafe,
+        ),
+        const SizedBox(height: 10),
+        _buildStatTile(
+          icon: Icons.money_off_rounded,
+          label: 'Proyeksi Defisit Skenario',
+          value: result.potentialDeficit == 0
+              ? 'Tidak Ada Defisit'
+              : 'Rp ${_formatRupiah(result.potentialDeficit)}',
+          accentColor: result.potentialDeficit > 0 ? AppColors.riskCritical : AppColors.riskSafe,
+        ),
+        const SizedBox(height: 10),
+        _buildStatTile(
+          icon: Icons.savings_rounded,
+          label: 'Sisa Dana Darurat',
+          value: 'Rp ${_formatRupiah(result.remainingLiquidSavings)}',
+          accentColor: AppColors.primary,
+        ),
+        const SizedBox(height: 16),
+
         if (result.inflationResult != null) ...[
           _buildInflationResultSection(result.inflationResult!),
-        ] else ...[
-          // Financial Metrics Card
-          AppCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Daya Tahan & Kerugian', style: AppTextStyles.heading3.copyWith(color: AppColors.primary)),
-                const Divider(height: 20, color: AppColors.border),
-                _buildMetricRow(
-                  icon: Icons.timer_outlined,
-                  title: 'Daya Tahan Dana Darurat',
-                  value: result.monthsEmergencyFundLasts >= 99.0
-                      ? 'Aman / Tidak Terpengaruh'
-                      : '${result.monthsEmergencyFundLasts.toStringAsFixed(1)} Bulan',
-                  color: result.monthsEmergencyFundLasts < 3.0 ? AppColors.riskCritical : AppColors.riskSafe,
-                ),
-                const SizedBox(height: 12),
-                _buildMetricRow(
-                  icon: Icons.money_off_rounded,
-                  title: 'Proyeksi Defisit Skenario',
-                  value: result.potentialDeficit == 0
-                      ? 'Tidak Ada Defisit'
-                      : 'Rp ${_formatRupiah(result.potentialDeficit)}',
-                  color: result.potentialDeficit > 0 ? AppColors.riskCritical : AppColors.riskSafe,
-                ),
-              ],
-            ),
-          ),
           const SizedBox(height: 16),
-
-          // Affected Indicators Card
-          AppCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Indikator FVS yang Terdampak', style: AppTextStyles.heading3),
-                const SizedBox(height: 8),
-                ...result.affectedIndicators.map((ind) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Icon(Icons.arrow_right_rounded, color: AppColors.riskCritical),
-                          Expanded(
-                            child: Text(ind, style: AppTextStyles.bodyMedium),
-                          ),
-                        ],
-                      ),
-                    )),
-              ],
-            ),
-          ),
         ],
+
+        // Affected Indicators Card
+        AppCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Indikator FVS yang Terdampak', style: AppTextStyles.heading3),
+              const SizedBox(height: 8),
+              ...result.affectedIndicators.map((ind) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.arrow_right_rounded, color: AppColors.riskCritical),
+                        Expanded(
+                          child: Text(ind, style: AppTextStyles.bodyMedium),
+                        ),
+                      ],
+                    ),
+                  )),
+            ],
+          ),
+        ),
         const SizedBox(height: 16),
 
         // Recommendation Box
@@ -410,9 +462,9 @@ class _SimulationViewState extends State<SimulationView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                children: const [
-                  Icon(Icons.lightbulb_outline_rounded, color: AppColors.riskWarning),
-                  SizedBox(width: 8),
+                children: [
+                  const Icon(Icons.lightbulb_outline_rounded, color: AppColors.riskWarning),
+                  const SizedBox(width: 8),
                   Text('Rekomendasi Awal Lifeguard', style: AppTextStyles.heading3),
                 ],
               ),
@@ -433,6 +485,51 @@ class _SimulationViewState extends State<SimulationView> {
           onPressed: () => context.push('/recommendation'),
         ),
       ],
+    );
+  }
+
+  Widget _buildStatTile({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color accentColor,
+  }) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: AppColors.border),
+        ),
+        child: IntrinsicHeight(
+          child: Row(
+            children: [
+              Container(width: 4, color: accentColor),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(icon, size: 16, color: AppColors.textSecondary),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(label, style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w600)),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(value, style: AppTextStyles.heading3.copyWith(color: accentColor)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -460,9 +557,9 @@ class _SimulationViewState extends State<SimulationView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                children: const [
-                  Icon(Icons.trending_up_rounded, color: AppColors.riskCritical),
-                  SizedBox(width: 8),
+                children: [
+                  const Icon(Icons.trending_up_rounded, color: AppColors.riskCritical),
+                  const SizedBox(width: 8),
                   Text('Kalkulasi Dampak Inflasi', style: AppTextStyles.heading3),
                 ],
               ),
@@ -596,27 +693,6 @@ class _SimulationViewState extends State<SimulationView> {
     );
   }
 
-  Widget _buildMetricRow({
-    required IconData icon,
-    required String title,
-    required String value,
-    required Color color,
-  }) {
-    return Row(
-      children: [
-        Icon(icon, color: AppColors.textSecondary, size: 20),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(title, style: AppTextStyles.bodyMedium),
-        ),
-        Text(
-          value,
-          style: AppTextStyles.heading3.copyWith(color: color, fontSize: 14),
-        ),
-      ],
-    );
-  }
-
   Color _getScoreColor(double score) {
     if (score >= 80) return AppColors.riskSafe;
     if (score >= 60) return AppColors.riskWarning;
@@ -651,13 +727,13 @@ class _SimulationViewState extends State<SimulationView> {
             color: AppColors.border,
           ),
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'Profil Keuangan Belum Lengkap',
             style: AppTextStyles.heading2,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'Lengkapi data profil keuangan keluarga terlebih dahulu sebelum memulai simulasi skenario darurat.',
             style: AppTextStyles.bodyMedium,
             textAlign: TextAlign.center,
@@ -680,7 +756,7 @@ class _SimulationViewState extends State<SimulationView> {
         children: [
           const Icon(Icons.error_outline_rounded, size: 80, color: AppColors.riskCritical),
           const SizedBox(height: 16),
-          const Text('Terjadi Kesalahan', style: AppTextStyles.heading2),
+          Text('Terjadi Kesalahan', style: AppTextStyles.heading2),
           const SizedBox(height: 8),
           Text(errorMessage, textAlign: TextAlign.center, style: AppTextStyles.bodyMedium),
           const SizedBox(height: 24),
@@ -690,6 +766,48 @@ class _SimulationViewState extends State<SimulationView> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// A circular score badge used in the before/after comparison, matching the
+/// Stitch "Financial Vitality Score Impact" ring pattern.
+class _ScoreRing extends StatelessWidget {
+  final double score;
+  final Color color;
+  final String label;
+
+  const _ScoreRing({required this.score, required this.color, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 88,
+          height: 88,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white,
+            border: Border.all(color: color, width: 4),
+            boxShadow: [
+              BoxShadow(color: color.withAlpha(60), blurRadius: 12),
+            ],
+          ),
+          child: Text(
+            score.toStringAsFixed(0),
+            style: AppTextStyles.dataDisplay.copyWith(fontSize: 28, color: color),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          label,
+          style: AppTextStyles.bodySmall.copyWith(letterSpacing: 1, fontWeight: FontWeight.w600),
+          textAlign: TextAlign.center,
+        ),
+      ],
     );
   }
 }

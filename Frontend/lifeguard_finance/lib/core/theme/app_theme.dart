@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 import 'app_text_styles.dart';
 
@@ -10,6 +11,7 @@ class AppTheme {
       useMaterial3: true,
       primaryColor: AppColors.primary,
       scaffoldBackgroundColor: AppColors.background,
+      fontFamily: GoogleFonts.outfit().fontFamily,
       colorScheme: const ColorScheme.light(
         primary: AppColors.primary,
         secondary: AppColors.secondary,
@@ -25,18 +27,26 @@ class AppTheme {
           side: BorderSide(color: AppColors.border, width: 1),
         ),
       ),
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        iconTheme: IconThemeData(color: AppColors.textPrimary),
-        titleTextStyle: TextStyle(
+        iconTheme: const IconThemeData(color: AppColors.textPrimary),
+        titleTextStyle: GoogleFonts.outfit(
           color: AppColors.textPrimary,
           fontSize: 18,
           fontWeight: FontWeight.bold,
         ),
       ),
-      textTheme: const TextTheme(
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: AppColors.surface,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: AppColors.textSecondary,
+        type: BottomNavigationBarType.fixed,
+        showUnselectedLabels: true,
+        elevation: 0,
+      ),
+      textTheme: TextTheme(
         displayLarge: AppTextStyles.heading1,
         headlineMedium: AppTextStyles.heading2,
         titleMedium: AppTextStyles.heading3,

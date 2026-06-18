@@ -17,6 +17,7 @@ import '../../features/savings_vault/presentation/pages/savings_vault_page.dart'
 import '../../features/community/presentation/pages/community_page.dart';
 import '../../features/rewards/presentation/pages/reward_page.dart';
 import '../../features/settings/presentation/pages/profile_settings_page.dart';
+import '../widgets/main_shell.dart';
 
 class AppRouter {
   AppRouter._();
@@ -41,18 +42,6 @@ class AppRouter {
         builder: (context, state) => const FamilyProfilePage(),
       ),
       GoRoute(
-        path: '/dashboard',
-        builder: (context, state) => const DashboardPage(),
-      ),
-      GoRoute(
-        path: '/simulation',
-        builder: (context, state) => const SimulationPage(),
-      ),
-      GoRoute(
-        path: '/recommendation',
-        builder: (context, state) => const RecommendationPage(),
-      ),
-      GoRoute(
         path: '/smart-routing',
         builder: (context, state) => const SmartRoutingPage(),
       ),
@@ -73,16 +62,57 @@ class AppRouter {
         builder: (context, state) => const SavingsVaultPage(),
       ),
       GoRoute(
-        path: '/community',
-        builder: (context, state) => const CommunityPage(),
-      ),
-      GoRoute(
         path: '/reward',
         builder: (context, state) => const RewardPage(),
       ),
-      GoRoute(
-        path: '/profile-settings',
-        builder: (context, state) => const ProfileSettingsPage(),
+      // 5 main tabs (Komunitas, Ringkasan, Sandbox, Mitigasi, Profil) share a
+      // persistent bottom nav, matching the Stitch design system's canonical
+      // tab set — see docs/stitch_screens/mapping_notes.md.
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            MainShell(navigationShell: navigationShell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/community',
+                builder: (context, state) => const CommunityPage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/dashboard',
+                builder: (context, state) => const DashboardPage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/simulation',
+                builder: (context, state) => const SimulationPage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/recommendation',
+                builder: (context, state) => const RecommendationPage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/profile-settings',
+                builder: (context, state) => const ProfileSettingsPage(),
+              ),
+            ],
+          ),
+        ],
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

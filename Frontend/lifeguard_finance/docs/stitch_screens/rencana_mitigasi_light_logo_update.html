@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+
+<html class="" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LifeGuard Finance - Rencana Mitigasi</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "on-surface-variant": "#bcc9c6",
+                "tertiary-fixed-dim": "#ffb59a",
+                "on-error": "#690005",
+                "inverse-primary": "#006a61",
+                "surface-tint": "#6bd8cb",
+                "secondary-fixed-dim": "#b9c8de",
+                "background": "#0f1413",
+                "surface-variant": "#303635",
+                "secondary-container": "#39485a",
+                "on-surface": "#dee4e1",
+                "on-secondary-fixed": "#0d1c2d",
+                "secondary-fixed": "#d4e4fa",
+                "on-secondary-fixed-variant": "#39485a",
+                "on-primary-fixed": "#00201d",
+                "surface-container": "#1b2120",
+                "inverse-surface": "#dee4e1",
+                "on-tertiary-fixed-variant": "#773215",
+                "primary": "#6bd8cb",
+                "on-primary": "#003732",
+                "primary-fixed": "#89f5e7",
+                "surface-container-high": "#262b2a",
+                "on-primary-container": "#00302b",
+                "on-error-container": "#ffdad6",
+                "surface-container-highest": "#303635",
+                "inverse-on-surface": "#2c3130",
+                "on-tertiary": "#591c02",
+                "primary-fixed-dim": "#6bd8cb",
+                "error-container": "#93000a",
+                "primary-container": "#29a195",
+                "tertiary": "#ffb59a",
+                "on-secondary-container": "#a7b6cc",
+                "surface-dim": "#0f1413",
+                "secondary": "#b9c8de",
+                "on-background": "#dee4e1",
+                "on-primary-fixed-variant": "#005049",
+                "tertiary-fixed": "#ffdbce",
+                "outline": "#879391",
+                "surface-bright": "#353a39",
+                "on-tertiary-container": "#4f1700",
+                "error": "#ffb4ab",
+                "on-tertiary-fixed": "#370e00",
+                "tertiary-container": "#d27956",
+                "surface-container-lowest": "#0a0f0e",
+                "surface-container-low": "#171d1c",
+                "surface": "#0f1413",
+                "outline-variant": "#3d4947",
+                "on-secondary": "#233143"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "sm": "8px",
+                "margin-desktop": "24px",
+                "base": "4px",
+                "gutter": "16px",
+                "xs": "4px",
+                "xl": "32px",
+                "lg": "24px",
+                "md": "16px",
+                "margin-mobile": "16px"
+        },
+        "fontFamily": {
+                "title-large": [
+                        "Outfit"
+                ],
+                "label-large": [
+                        "Outfit"
+                ],
+                "label-medium": [
+                        "Outfit"
+                ],
+                "headline-large": [
+                        "Outfit"
+                ],
+                "display-large": [
+                        "Outfit"
+                ],
+                "headline-medium": [
+                        "Outfit"
+                ],
+                "title-medium": [
+                        "Outfit"
+                ],
+                "body-large": [
+                        "Outfit"
+                ],
+                "body-medium": [
+                        "Outfit"
+                ]
+        },
+        "fontSize": {
+                "title-large": [
+                        "22px",
+                        {
+                                "lineHeight": "28px",
+                                "fontWeight": "500"
+                        }
+                ],
+                "label-large": [
+                        "14px",
+                        {
+                                "lineHeight": "20px",
+                                "letterSpacing": "0.1px",
+                                "fontWeight": "500"
+                        }
+                ],
+                "label-medium": [
+                        "12px",
+                        {
+                                "lineHeight": "16px",
+                                "letterSpacing": "0.5px",
+                                "fontWeight": "500"
+                        }
+                ],
+                "headline-large": [
+                        "32px",
+                        {
+                                "lineHeight": "40px",
+                                "fontWeight": "400"
+                        }
+                ],
+                "display-large": [
+                        "57px",
+                        {
+                                "lineHeight": "64px",
+                                "letterSpacing": "-0.25px",
+                                "fontWeight": "400"
+                        }
+                ],
+                "headline-medium": [
+                        "28px",
+                        {
+                                "lineHeight": "36px",
+                                "fontWeight": "400"
+                        }
+                ],
+                "title-medium": [
+                        "16px",
+                        {
+                                "lineHeight": "24px",
+                                "letterSpacing": "0.15px",
+                                "fontWeight": "500"
+                        }
+                ],
+                "body-large": [
+                        "16px",
+                        {
+                                "lineHeight": "24px",
+                                "letterSpacing": "0.5px",
+                                "fontWeight": "400"
+                        }
+                ],
+                "body-medium": [
+                        "14px",
+                        {
+                                "lineHeight": "20px",
+                                "letterSpacing": "0.25px",
+                                "fontWeight": "400"
+                        }
+                ]
+        }
+},
+    },
+  }
+</script>
+<style>
+        .glass-panel {
+            background: rgba(245, 250, 248, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .progress-bar-fill {
+            transition: width 1s ease-in-out;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-[#f5faf8] text-slate-800 min-h-screen pb-24 md:pb-0 pt-16">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 glass-panel border-b border-slate-200 flat no shadows flex items-center justify-between px-md h-16">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 flex items-center justify-center overflow-hidden rounded-lg"><img alt="LifeGuard Logo" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4m9qst3s93aPEKp-2bOs1j8FjO1XuqhexUS2L02SFPOYoya8wshKMoiXQnxELq29UPryxgQ0PTE-J-dAyvq03SZ2EyinduX4qyJ9Cjh-OPm1m5lPxDZGFabgVI3E54HZFRQiC1rbvb6TchHd64nTM-lruCRF6RE6JhlskyQp-_Pe8QTQasVtT4Me25KwlVe-Zur509dV32Snn0J7A3p6LLpvaK31blpKvm8GxP2CK4CNAPC8vX3D1ZRWYgyneRZunV5pTRPj_tRf-"/></div>
+<h1 class="font-headline-large text-title-large font-bold text-teal-700 tracking-tight">Rencana Mitigasi</h1>
+</div>
+<button class="p-2 text-teal-700 hover:bg-slate-100 transition-colors rounded-full active:scale-95 duration-150">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</header>
+<main class="max-w-4xl mx-auto px-margin-mobile md:px-margin-desktop py-lg space-y-lg mt-4">
+<!-- Tab Bar -->
+<div class="flex overflow-x-auto no-scrollbar gap-sm pb-2 border-b border-slate-200">
+<button class="px-4 py-2 font-title-medium text-title-medium text-teal-600 border-b-2 border-teal-600 whitespace-nowrap">30 Hari</button>
+<button class="px-4 py-2 font-title-medium text-title-medium text-slate-500 hover:text-slate-800 transition-colors whitespace-nowrap">60 Hari</button>
+<button class="px-4 py-2 font-title-medium text-title-medium text-slate-500 hover:text-slate-800 transition-colors whitespace-nowrap">90 Hari</button>
+</div>
+<!-- Progress Card -->
+<section class="bg-white rounded-xl p-lg border border-slate-200 relative overflow-hidden shadow-sm">
+<div class="absolute inset-0 bg-teal-50/50 pointer-events-none"></div>
+<div class="relative z-10">
+<div class="flex justify-between items-end mb-sm">
+<div>
+<h2 class="font-title-large text-title-large text-slate-800">Progress Overall</h2>
+<p class="font-body-medium text-body-medium text-slate-500 mt-1">Fase Mitigasi Darurat</p>
+</div>
+<span class="font-headline-medium text-headline-medium text-teal-600 font-semibold">60%</span>
+</div>
+<div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden mt-4">
+<div class="h-full bg-teal-600 rounded-full progress-bar-fill w-[60%]" style="width: 60%;"></div>
+</div>
+</div>
+</section>
+<!-- Task List -->
+<section class="space-y-sm">
+<h3 class="font-title-medium text-title-medium text-slate-800 mb-md">Tugas Kritis</h3>
+<!-- Task 1: High Priority -->
+<div class="bg-white rounded-lg p-md border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer flex items-start gap-md group shadow-sm">
+<div class="mt-1">
+<span class="material-symbols-outlined text-teal-600 group-hover:scale-110 transition-transform" data-icon="radio_button_unchecked" style="font-variation-settings: 'FILL' 0;">radio_button_unchecked</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<h4 class="font-title-medium text-title-medium text-slate-800">Audit Pengeluaran</h4>
+<span class="bg-rose-100 text-rose-700 px-2 py-1 rounded-full font-label-medium text-label-medium border border-rose-200">High</span>
+</div>
+<p class="font-body-medium text-body-medium text-slate-600 mt-1 line-clamp-2">Review mutasi rekening 3 bulan terakhir dan kategorikan semua pengeluaran.</p>
+</div>
+</div>
+<!-- Task 2: Medium Priority -->
+<div class="bg-white rounded-lg p-md border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer flex items-start gap-md group shadow-sm">
+<div class="mt-1">
+<span class="material-symbols-outlined text-teal-600 group-hover:scale-110 transition-transform" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="flex-1 opacity-60">
+<div class="flex justify-between items-start">
+<h4 class="font-title-medium text-title-medium text-slate-500 line-through">Potong Biaya Langganan</h4>
+<span class="bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-label-medium text-label-medium border border-orange-200">Medium</span>
+</div>
+<p class="font-body-medium text-body-medium text-slate-500 mt-1 line-clamp-2">Batalkan langganan streaming dan layanan yang tidak esensial.</p>
+</div>
+</div>
+<!-- Task 3: High Priority -->
+<div class="bg-white rounded-lg p-md border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer flex items-start gap-md group shadow-sm">
+<div class="mt-1">
+<span class="material-symbols-outlined text-teal-600 group-hover:scale-110 transition-transform" data-icon="radio_button_unchecked" style="font-variation-settings: 'FILL' 0;">radio_button_unchecked</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<h4 class="font-title-medium text-title-medium text-slate-800">Bangun Dana Darurat</h4>
+<span class="bg-rose-100 text-rose-700 px-2 py-1 rounded-full font-label-medium text-label-medium border border-rose-200">High</span>
+</div>
+<p class="font-body-medium text-body-medium text-slate-600 mt-1 line-clamp-2">Sisihkan 20% dari pemasukan bulan ini ke rekening terpisah.</p>
+</div>
+</div>
+<!-- Add New Task Button -->
+<button class="w-full py-md mt-sm border border-dashed border-slate-300 text-slate-600 hover:text-teal-600 hover:border-teal-600 hover:bg-teal-50 rounded-lg transition-all flex items-center justify-center gap-2 font-title-medium text-title-medium">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                Tambah Tugas Baru
+            </button>
+</section>
+<div class="h-8"></div> <!-- Spacer for bottom nav -->
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 w-full flex justify-around items-center h-20 px-sm pb-safe bg-white border-t border-slate-200 flat no shadows z-50 glass-panel"><button class="flex flex-1 flex-col items-center justify-center text-slate-500 py-2 hover:bg-slate-50 transition-all active:scale-90 duration-200">
+<span class="material-symbols-outlined mb-1" data-icon="dashboard">dashboard</span>
+<span class="font-label-medium text-label-medium">Ringkasan</span>
+</button>
+<button class="flex flex-1 flex-col items-center justify-center py-2 hover:bg-slate-50 transition-all active:scale-90 duration-200 text-[#0D9488]">
+<span class="material-symbols-outlined mb-1" data-icon="experiment" style='font-variation-settings: "FILL" 1;'>experiment</span>
+<span class="font-label-medium text-label-medium" style='font-variation-settings: "FILL" 1;'>Sandbox</span>
+</button>
+<button class="flex flex-1 flex-col items-center justify-center py-2 transition-all active:scale-90 duration-200 text-slate-500">
+<span class="material-symbols-outlined mb-1" data-icon="shield">shield</span>
+<span class="font-label-medium text-label-medium">Mitigasi</span>
+</button>
+<button class="flex flex-1 flex-col items-center justify-center text-slate-500 py-2 hover:bg-slate-50 transition-all active:scale-90 duration-200">
+<span class="material-symbols-outlined mb-1" data-icon="person">person</span>
+<span class="font-label-medium text-label-medium">Profil</span>
+</button></nav>
+<script>
+        // Simple animation trigger for progress bar on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const progressBar = document.querySelector('.progress-bar-fill');
+            if(progressBar) {
+                // Reset width to 0 then animate to 60%
+                progressBar.style.width = '0%';
+                setTimeout(() => {
+                    progressBar.style.width = '60%';
+                }, 100);
+            }
+        });
+    </script>
+</body></html>

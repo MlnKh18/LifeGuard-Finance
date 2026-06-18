@@ -1,0 +1,694 @@
+# Blueprint Teknis & Rencana Sprint: LifeGuard Finance (Step 6 - 12)
+
+Dokumen ini menyajikan panduan arsitektur dan spesifikasi kode lengkap untuk mengimplementasikan **Step 6 sampai 12** menggunakan **Clean Architecture** dan **BLoC** (Business Logic Component) di Flutter dengan penyimpanan **Hive (Local-First)**.
+
+---
+
+## Ringkasan Struktur Direktori Clean Architecture
+Setiap fitur di bawah akan diatur menggunakan struktur folder berikut:
+```text
+lib/
+├── data/
+│   ├── local/
+│   │   ├── hive_service.dart
+│   │   └── local_keys.dart
+│   ├── models/
+│   └── repositories/
+├── domain/
+│   ├── entities/
+│   ├── repositories/
+│   └── usecases/
+├── presentation/
+│   ├── bloc/
+│   ├── pages/
+│   └── widgets/
+```
+
+---
+
+## ─── STEP 6: LOCAL STORAGE DENGAN HIVE ───
+
+Hive dipilih sebagai database NoSQL lokal karena memiliki performa sangat tinggi (*high performance key-value store*) dan sangat cocok untuk menyimpan dokumen JSON Map tanpa perlu skema relasional yang rumit pada fase prototipe.
+
+### 1. File: `lib/data/local/local_keys.dart`
+```dart
+class LocalKeys {
+  static const String financeBox = 'finance_box';
+  
+  // Keys
+  static const String userMock = 'user_mock';
+  static const String financeProfile = 'finance_profile';
+  static const String latestFvsScore = 'latest_fvs_score';
+  static const String expenseHistory = 'expense_history';
+  static const String simulationHistory = 'simulation_history';
+  static const String recommendations = 'recommendations';
+  static const String savingsVaults = 'savings_vaults';
+  static const String literacyProgress = 'literacy_progress';
+  static const String communityPosts = 'community_posts';
+  static const String rewardPoints = 'reward_points';
+}
+```
+
+### 2. File: `lib/data/local/hive_service.dart`
+```dart
+import 'dart:convert';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'local_keys.dart';
+
+class HiveService {
+  static final HiveService instance = HiveService._internal();
+  HiveService._internal();
+
+  late Box _box;
+
+  Future<void> init() async {
+    await Hive.initFlutter();
+    _box = await Hive.openBox(LocalKeys.financeBox);
+  }
+
+  // Menyimpan data bertipe Map/JSON
+  Future<void> saveData(String key, dynamic value) async {
+    if (value is Map || value is List) {
+      // Encode ke JSON string agar aman di Hive untuk tipe data bersarang (nested)
+      await _box.put(key, jsonEncode(value));
+    } else {
+      await _box.put(key, value);
+    }
+  }
+
+  // Mengambil data
+  dynamic getData(String key) {
+    final rawData = _box.get(key);
+    if (rawData is String) {
+      try {
+        return jsonDecode(rawData);
+      } catch (_) {
+        return rawData;
+      }
+    }
+    return rawData;
+  }
+
+  // Menghapus data spesifik
+  Future<void> deleteData(String key) async {
+    await _box.delete(key);
+  }
+
+  // Mengosongkan seluruh isi box (Privacy Purge / Reset)
+  Future<void> clearAll() async {
+    await _box.clear();
+  }
+}
+```
+
+### 3. File: `lib/main.dart` (Inisialisasi Hive)
+```dart
+import 'package:flutter/material.dart';
+import 'data/local/hive_service.dart';
+import 'app.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Inisialisasi Layanan Penyimpanan Lokal Hive
+  await HiveService.instance.init();
+  
+  runApp(const LifeGuardApp());
+}
+```
+
+### 4. Contoh Penggunaan di Repositori (Save & Get Profile)
+```dart
+import '../../domain/entities/family_finance_profile.dart';
+import '../models/family_finance_profile_model.dart';
+import '../local/hive_service.dart';
+import '../local/local_keys.dart';
+
+class FamilyProfileRepositoryImpl {
+  final HiveService _hiveService = HiveService.instance;
+
+  Future<bool> saveProfile(FamilyFinanceProfile profile) async {
+    try {
+      final model = FamilyFinanceProfileModel.fromEntity(profile);
+      await _hiveService.saveData(LocalKeys.financeProfile, model.toJson());
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<FamilyFinanceProfile?> getProfile() async {
+    final data = _hiveService.getData(LocalKeys.financeProfile);
+    if (data == null) return null;
+    return FamilyFinanceProfileModel.fromJson(Map<String, dynamic>.from(data)).toEntity();
+  }
+}
+```
+
+---
+
+## ─── STEP 7: FITUR FAMILY FINANCE PROFILE ───
+
+Fitur ini menyediakan input form lengkap bagi pengguna untuk mengumpulkan kondisi fundamental keuangan keluarga secara terperinci.
+
+### 1. Domain Layer (Entity)
+```dart
+class FamilyFinanceProfile {
+  final double fixedIncome;
+  final double variableIncome;
+  final double routineExpense;
+  final double monthlyDebtPayment;
+  final double liquidSavings;
+  final int dependentsCount;
+  final bool hasBpjs;
+  final bool hasAdditionalInsurance;
+
+  FamilyFinanceProfile({
+    required this.fixedIncome,
+    required this.variableIncome,
+    required this.routineExpense,
+    required this.monthlyDebtPayment,
+    required this.liquidSavings,
+    required this.dependentsCount,
+    required this.hasBpjs,
+    required this.hasAdditionalInsurance,
+  });
+
+  double get totalIncome => fixedIncome + variableIncome;
+}
+```
+
+### 2. Data Layer (Model & Repository)
+```dart
+import '../../domain/entities/family_finance_profile.dart';
+
+class FamilyFinanceProfileModel extends FamilyFinanceProfile {
+  FamilyFinanceProfileModel({
+    required super.fixedIncome,
+    required super.variableIncome,
+    required super.routineExpense,
+    required super.monthlyDebtPayment,
+    required super.liquidSavings,
+    required super.dependentsCount,
+    required super.hasBpjs,
+    required super.hasAdditionalInsurance,
+  });
+
+  factory FamilyFinanceProfileModel.fromJson(Map<String, dynamic> json) {
+    return FamilyFinanceProfileModel(
+      fixedIncome: (json['fixed_income'] as num).toDouble(),
+      variableIncome: (json['variable_income'] as num).toDouble(),
+      routineExpense: (json['routine_expense'] as num).toDouble(),
+      monthlyDebtPayment: (json['monthly_debt'] as num).toDouble(),
+      liquidSavings: (json['liquid_savings'] as num).toDouble(),
+      dependentsCount: json['dependents_count'] as int,
+      hasBpjs: json['has_bpjs'] == 1 || json['has_bpjs'] == true,
+      hasAdditionalInsurance: json['has_additional_insurance'] == 1 || json['has_additional_insurance'] == true,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'fixed_income': fixedIncome,
+      'variable_income': variableIncome,
+      'routine_expense': routineExpense,
+      'monthly_debt': monthlyDebtPayment,
+      'liquid_savings': liquidSavings,
+      'dependents_count': dependentsCount,
+      'has_bpjs': hasBpjs ? 1 : 0,
+      'has_additional_insurance': hasAdditionalInsurance ? 1 : 0,
+    };
+  }
+
+  factory FamilyFinanceProfileModel.fromEntity(FamilyFinanceProfile entity) {
+    return FamilyFinanceProfileModel(
+      fixedIncome: entity.fixedIncome,
+      variableIncome: entity.variableIncome,
+      routineExpense: entity.routineExpense,
+      monthlyDebtPayment: entity.monthlyDebtPayment,
+      liquidSavings: entity.liquidSavings,
+      dependentsCount: entity.dependentsCount,
+      hasBpjs: entity.hasBpjs,
+      hasAdditionalInsurance: entity.hasAdditionalInsurance,
+    );
+  }
+
+  FamilyFinanceProfile toEntity() => this;
+}
+```
+
+### 3. Presentation Layer (FamilyProfileBloc)
+
+#### Events
+```dart
+abstract class FamilyProfileEvent {}
+class LoadFamilyProfile extends FamilyProfileEvent {}
+class SaveFamilyProfileEvent extends FamilyProfileEvent {
+  final FamilyFinanceProfile profile;
+  SaveFamilyProfileEvent(this.profile);
+}
+```
+
+#### States
+```dart
+abstract class FamilyProfileState {}
+class FamilyProfileInitial extends FamilyProfileState {}
+class FamilyProfileLoading extends FamilyProfileState {}
+class FamilyProfileLoaded extends FamilyProfileState {
+  final FamilyFinanceProfile? profile;
+  FamilyProfileLoaded(this.profile);
+}
+class FamilyProfileSaved extends FamilyProfileState {}
+class FamilyProfileError extends FamilyProfileState {
+  final String message;
+  FamilyProfileError(this.message);
+}
+```
+
+#### Bloc Logic
+```dart
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'family_profile_event.dart';
+import 'family_profile_state.dart';
+import '../../domain/repositories/family_profile_repository.dart';
+
+class FamilyProfileBloc extends Bloc<FamilyProfileEvent, FamilyProfileState> {
+  final FamilyProfileRepository repository;
+
+  FamilyProfileBloc({required this.repository}) : super(FamilyProfileInitial()) {
+    on<LoadFamilyProfile>((event, emit) async {
+      emit(FamilyProfileLoading());
+      try {
+        final profile = await repository.getProfile();
+        emit(FamilyProfileLoaded(profile));
+      } catch (e) {
+        emit(FamilyProfileError('Gagal memuat profil keuangan.'));
+      }
+    });
+
+    on<SaveFamilyProfileEvent>((event, emit) async {
+      emit(FamilyProfileLoading());
+      try {
+        final success = await repository.saveProfile(event.profile);
+        if (success) {
+          emit(FamilyProfileSaved());
+        } else {
+          emit(FamilyProfileError('Gagal menyimpan ke penyimpanan lokal.'));
+        }
+      } catch (e) {
+        emit(FamilyProfileError('Terjadi kesalahan sistem.'));
+      }
+    });
+  }
+}
+```
+
+### 4. Form Interface (`family_profile_page.dart` dengan validasi)
+*   **Validasi**: Angka tidak boleh negatif, pendapatan/pengeluaran pokok wajib diisi dan $>0$.
+*   **Navigasi**: Mengarahkan pengguna ke `/dashboard` setelah `FamilyProfileSaved`.
+
+---
+
+## ─── STEP 8: FVS CALCULATOR & DASHBOARD ───
+
+Mesin FVS menghitung parameter kerentanan finansial secara berbobot dari 0 (Kritis) hingga 100 (Aman).
+
+### 1. FvsCalculator Service
+```dart
+import '../../domain/entities/family_finance_profile.dart';
+import '../models/fvs_score_model.dart';
+
+class FvsCalculator {
+  static FvsScoreModel calculate(FamilyFinanceProfile profile) {
+    // S1: Kestabilan Pendapatan (Pendapatan Tetap vs Tidak Tetap)
+    double s1 = (profile.fixedIncome >= profile.variableIncome) ? 100.0 : 60.0;
+
+    // S2: Rasio Pengeluaran terhadap Pendapatan Total
+    double totalIncome = profile.totalIncome;
+    double expenseRatio = totalIncome > 0 ? (profile.routineExpense / totalIncome) : 1.0;
+    double s2 = expenseRatio <= 0.50 ? 100.0 : expenseRatio <= 0.70 ? 80.0 : expenseRatio <= 0.90 ? 50.0 : 20.0;
+
+    // S3: Kesiapan Dana Darurat (Cover Bulan Pengeluaran)
+    double emergencyMonths = profile.routineExpense > 0 ? (profile.liquidSavings / profile.routineExpense) : 0.0;
+    double s3 = emergencyMonths >= 6.0 ? 100.0 : emergencyMonths >= 3.0 ? 75.0 : emergencyMonths >= 1.0 ? 40.0 : 10.0;
+
+    // S4: Debt Burden Ratio (DBR)
+    double dbr = totalIncome > 0 ? (profile.monthlyDebtPayment / totalIncome) : 0.0;
+    double s4 = dbr == 0 ? 100.0 : dbr <= 0.30 ? 80.0 : dbr <= 0.40 ? 50.0 : dbr <= 0.50 ? 30.0 : 10.0;
+
+    // S5: Beban Tanggungan
+    double s5 = profile.dependentsCount == 0 ? 100.0 : profile.dependentsCount <= 2 ? 80.0 : profile.dependentsCount <= 4 ? 50.0 : 25.0;
+
+    // S6: Proteksi Jaminan Asuransi
+    double s6 = 10.0;
+    if (profile.hasBpjs && profile.hasAdditionalInsurance) {
+      s6 = 100.0;
+    } else if (profile.hasBpjs) {
+      s6 = 80.0;
+    } else if (profile.hasAdditionalInsurance) {
+      s6 = 40.0;
+    }
+
+    // S7: Daya Serap Guncangan Sintetis
+    double s7 = (s3 * 0.4) + (s2 * 0.3) + (s4 * 0.3);
+    // Penalti 50% jika mengalami defisit anggaran bulanan
+    if (profile.routineExpense + profile.monthlyDebtPayment > totalIncome) {
+      s7 = s7 * 0.5;
+    }
+
+    // Formula Bobot Akhir
+    double totalFvs = (0.20 * s1) + (0.15 * s2) + (0.20 * s3) + (0.20 * s4) + (0.10 * s5) + (0.10 * s6) + (0.05 * s7);
+
+    return FvsScoreModel(
+      totalScore: totalFvs.round(),
+      s1: s1.round(),
+      s2: s2.round(),
+      s3: s3.round(),
+      s4: s4.round(),
+      s5: s5.round(),
+      s6: s6.round(),
+      s7: s7.round(),
+      calculatedAt: DateTime.now(),
+    );
+  }
+
+  static String getCategory(int score) {
+    if (score >= 80) return 'Aman';
+    if (score >= 60) return 'Waspada';
+    if (score >= 40) return 'Rentan';
+    return 'Kritis';
+  }
+}
+```
+
+---
+
+## ─── STEP 9: EMERGENCY SCENARIO SIMULATION ───
+
+Sandbox krisis menghitung dampak bayangan terhadap tabungan dan proyeksi FVS baru jika terjadi guncangan finansial.
+
+### 1. Model & Enum Simulasi
+```dart
+enum ScenarioType { phk, medical, cicilan, inflasi, pendidikan, dependent }
+
+class SimulationResult {
+  final int beforeFvsScore;
+  final int afterFvsScore;
+  final int scoreDifference;
+  final double survivalMonths;
+  final double monthlyDeficit;
+  final double remainingSavings;
+  final String warningMessage;
+
+  SimulationResult({
+    required this.beforeFvsScore,
+    required this.afterFvsScore,
+    required this.scoreDifference,
+    required this.survivalMonths,
+    required this.monthlyDeficit,
+    required this.remainingSavings,
+    required this.warningMessage,
+  });
+}
+```
+
+### 2. SimulationCalculator Service
+```dart
+import '../../domain/entities/family_finance_profile.dart';
+import '../models/simulation_result.dart';
+import 'fvs_calculator.dart';
+
+class SimulationCalculator {
+  static SimulationResult run({
+    required FamilyFinanceProfile profile,
+    required ScenarioType type,
+    required double parameterValue, // jumlah biaya, persentase inflasi, dll
+    required int durationMonths,
+  }) {
+    final initialFvs = FvsCalculator.calculate(profile).totalScore;
+    
+    double projectedIncome = profile.totalIncome;
+    double projectedExpense = profile.routineExpense;
+    double projectedDebt = profile.monthlyDebtPayment;
+    double projectedSavings = profile.liquidSavings;
+    int dependents = profile.dependentsCount;
+
+    switch (type) {
+      case ScenarioType.phk:
+        projectedIncome = 0.0; // Kehilangan gaji total
+        break;
+      case ScenarioType.medical:
+        projectedSavings = (projectedSavings - parameterValue).clamp(0.0, double.infinity);
+        break;
+      case ScenarioType.cicilan:
+        projectedDebt += parameterValue; // Cicilan KPR melambung
+        break;
+      case ScenarioType.pendidikan:
+        projectedSavings = (projectedSavings - parameterValue).clamp(0.0, double.infinity);
+        break;
+      case ScenarioType.dependent:
+        projectedExpense += parameterValue; // Kenaikan biaya hidup
+        dependents += 1;
+        break;
+      case ScenarioType.inflasi:
+        // Di-handle secara khusus oleh InflationImpactCalculator
+        break;
+    }
+
+    final shadowProfile = FamilyFinanceProfile(
+      fixedIncome: projectedIncome,
+      variableIncome: 0,
+      routineExpense: projectedExpense,
+      monthlyDebtPayment: projectedDebt,
+      liquidSavings: projectedSavings,
+      dependentsCount: dependents,
+      hasBpjs: profile.hasBpjs,
+      hasAdditionalInsurance: profile.hasAdditionalInsurance,
+    );
+
+    final projectedFvs = FvsCalculator.calculate(shadowProfile).totalScore;
+    final deficit = (projectedExpense + projectedDebt) - projectedIncome;
+    final double survival = deficit > 0 ? (projectedSavings / deficit) : 99.0;
+
+    return SimulationResult(
+      beforeFvsScore: initialFvs,
+      afterFvsScore: projectedFvs,
+      scoreDifference: initialFvs - projectedFvs,
+      survivalMonths: double.parse(survival.toStringAsFixed(1)),
+      monthlyDeficit: deficit > 0 ? deficit : 0.0,
+      remainingSavings: projectedSavings,
+      warningMessage: survival < 3.0 ? 'Peringatan: Dana darurat Anda diproyeksikan habis kurang dari 3 bulan!' : 'Kondisi dana darurat aman.',
+    );
+  }
+}
+```
+
+---
+
+## ─── STEP 10: INFLATION IMPACT CALCULATOR ───
+
+Modul ini diintegrasikan ke dalam sandbox krisis untuk menyimulasikan kenaikan harga bahan pokok sebesar persentase tertentu.
+
+### 1. Logic & Integrasi
+```dart
+class InflationImpactCalculator {
+  static SimulationResult calculate({
+    required FamilyFinanceProfile profile,
+    required double inflationRate, // e.g. 0.15 untuk 15%
+    required int durationMonths,
+  }) {
+    // Biaya esensial pokok melonjak
+    final increasedExpense = profile.routineExpense * (1 + inflationRate);
+    final shadowProfile = FamilyFinanceProfile(
+      fixedIncome: profile.fixedIncome,
+      variableIncome: profile.variableIncome,
+      routineExpense: increasedExpense,
+      monthlyDebtPayment: profile.monthlyDebtPayment,
+      liquidSavings: profile.liquidSavings,
+      dependentsCount: profile.dependentsCount,
+      hasBpjs: profile.hasBpjs,
+      hasAdditionalInsurance: profile.hasAdditionalInsurance,
+    );
+
+    final initialFvs = FvsCalculator.calculate(profile).totalScore;
+    final projectedFvs = FvsCalculator.calculate(shadowProfile).totalScore;
+    
+    final totalOutflow = increasedExpense + profile.monthlyDebtPayment;
+    final deficit = totalOutflow - profile.totalIncome;
+    final double survival = deficit > 0 ? (profile.liquidSavings / deficit) : 99.0;
+
+    return SimulationResult(
+      beforeFvsScore: initialFvs,
+      afterFvsScore: projectedFvs,
+      scoreDifference: initialFvs - projectedFvs,
+      survivalMonths: double.parse(survival.toStringAsFixed(1)),
+      monthlyDeficit: deficit > 0 ? deficit : 0.0,
+      remainingSavings: profile.liquidSavings,
+      warningMessage: survival < 3.0 
+          ? 'Warning! Akibat kenaikan inflasi, daya tahan dana darurat Anda kritis di bawah 3 bulan.' 
+          : 'Daya tahan dana darurat cukup memadai.',
+    );
+  }
+}
+```
+
+---
+
+## ─── STEP 11: RECOMMENDATION ENGINE ───
+
+Mesin ini memindai setiap sub-skor FVS dan merancang rencana aksi (action plan) prioritas terarah.
+
+### 1. Aturan Generator Rekomendasi
+```dart
+class Recommendation {
+  final String title;
+  final String description;
+  final String timeline; // '30 Hari', '60 Hari', '90 Hari'
+  final String priority; // 'Tinggi', 'Sedang', 'Rendah'
+
+  Recommendation({
+    required this.title,
+    required this.description,
+    required this.timeline,
+    required this.priority,
+  });
+}
+
+class RecommendationGenerator {
+  static List<Recommendation> generate(FamilyFinanceProfile profile, FvsScoreModel score) {
+    List<Recommendation> recommendations = [];
+
+    // Jika Dana Darurat Kritis (S3 < 40)
+    if (score.s3 < 40) {
+      recommendations.add(Recommendation(
+        title: 'Buka Rekening Dana Darurat Terpisah',
+        description: 'Pisahkan rekening tabungan utama Anda dengan rekening dana darurat instan tanpa kartu ATM untuk mencegah pembelanjaan impulsif.',
+        timeline: '30 Hari',
+        priority: 'Tinggi',
+      ));
+      recommendations.add(Recommendation(
+        title: 'Target Penghematan Pengeluaran Non-Esensial 15%',
+        description: 'Audit pengeluaran makan di luar dan langganan hiburan bulanan. Alihkan alokasinya ke pos dana darurat.',
+        timeline: '60 Hari',
+        priority: 'Tinggi',
+      ));
+    }
+
+    // Jika Beban Utang Tinggi (S4 < 50)
+    if (score.s4 < 50) {
+      recommendations.add(Recommendation(
+        title: 'Hentikan Utang Konsumtif Baru / Paylater',
+        description: 'Blokir atau batasi penggunaan paylater dan kartu kredit untuk menstabilkan arus kas bulanan Anda.',
+        timeline: '30 Hari',
+        priority: 'Tinggi',
+      ));
+      recommendations.add(Recommendation(
+        title: 'Lakukan Metode Pelunasan Debt Snowball',
+        description: 'Susun utang berdasarkan nominal terkecil, lunasi terlebih dahulu untuk meningkatkan moral dan sisa pendapatan bebas.',
+        timeline: '60 Hari',
+        priority: 'Sedang',
+      ));
+    }
+
+    // Jika Proteksi Kurang (S6 < 80)
+    if (score.s6 < 80) {
+      recommendations.add(Recommendation(
+        title: 'Daftar dan Aktivasi BPJS Kesehatan Mandiri',
+        description: 'Pastikan seluruh anggota keluarga terdaftar di BPJS Kesehatan untuk menghindari krisis biaya medis tak terduga.',
+        timeline: '30 Hari',
+        priority: 'Tinggi',
+      ));
+    }
+
+    return recommendations;
+  }
+}
+```
+
+---
+
+## ─── STEP 12: GOAL-DRIVEN SMART ROUTING ───
+
+Smart Routing adalah asisten pintar untuk membagi pendapatan pengguna ke dalam pos-pos prioritas secara dinamis berdasarkan kategori risiko FVS.
+
+### 1. Smart Routing Calculator
+```dart
+class RoutingAllocation {
+  final String label;
+  final double percentage;
+  final double amount;
+
+  RoutingAllocation({required this.label, required this.percentage, required this.amount});
+}
+
+class SmartRoutingCalculator {
+  static List<RoutingAllocation> calculate({
+    required double monthlyIncome,
+    required String fvsCategory,
+  }) {
+    Map<String, double> percentages;
+
+    switch (fvsCategory) {
+      case 'Aman':
+        percentages = {
+          'Kebutuhan Pokok': 0.45,
+          'Cicilan/Utang': 0.20,
+          'Dana Darurat': 0.10,
+          'Pendidikan Anak': 0.10,
+          'Kesehatan': 0.05,
+          'Investasi/Tabungan': 0.10,
+        };
+        break;
+      case 'Waspada':
+        percentages = {
+          'Kebutuhan Pokok': 0.50,
+          'Cicilan/Utang': 0.20,
+          'Dana Darurat': 0.15,
+          'Pendidikan Anak': 0.05,
+          'Kesehatan': 0.05,
+          'Investasi/Tabungan': 0.05,
+        };
+        break;
+      case 'Rentan':
+        percentages = {
+          'Kebutuhan Pokok': 0.55,
+          'Cicilan/Utang': 0.25,
+          'Dana Darurat': 0.15,
+          'Pendidikan Anak': 0.025,
+          'Kesehatan': 0.025,
+          'Investasi/Tabungan': 0.0,
+        };
+        break;
+      case 'Kritis':
+      default:
+        percentages = {
+          'Kebutuhan Pokok': 0.60,
+          'Cicilan/Utang': 0.25,
+          'Dana Darurat': 0.10,
+          'Pendidikan Anak': 0.025,
+          'Kesehatan': 0.025,
+          'Investasi/Tabungan': 0.0,
+        };
+        break;
+    }
+
+    return percentages.entries.map((entry) {
+      return RoutingAllocation(
+        label: entry.key,
+        percentage: entry.value,
+        amount: monthlyIncome * entry.value,
+      );
+    }).toList();
+  }
+}
+```
+
+### 2. Contoh Hasil Simulasi Output Deskriptif (Pendapatan: Rp 8.000.000 - Kategori: Rentan)
+*   **Total Pendapatan**: Rp 8.000.000 (Kategori: Rentan)
+*   **Pos Kebutuhan Pokok (55%)**: Rp 4.400.000
+*   **Pos Cicilan / Utang (25%)**: Rp 2.000.000
+*   **Pos Dana Darurat (15%)**: Rp 1.200.000
+*   **Pos Pendidikan Anak (2.5%)**: Rp 200.000
+*   **Pos Kesehatan (2.5%)**: Rp 200.000
+*   **Pos Investasi / Tabungan (0%)**: Rp 0
+*   **Catatan Edukatif**: Alokasi di atas disesuaikan secara dinamis agar pengguna yang berada di kategori *Rentan* memfokuskan sisa dana bebasnya (15%) untuk membangun dana darurat secara agresif, dan menghentikan penambahan pos investasi jangka panjang non-likuid hingga kondisi FVS berangsur naik ke kategori *Waspada* atau *Aman*.

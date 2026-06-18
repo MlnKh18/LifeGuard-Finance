@@ -41,6 +41,21 @@ class ScoreCard extends StatelessWidget {
       ),
       child: Column(
         children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Skor Vitalitas Finansial',
+                style: AppTextStyles.heading3,
+              ),
+              IconButton(
+                icon: const Icon(Icons.info_outline_rounded, color: AppColors.primary, size: 20),
+                onPressed: () => _showInfoDialog(context),
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
           Center(
             child: Stack(
               alignment: Alignment.center,
@@ -60,24 +75,49 @@ class ScoreCard extends StatelessWidget {
                   children: [
                     Text(
                       fvsScore.score.toStringAsFixed(0),
-                      style: AppTextStyles.heading1.copyWith(fontSize: 40, color: scoreColor),
+                      style: AppTextStyles.dataDisplay.copyWith(color: scoreColor),
                     ),
-                    const Text('Skor FVS', style: AppTextStyles.bodySmall),
+                    Text('Skor FVS', style: AppTextStyles.bodySmall),
                   ],
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 20),
-          Text(
-            'Kategori: ${fvsScore.category}',
-            style: AppTextStyles.heading2.copyWith(color: scoreColor),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            decoration: BoxDecoration(
+              color: scoreColor.withAlpha(26),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              fvsScore.category,
+              style: AppTextStyles.dataLabel.copyWith(color: scoreColor),
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Text(
             fvsScore.description,
             style: AppTextStyles.bodyMedium,
             textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showInfoDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Tentang Skor FVS'),
+        content: const Text(
+          'Financial Vulnerability Score (FVS) adalah skor edukatif 0-100 yang mengukur ketahanan finansial keluarga Anda berdasarkan 7 indikator: stabilitas pendapatan, rasio pengeluaran, dana darurat, beban utang, tanggungan, proteksi kesehatan, dan kapasitas surplus arus kas.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Mengerti'),
           ),
         ],
       ),

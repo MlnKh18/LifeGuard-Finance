@@ -214,6 +214,7 @@ class SimulationCalculator {
       scoreDrop: scoreDrop,
       monthsEmergencyFundLasts: monthsEmergencyFundLasts,
       potentialDeficit: potentialDeficit,
+      remainingLiquidSavings: liquidSavings,
       affectedIndicators: affectedIndicators,
       recommendation: recommendation,
       inflationResult: inflationResult,

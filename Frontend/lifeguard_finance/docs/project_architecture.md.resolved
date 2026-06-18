@@ -1,0 +1,105 @@
+# Dokumen Arsitektur Sistem: LifeGuard Finance
+
+Dokumen ini mendokumentasikan desain arsitektur perangkat lunak untuk aplikasi mobile **LifeGuard Finance**. Aplikasi ini dirancang dengan prinsip **Clean Architecture**, **BLoC State Management**, dan **Local-First Data Persistence (Hive)** untuk memastikan keterbacaan kode (*readability*), modularitas tinggi, kemudahan pengujian unit (*testability*), dan privasi data pengguna.
+
+---
+
+## 1. Tiga Lapisan Clean Architecture
+
+Aplikasi ini dibagi menjadi tiga lapisan utama untuk memisahkan tanggung jawab bisnis dari detail infrastruktur (UI dan Database):
+
+```mermaid
+graph TD
+    UI[Presentation Layer: Widgets / Pages] --> |Picu Event| Bloc[Presentation Layer: BLoC / States]
+    Bloc --> |Panggil Use Cases| UC[Domain Layer: Use Cases]
+    UC --> |Definisikan Kontrak| RepoInterface[Domain Layer: Repository Interfaces]
+    RepoInterface -.-> |Diimplementasikan Oleh| RepoImpl[Data Layer: Repository Implementation]
+    RepoImpl --> |Akses Data Lokal| Hive[Data Layer: Hive Storage / NoSQL]
+    RepoImpl --> |Akses Model JSON| Model[Data Layer: Models / JSON Serialization]
+    Model --> |Warisi Sifat| Entity[Domain Layer: Entities]
+```
+
+### A. Domain Layer (Lapisan Inti Bisnis)
+Lapisan ini adalah yang paling stabil dan tidak memiliki ketergantungan pada pustaka eksternal (UI, Hive, dll.). Lapisan ini berisi aturan bisnis inti:
+*   **Entities**: Model data murni yang mencerminkan aturan bisnis (contoh: `FamilyFinanceProfile`, `FvsScore`, `Recommendation`).
+*   **Use Cases**: Alur logika interaksi pengguna yang spesifik (contoh: `CalculateFvsScore`, `GetMitigationActionPlan`, `RunCrisisSimulation`).
+*   **Repository Interfaces**: Kontrak abstrak yang mendefinisikan operasi data yang dibutuhkan oleh domain layer.
+
+### B. Data Layer (Lapisan Infrastruktur Data)
+Lapisan ini bertanggung jawab untuk berinteraksi dengan database lokal, memproses JSON, dan melakukan kalkulasi teknis:
+*   **Models**: Sub-kelas dari Entities yang memiliki metode serialisasi (`fromJson`, `toJson`).
+*   **Repository Implementations**: Implementasi konkret dari antarmuka repositori di Domain Layer. Lapisan ini berinteraksi langsung dengan `HiveService` atau database lokal lainnya.
+*   **Data Sources**: Penyedia data mentah seperti `HiveService` (NoSQL) untuk performa cepat dan caching fleksibel.
+
+### C. Presentation Layer (Lapisan Antarmuka Pengguna)
+Lapisan ini mengelola rendering UI dan pengaturan status state:
+*   **BLoCs (Business Logic Components)**: Mengubah peristiwa input (Events) dari UI menjadi data state (States) melalui aliran reaktif (*reactive streams*).
+*   **Pages & Widgets**: Komponen visual Flutter yang mendengarkan perubahan status BLoC untuk me-render antarmuka pengguna secara responsif.
+
+---
+
+## 2. Struktur Direktori Fitur (Feature-Oriented Structure)
+
+Untuk mengelola kompleksitas kode seiring berkembangnya aplikasi, direktori `lib/` disusun berbasis fitur (*feature-based*):
+
+```text
+lib/
+├── data/                             # Data Layer Global / Layanan Lokal
+│   ├── local/
+│   │   ├── hive_service.dart         # Wrapper Box Hive
+│   │   └── local_keys.dart           # Daftar Kunci Key-Value Hive
+│   └── models/                       # Model Data Terpusat
+│
+├── domain/                           # Domain Layer Global
+│   ├── entities/                     # Entitas Bisnis Utama
+│   └── usecases/                     # Use Cases Sistem
+│
+├── presentation/                     # Presentation Layer Terpusat
+│   ├── bloc/                         # Manajemen Status BLoC
+│   ├── screens/                      # Layar Utama Aplikasi
+│   │   ├── dashboard/                # Visualisasi FVS & Gauge
+│   │   ├── simulation/               # Sandbox Krisis & Inflasi
+│   │   ├── vault/                    # Kantong Simpanan Virtual
+│   │   ├── insights/                 # Lacak Pengeluaran & Anomali
+│   │   └── community/                # Forum & Sistem Poin
+│   └── widgets/                      # Widget UI Reusable
+│
+└── main.dart                         # Inisialisasi Database & Entry Point
+```
+
+---
+
+## 3. Alur Pipa Data: "Detect, Simulate, Guide"
+
+Arsitektur aplikasi dibangun di atas alur linear reaktif tiga fase:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Pengguna
+    participant UI as Form Profil Keuangan
+    participant BLoC as Profile & FVS BLoC
+    participant Calc as FvsCalculator Service
+    participant Storage as Hive Storage (Local)
+    participant Recommend as Recommendation Engine
+
+    Pengguna->>UI: Isi Data Pendapatan, Pengeluaran & Utang
+    UI->>BLoC: Kirim Event (SaveFamilyProfile)
+    BLoC->>Storage: Simpan Profil ke Hive (LocalKeys.financeProfile)
+    Storage-->>BLoC: Konfirmasi Sukses
+    BLoC->>Calc: Jalankan Kalkulasi FvsCalculator.calculate(profile)
+    Calc-->>BLoC: Hasil Skor FVS (S1 - S7) & Total Skor
+    BLoC->>Storage: Simpan Skor ke Hive (LocalKeys.latestFvsScore)
+    BLoC->>Recommend: Picu Generator Rekomendasi
+    Recommend-->>BLoC: Dapatkan Checklist Rencana Aksi (30/60/90 Hari)
+    BLoC-->>UI: Update UI (State: Loaded) & Navigasi ke Dashboard
+```
+
+---
+
+## 4. Keamanan Data & Privasi (Privacy by Design)
+
+LifeGuard Finance menerapkan filosofi **offline-first & client-side computing**:
+1.  **Tanpa Backend Eksternal**: Seluruh data finansial pengguna (pendapatan, pengeluaran, tabungan) diproses secara lokal di memori HP menggunakan Dart engine.
+2.  **Penyimpanan Enkripsi Lokal**: Data disimpan dalam box Hive yang terenkripsi (*AES-CBC*) atau dalam memori terisolasi sandboxed milik aplikasi di sistem operasi Android/iOS.
+3.  **Data Purge (Fitur Hapus Semua)**: Fitur "Hapus Akun" atau "Reset Data" di halaman pengaturan memicu metode `HiveService.instance.clearAll()` yang menghapus seluruh data secara permanen dari perangkat pengguna tanpa menyisakan jejak data di cloud.

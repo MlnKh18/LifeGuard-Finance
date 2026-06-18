@@ -8,7 +8,7 @@ class EarlyWarningPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Sistem Peringatan Dini')),
-      body: const Center(
+      body: Center(
         child: Padding(
           padding: EdgeInsets.all(24.0),
           child: Column(

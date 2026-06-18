@@ -8,7 +8,7 @@ class ProfileSettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Pengaturan Profil')),
-      body: const Center(
+      body: Center(
         child: Padding(
           padding: EdgeInsets.all(24.0),
           child: Column(

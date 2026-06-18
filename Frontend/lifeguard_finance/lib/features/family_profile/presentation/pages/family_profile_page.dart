@@ -262,8 +262,8 @@ class _FamilyProfileFormViewState extends State<FamilyProfileFormView> {
                         
                         // BPJS Switch
                         SwitchListTile(
-                          title: const Text('Status Kepesertaan BPJS', style: AppTextStyles.bodyMedium),
-                          subtitle: const Text('Anggota keluarga memiliki jaminan BPJS Kesehatan aktif', style: AppTextStyles.bodySmall),
+                          title: Text('Status Kepesertaan BPJS', style: AppTextStyles.bodyMedium),
+                          subtitle: Text('Anggota keluarga memiliki jaminan BPJS Kesehatan aktif', style: AppTextStyles.bodySmall),
                           value: _hasBpjs,
                           contentPadding: EdgeInsets.zero,
                           onChanged: (val) => setState(() => _hasBpjs = val),
@@ -271,8 +271,8 @@ class _FamilyProfileFormViewState extends State<FamilyProfileFormView> {
                         
                         // Additional Insurance Switch
                         SwitchListTile(
-                          title: const Text('Status Asuransi Tambahan', style: AppTextStyles.bodyMedium),
-                          subtitle: const Text('Keluarga memiliki asuransi swasta tambahan (jiwa/kesehatan)', style: AppTextStyles.bodySmall),
+                          title: Text('Status Asuransi Tambahan', style: AppTextStyles.bodyMedium),
+                          subtitle: Text('Keluarga memiliki asuransi swasta tambahan (jiwa/kesehatan)', style: AppTextStyles.bodySmall),
                           value: _hasAdditionalInsurance,
                           contentPadding: EdgeInsets.zero,
                           onChanged: (val) => setState(() => _hasAdditionalInsurance = val),

@@ -26,13 +26,13 @@ class OnboardingPage extends StatelessWidget {
               color: Colors.teal,
             ),
             const SizedBox(height: 32),
-            const Text(
+            Text(
               'Lindungi Finansial Keluarga Anda',
               style: AppTextStyles.heading1,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Mulai deteksi, simulasikan, dan mitigasi kerentanan finansial keluarga Anda sejak dini secara mandiri dan aman.',
               style: AppTextStyles.bodyMedium,
               textAlign: TextAlign.center,

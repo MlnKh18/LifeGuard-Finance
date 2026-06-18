@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/fvs_score_entity.dart';
+import '../../../family_profile/domain/entities/family_profile_entity.dart';
 
 abstract class FvsState extends Equatable {
   const FvsState();
@@ -14,11 +15,12 @@ class FvsLoading extends FvsState {}
 
 class FvsLoaded extends FvsState {
   final FvsScore score;
-  
-  const FvsLoaded(this.score);
+  final FamilyFinanceProfile profile;
+
+  const FvsLoaded(this.score, this.profile);
 
   @override
-  List<Object?> get props => [score];
+  List<Object?> get props => [score, profile];
 }
 
 class FvsNoProfile extends FvsState {}

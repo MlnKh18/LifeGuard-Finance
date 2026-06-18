@@ -19,9 +19,9 @@ class LoginPage extends StatelessWidget {
             children: [
               const Icon(Icons.lock_person_rounded, size: 80, color: Colors.teal),
               const SizedBox(height: 24),
-              const Text('LifeGuard Finance Login', style: AppTextStyles.heading2),
+              Text('LifeGuard Finance Login', style: AppTextStyles.heading2),
               const SizedBox(height: 8),
-              const Text('Gunakan data lokal Anda untuk mulai memantau', style: AppTextStyles.bodySmall),
+              Text('Gunakan data lokal Anda untuk mulai memantau', style: AppTextStyles.bodySmall),
               const SizedBox(height: 32),
               AppCard(
                 child: Column(

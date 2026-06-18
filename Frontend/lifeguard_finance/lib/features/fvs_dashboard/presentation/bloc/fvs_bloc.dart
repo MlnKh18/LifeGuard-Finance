@@ -28,7 +28,17 @@ class FvsBloc extends Bloc<FvsEvent, FvsState> {
       if (rawScore != null) {
         final jsonMap = Map<String, dynamic>.from(rawScore as Map);
         final score = FvsScore.fromJson(jsonMap);
-        emit(FvsLoaded(score));
+        final failureOrProfile = await familyProfileRepository.getFamilyProfile();
+        await failureOrProfile.fold(
+          (failure) async => emit(FvsError(failure.message)),
+          (profile) async {
+            if (profile == null) {
+              emit(FvsNoProfile());
+            } else {
+              emit(FvsLoaded(score, profile));
+            }
+          },
+        );
       } else {
         add(CalculateFvs());
       }
@@ -48,7 +58,7 @@ class FvsBloc extends Bloc<FvsEvent, FvsState> {
         } else {
           final calculatedScore = fvsCalculator.calculate(profile);
           await hiveService.saveData(LocalKeys.fvsScore, calculatedScore.toJson());
-          emit(FvsLoaded(calculatedScore));
+          emit(FvsLoaded(calculatedScore, profile));
         }
       },
     );

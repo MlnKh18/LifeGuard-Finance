@@ -7,6 +7,7 @@ class SimulationResult {
   final double scoreDrop;
   final double monthsEmergencyFundLasts;
   final double potentialDeficit;
+  final double remainingLiquidSavings;
   final List<String> affectedIndicators;
   final String recommendation;
   final InflationImpactResult? inflationResult;
@@ -17,6 +18,7 @@ class SimulationResult {
     required this.scoreDrop,
     required this.monthsEmergencyFundLasts,
     required this.potentialDeficit,
+    required this.remainingLiquidSavings,
     required this.affectedIndicators,
     required this.recommendation,
     this.inflationResult,
@@ -29,6 +31,7 @@ class SimulationResult {
       scoreDrop: (json['scoreDrop'] as num).toDouble(),
       monthsEmergencyFundLasts: (json['monthsEmergencyFundLasts'] as num).toDouble(),
       potentialDeficit: (json['potentialDeficit'] as num).toDouble(),
+      remainingLiquidSavings: (json['remainingLiquidSavings'] as num?)?.toDouble() ?? 0.0,
       affectedIndicators: List<String>.from(json['affectedIndicators'] as List),
       recommendation: json['recommendation'] as String,
       inflationResult: json['inflationResult'] != null
@@ -44,6 +47,7 @@ class SimulationResult {
       'scoreDrop': scoreDrop,
       'monthsEmergencyFundLasts': monthsEmergencyFundLasts,
       'potentialDeficit': potentialDeficit,
+      'remainingLiquidSavings': remainingLiquidSavings,
       'affectedIndicators': affectedIndicators,
       'recommendation': recommendation,
       if (inflationResult != null) 'inflationResult': inflationResult!.toJson(),

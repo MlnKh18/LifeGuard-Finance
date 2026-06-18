@@ -25,7 +25,6 @@ import '../../features/fvs_dashboard/presentation/bloc/fvs_bloc.dart';
 import '../../features/emergency_simulation/presentation/bloc/simulation_bloc.dart';
 import '../../features/recommendation/presentation/bloc/recommendation_cubit.dart';
 import '../../features/smart_routing/presentation/bloc/smart_routing_cubit.dart';
-import '../../features/anomaly_detection/presentation/bloc/expense_cubit.dart';
 import '../../features/anomaly_detection/presentation/bloc/anomaly_cubit.dart';
 import '../../features/early_warning/presentation/bloc/notification_cubit.dart';
 import '../../features/literacy/presentation/bloc/literacy_cubit.dart';
@@ -99,16 +98,21 @@ Future<void> setupInjection() async {
     ),
   );
   getIt.registerFactory<RecommendationCubit>(
-    () => RecommendationCubit(),
+    () => RecommendationCubit(
+      familyProfileRepository: getIt<FamilyProfileRepository>(),
+      fvsCalculator: getIt<FvsCalculator>(),
+      recommendationGenerator: getIt<RecommendationGenerator>(),
+      hiveService: getIt<HiveService>(),
+    ),
   );
   getIt.registerFactory<SmartRoutingCubit>(
     () => SmartRoutingCubit(),
   );
-  getIt.registerFactory<ExpenseCubit>(
-    () => ExpenseCubit(),
-  );
   getIt.registerFactory<AnomalyCubit>(
-    () => AnomalyCubit(),
+    () => AnomalyCubit(
+      hiveService: getIt<HiveService>(),
+      anomalyDetectionService: getIt<AnomalyDetectionService>(),
+    ),
   );
   getIt.registerFactory<NotificationCubit>(
     () => NotificationCubit(),
@@ -117,10 +121,10 @@ Future<void> setupInjection() async {
     () => LiteracyCubit(),
   );
   getIt.registerFactory<VaultCubit>(
-    () => VaultCubit(),
+    () => VaultCubit(hiveService: getIt<HiveService>()),
   );
   getIt.registerFactory<CommunityCubit>(
-    () => CommunityCubit(),
+    () => CommunityCubit(hiveService: getIt<HiveService>()),
   );
   getIt.registerFactory<RewardCubit>(
     () => RewardCubit(),
