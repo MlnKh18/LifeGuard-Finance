@@ -71,15 +71,16 @@ Output APK release berada di:
 - [ ] `flutter analyze` bersih (0 issues).
 - [ ] `flutter test` semua lulus.
 - [ ] Versi & build number di `pubspec.yaml` (`version: 1.0.0+1`) sudah sesuai rencana rilis.
-- [ ] `flutter build apk --release` sukses tanpa error.
+- [x] `flutter build apk --release` sukses tanpa error — diverifikasi: `app-release.apk` (54.1MB) berhasil dibuat di `build/app/outputs/flutter-apk/`.
 - [ ] APK hasil build (`app-release.apk`) di-install dan dicoba di device/emulator fisik, bukan hanya `flutter run` debug.
 - [ ] Icon aplikasi dan nama aplikasi (`AndroidManifest.xml` label) sudah final, bukan default Flutter.
 
-> Catatan environment: pada mesin development saat ini, Android cmdline-tools
-> belum terpasang penuh (`flutter doctor` menandai Android toolchain dengan
-> peringatan). Jalankan `flutter doctor --android-licenses` dan pasang
-> Android SDK cmdline-tools sebelum menjalankan `flutter build apk --release`
-> di mesin lain yang akan dipakai untuk build rilis final.
+> Catatan environment: `flutter doctor` menandai Android toolchain dengan
+> peringatan (cmdline-tools belum lengkap, status lisensi belum diketahui),
+> namun `flutter build apk --release` tetap berhasil menggunakan Android SDK
+> yang sudah terpasang. Jika build gagal di mesin lain, jalankan
+> `flutter doctor --android-licenses` dan pasang Android SDK cmdline-tools
+> terlebih dahulu.
 
 ## 6. Checklist demo lomba
 
