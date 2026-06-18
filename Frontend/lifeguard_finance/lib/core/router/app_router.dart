@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 // Import Pages
+import '../../core/di/injection.dart';
+import '../../features/auth/domain/repositories/auth_repository.dart';
+import '../../features/auth/core/permission_helper.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
@@ -16,10 +19,11 @@ import '../../features/literacy/presentation/pages/literacy_page.dart';
 import '../../features/savings_vault/presentation/pages/savings_vault_page.dart';
 import '../../features/community/presentation/pages/community_page.dart';
 import '../../features/rewards/presentation/pages/reward_page.dart';
-import '../../features/auth/presentation/pages/register_role_selection_page.dart';
+import '../../features/auth/presentation/pages/auth_entry_page.dart';
 import '../../features/auth/presentation/pages/register_head_of_family_page.dart';
 import '../../features/auth/presentation/pages/family_members_page.dart';
-import '../../features/auth/presentation/pages/add_family_member_page.dart';
+import '../../features/auth/presentation/pages/invite_family_member_page.dart';
+import '../../features/auth/presentation/pages/activate_family_member_page.dart';
 import '../../features/auth/presentation/pages/access_denied_page.dart';
 import '../../features/settings/presentation/pages/profile_settings_page.dart';
 import '../widgets/main_shell.dart';
@@ -29,6 +33,19 @@ class AppRouter {
 
   static final router = GoRouter(
     initialLocation: '/splash',
+    redirect: (context, state) {
+      final isGoingToCommunity = state.uri.path == '/community';
+      if (isGoingToCommunity) {
+        final session = getIt<AuthRepository>().getCachedSession();
+        if (session == null || !session.isLoggedIn) {
+          return '/login';
+        }
+        if (!PermissionHelper.canAccessCommunity(session.currentUserRole)) {
+          return '/access-denied';
+        }
+      }
+      return null;
+    },
     routes: [
       GoRoute(
         path: '/splash',
@@ -43,8 +60,8 @@ class AppRouter {
         builder: (context, state) => const LoginPage(),
       ),
       GoRoute(
-        path: '/register-role',
-        builder: (context, state) => const RegisterRoleSelectionPage(),
+        path: '/auth-entry',
+        builder: (context, state) => const AuthEntryPage(),
       ),
       GoRoute(
         path: '/register-head',
@@ -55,8 +72,12 @@ class AppRouter {
         builder: (context, state) => const FamilyMembersPage(),
       ),
       GoRoute(
-        path: '/add-family-member',
-        builder: (context, state) => const AddFamilyMemberPage(),
+        path: '/invite-family-member',
+        builder: (context, state) => const InviteFamilyMemberPage(),
+      ),
+      GoRoute(
+        path: '/activate-member',
+        builder: (context, state) => const ActivateFamilyMemberPage(),
       ),
       GoRoute(
         path: '/access-denied',

@@ -20,4 +20,5 @@ class LocalKeys {
   static const String families = 'families';
   static const String authSession = 'auth_session';
   static const String familyMembers = 'family_members';
+  static const String familyInvitations = 'family_invitations';
 }

@@ -5,6 +5,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../auth/domain/entities/user_role.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -18,13 +19,20 @@ class _SplashPageState extends State<SplashPage> {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
+        final router = GoRouter.of(context);
         if (state is AuthAuthenticated) {
           Future.delayed(const Duration(seconds: 1), () {
-            if (mounted) context.go('/dashboard');
+            if (mounted) {
+              if (state.user.role == UserRole.headOfFamily && !state.isFamilyProfileCompleted) {
+                router.go('/family-profile');
+              } else {
+                router.go('/dashboard');
+              }
+            }
           });
         } else if (state is AuthUnauthenticated) {
           Future.delayed(const Duration(seconds: 1), () {
-            if (mounted) context.go('/onboarding');
+            if (mounted) router.go('/onboarding');
           });
         }
       },

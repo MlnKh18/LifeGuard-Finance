@@ -168,9 +168,30 @@ class VaultView extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'Saved: ${_rupiahFormat.format(vault.savedAmount)}',
+            'Terkumpul: ${_rupiahFormat.format(vault.savedAmount)}',
             style: AppTextStyles.dataLabel.copyWith(color: AppColors.textSecondary),
           ),
+          if (vault.remainingAmount > 0) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Sisa Target: ${_rupiahFormat.format(vault.remainingAmount)}',
+              style: AppTextStyles.dataLabel.copyWith(color: AppColors.textSecondary),
+            ),
+          ],
+          if (vault.deadline != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Tenggat: ${DateFormat('dd MMM yyyy').format(vault.deadline!)}',
+              style: AppTextStyles.dataLabel.copyWith(color: AppColors.textSecondary),
+            ),
+          ],
+          if (vault.recommendedContribution > 0) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Rekomendasi Setoran: ${_rupiahFormat.format(vault.recommendedContribution)} / ${vault.savingFrequency == SavingFrequency.weekly ? 'minggu' : vault.savingFrequency == SavingFrequency.monthly ? 'bulan' : 'tahun'}',
+              style: AppTextStyles.dataLabel.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold),
+            ),
+          ],
           const SizedBox(height: 10),
           SizedBox(
             width: double.infinity,

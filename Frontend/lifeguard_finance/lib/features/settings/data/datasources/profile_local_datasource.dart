@@ -21,6 +21,12 @@ class ProfileLocalDataSourceImpl implements ProfileLocalDataSource {
     final rewardData = hiveService.getData<Map<dynamic, dynamic>>(LocalKeys.rewardPoints) ?? {};
     final mockUser = hiveService.getData<Map<dynamic, dynamic>>(LocalKeys.mockUser) ?? {};
 
+    // Retrieve active session and relational databases
+    final authSession = hiveService.getData<Map<dynamic, dynamic>>(LocalKeys.authSession);
+    final usersRaw = hiveService.getData<List<dynamic>>(LocalKeys.users) ?? [];
+    final familiesRaw = hiveService.getData<List<dynamic>>(LocalKeys.families) ?? [];
+    final invitationsRaw = hiveService.getData<List<dynamic>>(LocalKeys.familyInvitations) ?? [];
+
     return {
       'familyProfile': familyProfile,
       'fvsScore': fvsScore,
@@ -29,6 +35,10 @@ class ProfileLocalDataSourceImpl implements ProfileLocalDataSource {
       'communityData': communityData,
       'rewardData': rewardData,
       'mockUser': mockUser,
+      'authSession': authSession,
+      'usersRaw': usersRaw,
+      'familiesRaw': familiesRaw,
+      'invitationsRaw': invitationsRaw,
     };
   }
 

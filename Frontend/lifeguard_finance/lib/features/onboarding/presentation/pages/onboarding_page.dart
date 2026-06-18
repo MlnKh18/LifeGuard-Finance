@@ -42,7 +42,7 @@ class OnboardingPage extends StatelessWidget {
               child: PrimaryButton(
                 text: 'Mulai Sekarang',
                 onPressed: () {
-                  context.go('/register-role');
+                  context.go('/auth-entry');
                 },
               ),
             ),

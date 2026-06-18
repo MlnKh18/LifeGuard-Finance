@@ -27,19 +27,36 @@ class VaultCubit extends Cubit<VaultState> {
     }
   }
 
-  Future<void> createVault({required String name, required double targetAmount}) async {
+  Future<void> addVault(SavingsVault vault) async {
     final current = state;
     if (current is! VaultLoaded) return;
+    final updated = List<SavingsVault>.from(current.vaults)..add(vault);
+    emit(VaultLoaded(updated));
+    await _persist(updated);
+  }
 
+  Future<void> createVault({
+    required String name,
+    required double targetAmount,
+    double initialAmount = 0.0,
+    String? savingPurpose,
+    SavingFrequency savingFrequency = SavingFrequency.monthly,
+    double? periodicTargetAmount,
+    DateTime? deadline,
+    String? notes,
+  }) async {
     final newVault = SavingsVault(
       id: const Uuid().v4(),
       name: name,
       targetAmount: targetAmount,
-      savedAmount: 0,
+      savedAmount: initialAmount,
+      savingPurpose: savingPurpose,
+      savingFrequency: savingFrequency,
+      periodicTargetAmount: periodicTargetAmount,
+      deadline: deadline,
+      notes: notes,
     );
-    final updated = [...current.vaults, newVault];
-    emit(VaultLoaded(updated));
-    await _persist(updated);
+    await addVault(newVault);
   }
 
   Future<void> addFunds(String id, double amount) async {

@@ -11,6 +11,7 @@ class FvsScore extends Equatable {
   final double s7;
   final String category;
   final String description;
+  final DateTime? calculatedAt;
 
   const FvsScore({
     required this.score,
@@ -23,6 +24,7 @@ class FvsScore extends Equatable {
     required this.s7,
     required this.category,
     required this.description,
+    this.calculatedAt,
   });
 
   factory FvsScore.fromJson(Map<String, dynamic> json) {
@@ -37,6 +39,7 @@ class FvsScore extends Equatable {
       s7: (json['s7'] as num).toDouble(),
       category: json['category'] as String,
       description: json['description'] as String,
+      calculatedAt: json['calculatedAt'] != null ? DateTime.parse(json['calculatedAt'] as String) : null,
     );
   }
 
@@ -52,6 +55,7 @@ class FvsScore extends Equatable {
       's7': s7,
       'category': category,
       'description': description,
+      'calculatedAt': (calculatedAt ?? DateTime.now()).toIso8601String(),
     };
   }
 
@@ -67,5 +71,6 @@ class FvsScore extends Equatable {
         s7,
         category,
         description,
+        calculatedAt,
       ];
 }

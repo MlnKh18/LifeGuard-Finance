@@ -34,20 +34,34 @@ class LoginRequested extends AuthEvent {
 
 class LogoutRequested extends AuthEvent {}
 
-class AddFamilyMemberRequested extends AuthEvent {
+class InviteFamilyMemberRequested extends AuthEvent {
   final String fullName;
   final String email;
-  final String password;
   final String relation;
   final bool isActive;
 
-  const AddFamilyMemberRequested({
+  const InviteFamilyMemberRequested({
     required this.fullName,
     required this.email,
-    required this.password,
     required this.relation,
     required this.isActive,
   });
 }
 
-class LoadFamilyMembers extends AuthEvent {}
+class ActivateFamilyMemberInvitationRequested extends AuthEvent {
+  final String email;
+  final String familyCode;
+  final String inviteCode;
+  final String newPassword;
+
+  const ActivateFamilyMemberInvitationRequested({
+    required this.email,
+    required this.familyCode,
+    required this.inviteCode,
+    required this.newPassword,
+  });
+}
+
+class LoadFamilyMembersRequested extends AuthEvent {}
+
+class LoadFamilyInvitationsRequested extends AuthEvent {}

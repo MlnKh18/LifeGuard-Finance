@@ -1,8 +1,25 @@
 import 'package:equatable/equatable.dart';
+import '../../../auth/domain/entities/app_user.dart';
+import '../../../auth/domain/entities/family_account.dart';
+import '../../../auth/domain/entities/family_invitation.dart';
+import '../../../auth/domain/entities/user_role.dart';
+import '../../../savings_vault/domain/entities/savings_vault_entity.dart';
+import '../../../community/domain/entities/community_post.dart';
+import '../../../fvs_dashboard/domain/entities/fvs_score_entity.dart';
+import '../../../family_profile/domain/entities/family_profile_entity.dart';
 
 class ProfileSummary extends Equatable {
+  final AppUser? currentUser;
+  final FamilyAccount? family;
+  final FamilyFinanceProfile? familyProfile;
+  final FvsScore? latestFvs;
+  
   final String userName;
   final String email;
+  final UserRole role;
+  final String familyName;
+  final String familyCode;
+  
   final int totalRewardPoints;
   final String activeBadge;
   
@@ -18,24 +35,35 @@ class ProfileSummary extends Equatable {
   
   final double latestFvsScore;
   final String latestFvsCategory;
+  final DateTime? latestFvsCalculatedAt;
+  final List<String> weakestIndicators;
   
-  final int vaultCount;
-  final double totalVaultTarget;
-  final double totalVaultSaved;
-  final double averageVaultProgress;
+  final List<SavingsVault> vaults;
+  final List<dynamic> literacyProgress;
+  final List<dynamic> recommendedLiteracyModules;
+  final List<CommunityPost> communityPosts;
+  final List<dynamic> communityComments;
+  final List<AppUser> familyMembers;
+  final List<FamilyInvitation> familyInvitations;
+  final List<dynamic> rewardTransactions;
   
-  final int literacyReadCount;
-  final int literacyTotalCount;
-  
-  final int communityPostCount;
-  final int communityCommentCount;
+  final bool canAccessCommunity;
+  final bool canManageFamilyMembers;
+  final bool canEditFamilyProfile;
+  final bool canDeleteFamilyData;
 
   const ProfileSummary({
-    this.userName = 'Pengguna LifeGuard',
-    this.email = 'Belum diatur',
+    this.currentUser,
+    this.family,
+    this.familyProfile,
+    this.latestFvs,
+    required this.userName,
+    required this.email,
+    required this.role,
+    required this.familyName,
+    required this.familyCode,
     this.totalRewardPoints = 0,
     this.activeBadge = 'Starter Saver',
-    
     this.fixedIncome = 0.0,
     this.variableIncome = 0.0,
     this.totalIncome = 0.0,
@@ -45,30 +73,61 @@ class ProfileSummary extends Equatable {
     this.dependentsCount = 0,
     this.hasBpjs = false,
     this.hasInsurance = false,
-    
     this.latestFvsScore = -1.0,
     this.latestFvsCategory = 'Belum Tersedia',
-    
-    this.vaultCount = 0,
-    this.totalVaultTarget = 0.0,
-    this.totalVaultSaved = 0.0,
-    this.averageVaultProgress = 0.0,
-    
-    this.literacyReadCount = 0,
-    this.literacyTotalCount = 0,
-    
-    this.communityPostCount = 0,
-    this.communityCommentCount = 0,
+    this.latestFvsCalculatedAt,
+    this.weakestIndicators = const [],
+    this.vaults = const [],
+    this.literacyProgress = const [],
+    this.recommendedLiteracyModules = const [],
+    this.communityPosts = const [],
+    this.communityComments = const [],
+    this.familyMembers = const [],
+    this.familyInvitations = const [],
+    this.rewardTransactions = const [],
+    this.canAccessCommunity = false,
+    this.canManageFamilyMembers = false,
+    this.canEditFamilyProfile = false,
+    this.canDeleteFamilyData = false,
   });
 
   @override
   List<Object?> get props => [
-    userName, email, totalRewardPoints, activeBadge,
-    fixedIncome, variableIncome, totalIncome, monthlyExpense, monthlyDebtPayment,
-    liquidSavings, dependentsCount, hasBpjs, hasInsurance,
-    latestFvsScore, latestFvsCategory,
-    vaultCount, totalVaultTarget, totalVaultSaved, averageVaultProgress,
-    literacyReadCount, literacyTotalCount,
-    communityPostCount, communityCommentCount,
-  ];
+        currentUser,
+        family,
+        familyProfile,
+        latestFvs,
+        userName,
+        email,
+        role,
+        familyName,
+        familyCode,
+        totalRewardPoints,
+        activeBadge,
+        fixedIncome,
+        variableIncome,
+        totalIncome,
+        monthlyExpense,
+        monthlyDebtPayment,
+        liquidSavings,
+        dependentsCount,
+        hasBpjs,
+        hasInsurance,
+        latestFvsScore,
+        latestFvsCategory,
+        latestFvsCalculatedAt,
+        weakestIndicators,
+        vaults,
+        literacyProgress,
+        recommendedLiteracyModules,
+        communityPosts,
+        communityComments,
+        familyMembers,
+        familyInvitations,
+        rewardTransactions,
+        canAccessCommunity,
+        canManageFamilyMembers,
+        canEditFamilyProfile,
+        canDeleteFamilyData,
+      ];
 }

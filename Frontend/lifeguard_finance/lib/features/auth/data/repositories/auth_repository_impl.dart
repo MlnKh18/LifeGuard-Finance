@@ -1,7 +1,10 @@
 import 'dart:math';
+import 'package:flutter/foundation.dart';
+import '../../../../core/data/local/local_keys.dart';
 import '../../domain/entities/app_user.dart';
 import '../../domain/entities/auth_session.dart';
 import '../../domain/entities/family_account.dart';
+import '../../domain/entities/family_invitation.dart';
 import '../../domain/entities/user_role.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_local_datasource.dart';
@@ -13,6 +16,25 @@ class AuthRepositoryImpl implements AuthRepository {
 
   String _generateId() => DateTime.now().millisecondsSinceEpoch.toString() + Random().nextInt(1000).toString();
 
+  // Helper methods for code generation and normalization
+  String generateFamilyCode() {
+    final random = DateTime.now().millisecondsSinceEpoch % 1000000;
+    return 'LGF-${random.toString().padLeft(6, '0')}';
+  }
+
+  String generateInviteCode() {
+    final random = DateTime.now().microsecondsSinceEpoch % 1000000;
+    return 'INV-${random.toString().padLeft(6, '0')}';
+  }
+
+  String normalizeEmail(String email) {
+    return email.trim().toLowerCase();
+  }
+
+  String normalizeCode(String code) {
+    return code.trim().toUpperCase();
+  }
+
   @override
   Future<void> registerHeadOfFamily({
     required String fullName,
@@ -21,15 +43,16 @@ class AuthRepositoryImpl implements AuthRepository {
     required String familyName,
     String phoneNumber = '',
   }) async {
+    final normalizedEmail = normalizeEmail(email);
     // Check if user already exists
-    final existingUser = await localDataSource.getUser(email);
+    final existingUser = await localDataSource.getUser(normalizedEmail);
     if (existingUser != null) {
       throw Exception('Email sudah terdaftar');
     }
 
     final userId = _generateId();
     final familyId = _generateId();
-    final familyCode = 'LGF-${Random().nextInt(900000) + 100000}';
+    final familyCode = generateFamilyCode();
 
     final familyAccount = FamilyAccount(
       familyId: familyId,
@@ -44,7 +67,7 @@ class AuthRepositoryImpl implements AuthRepository {
       userId: userId,
       familyId: familyId,
       fullName: fullName,
-      email: email,
+      email: normalizedEmail,
       passwordHash: password, // In prototype, storing plain password or simple hash
       role: UserRole.headOfFamily,
       relation: 'head_of_family',
@@ -69,7 +92,8 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<AppUser> login(String email, String password) async {
-    final user = await localDataSource.getUser(email);
+    final normalizedEmail = normalizeEmail(email);
+    final user = await localDataSource.getUser(normalizedEmail);
     if (user == null) {
       throw Exception('Email tidak ditemukan');
     }
@@ -106,14 +130,25 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  AuthSession? getCachedSession() {
+    final sessionMap = localDataSource.hiveService.getData<Map<dynamic, dynamic>>(LocalKeys.authSession);
+    if (sessionMap != null) {
+      return AuthSession.fromJson(sessionMap);
+    }
+    return null;
+  }
+
+  @override
+  Future<bool> checkIsFamilyProfileCompleted() async {
+    final profileMap = localDataSource.hiveService.getData<Map<dynamic, dynamic>>(LocalKeys.familyProfile);
+    return profileMap != null && profileMap.isNotEmpty;
+  }
+
+  @override
   Future<AppUser?> getCurrentUser() async {
     final session = await localDataSource.getCurrentSession();
     if (session == null || !session.isLoggedIn) return null;
     
-    // In our prototype, user ID and email are distinct, but our getUser only checks email.
-    // Wait, let's fix getUser to check userId or email, or we just get all users and find by ID.
-    // For now, we will add logic in getFamilyMembers to find by ID
-    // Let's get all users and find by userId:
     final members = await localDataSource.getFamilyMembers(session.currentFamilyId);
     try {
       return members.firstWhere((u) => u.userId == session.currentUserId);
@@ -123,10 +158,16 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> addFamilyMember({
+  Future<bool> checkEmailAlreadyRegistered(String email) async {
+    final normalizedEmail = normalizeEmail(email);
+    final user = await localDataSource.getUser(normalizedEmail);
+    return user != null;
+  }
+
+  @override
+  Future<String> inviteFamilyMember({
     required String fullName,
     required String email,
-    required String password,
     required String relation,
     required bool isActive,
   }) async {
@@ -135,28 +176,130 @@ class AuthRepositoryImpl implements AuthRepository {
       throw Exception('Sesi tidak valid');
     }
     if (session.currentUserRole != UserRole.headOfFamily) {
-      throw Exception('Hanya Kepala Keluarga yang bisa menambahkan anggota');
+      throw Exception('Hanya Kepala Keluarga yang bisa mengundang anggota');
     }
 
-    final existingUser = await localDataSource.getUser(email);
+    final normalizedEmail = normalizeEmail(email);
+
+    final existingUser = await localDataSource.getUser(normalizedEmail);
     if (existingUser != null) {
-      throw Exception('Email/Username sudah digunakan');
+      throw Exception('Email sudah terdaftar sebagai pengguna');
     }
 
+    final invitations = await localDataSource.getFamilyInvitations(session.currentFamilyId);
+    if (invitations.any((i) => normalizeEmail(i.invitedEmail) == normalizedEmail && i.status == 'pending')) {
+      throw Exception('Email ini sudah diundang dan masih pending');
+    }
+
+    final inviteCode = generateInviteCode();
+    final invitation = FamilyInvitation(
+      invitationId: _generateId(),
+      familyId: session.currentFamilyId,
+      invitedEmail: normalizedEmail,
+      invitedName: fullName,
+      relation: relation,
+      inviteCode: inviteCode,
+      roleToAssign: UserRole.familyMember,
+      status: 'pending',
+      createdByUserId: session.currentUserId,
+      createdAt: DateTime.now(),
+    );
+
+    await localDataSource.saveFamilyInvitation(invitation);
+    return inviteCode;
+  }
+
+  @override
+  Future<void> activateFamilyMemberInvitation({
+    required String email,
+    required String familyCode,
+    required String inviteCode,
+    required String newPassword,
+  }) async {
+    final normalizedEmail = normalizeEmail(email);
+    final normalizedFamilyCode = normalizeCode(familyCode);
+    final normalizedInviteCode = normalizeCode(inviteCode);
+
+    debugPrint('ACTIVATE email: $normalizedEmail');
+    debugPrint('ACTIVATE familyCode: $normalizedFamilyCode');
+    debugPrint('ACTIVATE inviteCode: $normalizedInviteCode');
+
+    final familiesRaw = localDataSource.hiveService.getData<List<dynamic>>(LocalKeys.families) ?? [];
+    debugPrint('Families count: ${familiesRaw.length}');
+
+    final invitationsRaw = localDataSource.hiveService.getData<List<dynamic>>(LocalKeys.familyInvitations) ?? [];
+    debugPrint('Invitations count: ${invitationsRaw.length}');
+
+    final family = await localDataSource.getFamilyAccountByCode(normalizedFamilyCode);
+    debugPrint('Matched family: ${family?.familyId}');
+
+    final invitation = await localDataSource.getFamilyInvitationByCode(normalizedFamilyCode, normalizedInviteCode);
+    debugPrint('Matched invitation: ${invitation?.invitationId}');
+
+    if (family == null) {
+      debugPrint('Alasan gagal: Kode keluarga tidak ditemukan.');
+      throw Exception('Kode keluarga tidak ditemukan.');
+    }
+
+    final isMatched = invitation != null &&
+        invitation.familyId == family.familyId &&
+        normalizeEmail(invitation.invitedEmail) == normalizedEmail &&
+        normalizeCode(invitation.inviteCode) == normalizedInviteCode &&
+        invitation.status == 'pending';
+
+    if (!isMatched) {
+      debugPrint('Alasan gagal: Email ini belum diundang oleh Kepala Keluarga atau kode undangan tidak sesuai.');
+      throw Exception('Email ini belum diundang oleh Kepala Keluarga atau kode undangan tidak sesuai.');
+    }
+
+    final existingUser = await localDataSource.getUser(normalizedEmail);
+    if (existingUser != null) {
+      debugPrint('Alasan gagal: Email ini sudah memiliki akun.');
+      throw Exception('Email ini sudah memiliki akun.');
+    }
+
+    // Buat User Baru
     final newUser = AppUser(
       userId: _generateId(),
-      familyId: session.currentFamilyId,
-      fullName: fullName,
-      email: email,
-      passwordHash: password,
+      familyId: invitation.familyId,
+      fullName: invitation.invitedName,
+      email: normalizedEmail,
+      passwordHash: newPassword, // In prototype, storing plain password
       role: UserRole.familyMember,
-      relation: relation,
-      isActive: isActive,
+      relation: invitation.relation,
+      isActive: true,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );
 
     await localDataSource.saveUser(newUser);
+
+    // Update Invitation Status
+    final acceptedInvitation = FamilyInvitation(
+      invitationId: invitation.invitationId,
+      familyId: invitation.familyId,
+      invitedEmail: invitation.invitedEmail,
+      invitedName: invitation.invitedName,
+      relation: invitation.relation,
+      inviteCode: invitation.inviteCode,
+      roleToAssign: invitation.roleToAssign,
+      status: 'accepted',
+      createdByUserId: invitation.createdByUserId,
+      createdAt: invitation.createdAt,
+      acceptedAt: DateTime.now(),
+    );
+    await localDataSource.saveFamilyInvitation(acceptedInvitation);
+
+    // Auto login
+    final session = AuthSession(
+      currentUserId: newUser.userId,
+      currentFamilyId: newUser.familyId,
+      currentUserRole: UserRole.familyMember,
+      isLoggedIn: true,
+      loginAt: DateTime.now(),
+    );
+
+    await localDataSource.saveAuthSession(session);
   }
 
   @override
@@ -166,5 +309,23 @@ class AuthRepositoryImpl implements AuthRepository {
       return [];
     }
     return await localDataSource.getFamilyMembers(session.currentFamilyId);
+  }
+
+  @override
+  Future<List<FamilyInvitation>> getFamilyInvitations() async {
+    final session = await localDataSource.getCurrentSession();
+    if (session == null || !session.isLoggedIn) {
+      return [];
+    }
+    return await localDataSource.getFamilyInvitations(session.currentFamilyId);
+  }
+
+  @override
+  Future<FamilyAccount?> getFamilyAccount() async {
+    final session = await localDataSource.getCurrentSession();
+    if (session == null || !session.isLoggedIn) {
+      return null;
+    }
+    return await localDataSource.getFamilyAccount(session.currentFamilyId);
   }
 }

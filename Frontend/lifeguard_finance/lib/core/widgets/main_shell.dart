@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_state.dart';
 import '../../features/auth/core/permission_helper.dart';
+import '../di/injection.dart';
+import '../../features/auth/domain/repositories/auth_repository.dart';
 
 /// Persistent bottom navigation shell for the 5 main app sections, matching
 /// the Stitch design system's canonical tab set: Komunitas, Ringkasan,
@@ -24,6 +26,11 @@ class MainShell extends StatelessWidget {
         bool showCommunity = false;
         if (state is AuthAuthenticated) {
           showCommunity = PermissionHelper.canAccessCommunity(state.session.currentUserRole);
+        } else {
+          final cachedSession = getIt<AuthRepository>().getCachedSession();
+          if (cachedSession != null) {
+            showCommunity = PermissionHelper.canAccessCommunity(cachedSession.currentUserRole);
+          }
         }
 
         final visibleItems = <_NavItem>[];
