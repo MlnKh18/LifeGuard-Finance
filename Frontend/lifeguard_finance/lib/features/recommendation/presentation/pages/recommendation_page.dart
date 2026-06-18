@@ -51,6 +51,12 @@ class _RecommendationViewState extends State<RecommendationView> with SingleTick
     return Scaffold(
       appBar: AppBar(
         title: Text('Rencana Mitigasi', style: AppTextStyles.heading3),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.account_circle_outlined, color: AppColors.textSecondary),
+            onPressed: () => context.push('/profile-settings'),
+          ),
+        ],
       ),
       body: BlocBuilder<RecommendationCubit, RecommendationState>(
         builder: (context, state) {
@@ -86,7 +92,8 @@ class _RecommendationViewState extends State<RecommendationView> with SingleTick
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
           child: AppCard(
-            color: AppColors.primary.withAlpha(13),
+            color: Color.alphaBlend(AppColors.primary.withAlpha(13), Colors.white),
+            showShadow: true,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -104,7 +111,7 @@ class _RecommendationViewState extends State<RecommendationView> with SingleTick
                     ),
                     Text(
                       '${(progress * 100).toStringAsFixed(0)}%',
-                      style: AppTextStyles.dataDisplay.copyWith(fontSize: 24, color: AppColors.primary),
+                      style: AppTextStyles.dataDisplay.copyWith(fontSize: 28, color: AppColors.primary),
                     ),
                   ],
                 ),
@@ -189,6 +196,8 @@ class _RecommendationViewState extends State<RecommendationView> with SingleTick
     final priorityColor = _priorityColor(task.priority);
     return AppCard(
       margin: const EdgeInsets.only(bottom: 10),
+      borderRadius: 8.0,
+      showShadow: true,
       onTap: () => context.read<RecommendationCubit>().toggleTask(task.id),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

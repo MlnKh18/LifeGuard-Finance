@@ -76,6 +76,7 @@ class ExpenseAnomalyView extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         AppCard(
+          borderRadius: 12.0,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -96,17 +97,17 @@ class ExpenseAnomalyView extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        color: AppColors.riskCriticalBg,
+                        color: AppColors.errorContainer,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.warning_amber_rounded, size: 14, color: AppColors.riskCritical),
+                          const Icon(Icons.warning_amber_rounded, size: 14, color: AppColors.onErrorContainer),
                           const SizedBox(width: 4),
                           Text(
                             '$monthlyAnomalies Anomali Terdeteksi',
-                            style: AppTextStyles.label.copyWith(color: AppColors.riskCritical),
+                            style: AppTextStyles.label.copyWith(color: AppColors.onErrorContainer),
                           ),
                         ],
                       ),
@@ -130,6 +131,7 @@ class ExpenseAnomalyView extends StatelessWidget {
     if (!t.isAnomaly) {
       return AppCard(
         margin: const EdgeInsets.only(bottom: 10),
+        borderRadius: 8.0,
         child: Row(
           children: [
             Container(
@@ -158,19 +160,19 @@ class ExpenseAnomalyView extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.riskCriticalBg.withAlpha(120),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.riskCritical.withAlpha(80)),
+        color: AppColors.errorContainer.withAlpha(120),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.error.withAlpha(80)),
       ),
       child: Row(
         children: [
-          Container(width: 4, height: 36, color: AppColors.riskCritical),
+          Container(width: 4, height: 36, color: AppColors.error),
           const SizedBox(width: 10),
           Container(
             width: 40,
             height: 40,
             decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-            child: Icon(_categoryIcon(t.category), color: AppColors.riskCritical, size: 20),
+            child: Icon(_categoryIcon(t.category), color: AppColors.error, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -184,7 +186,7 @@ class ExpenseAnomalyView extends StatelessWidget {
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(color: AppColors.riskCritical, borderRadius: BorderRadius.circular(4)),
+                      decoration: BoxDecoration(color: AppColors.error, borderRadius: BorderRadius.circular(4)),
                       child: Text(
                         'ANOMALI',
                         style: AppTextStyles.label.copyWith(color: Colors.white, fontSize: 9),
@@ -199,7 +201,7 @@ class ExpenseAnomalyView extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             _rupiahFormat.format(t.amount),
-            style: AppTextStyles.dataLabel.copyWith(color: AppColors.riskCritical, fontWeight: FontWeight.bold),
+            style: AppTextStyles.dataLabel.copyWith(color: AppColors.error, fontWeight: FontWeight.bold),
           ),
         ],
       ),
