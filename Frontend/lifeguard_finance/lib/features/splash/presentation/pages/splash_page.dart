@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -37,23 +38,61 @@ class _SplashPageState extends State<SplashPage> {
         }
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.shield_rounded, size: 80, color: AppColors.primary),
-              const SizedBox(height: 16),
-              Text(
-                'LifeGuard Finance',
-                style: AppTextStyles.heading1,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Fintech Preventif Keluarga',
-                style: AppTextStyles.bodySmall,
-              ),
-            ],
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: RadialGradient(
+              center: Alignment.topCenter,
+              radius: 1.2,
+              colors: [Color(0xFFE3F6F2), AppColors.background],
+            ),
+          ),
+          child: SafeArea(
+            child: Column(
+              children: [
+                const Spacer(flex: 3),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(32),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                    child: Container(
+                      width: 140,
+                      height: 140,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(160),
+                        borderRadius: BorderRadius.circular(32),
+                        border: Border.all(color: Colors.white.withAlpha(200), width: 1.5),
+                      ),
+                      child: const Icon(Icons.shield_rounded, size: 72, color: AppColors.primary),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 28),
+                Text('LifeGuard Finance', style: AppTextStyles.heading1),
+                const SizedBox(height: 8),
+                Text(
+                  'Pelindung Finansial Pribadi Anda',
+                  style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+                ),
+                const Spacer(flex: 4),
+                SizedBox(
+                  width: 160,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: const LinearProgressIndicator(
+                      minHeight: 4,
+                      backgroundColor: AppColors.border,
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'MENYIAPKAN KEAMANAN DATA...',
+                  style: AppTextStyles.label.copyWith(color: AppColors.textSecondary, letterSpacing: 1.2),
+                ),
+                const SizedBox(height: 40),
+              ],
+            ),
           ),
         ),
       ),
