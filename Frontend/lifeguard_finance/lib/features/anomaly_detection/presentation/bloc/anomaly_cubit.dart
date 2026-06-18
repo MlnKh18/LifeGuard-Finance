@@ -31,7 +31,12 @@ class AnomalyCubit extends Cubit<AnomalyState> {
     }
   }
 
-  Future<void> addTransaction({required String category, required double amount, required DateTime date}) async {
+  Future<void> addTransaction({
+    required String category,
+    required double amount,
+    required DateTime date,
+    String? note,
+  }) async {
     final current = state;
     if (current is! AnomalyLoaded) return;
 
@@ -40,6 +45,7 @@ class AnomalyCubit extends Cubit<AnomalyState> {
       category: category,
       amount: amount,
       date: date,
+      note: note,
     );
     final updated = [...current.transactions, newTransaction];
     await _persist(updated);
@@ -58,9 +64,10 @@ class AnomalyCubit extends Cubit<AnomalyState> {
   }
 
   void _emitAnalyzed(List<ExpenseTransaction> transactions) {
-    final flagged = anomalyDetectionService.flagAnomalies(transactions);
+    final categoryResults = anomalyDetectionService.analyzeCategories(transactions);
+    final flagged = anomalyDetectionService.flagTransactions(transactions, categoryResults);
     final monthlyTrend = anomalyDetectionService.computeMonthlyTrend(transactions);
-    emit(AnomalyLoaded(transactions: flagged, monthlyTrend: monthlyTrend));
+    emit(AnomalyLoaded(transactions: flagged, monthlyTrend: monthlyTrend, categoryResults: categoryResults));
   }
 
   Future<void> _persist(List<ExpenseTransaction> transactions) async {
@@ -70,22 +77,42 @@ class AnomalyCubit extends Cubit<AnomalyState> {
   List<ExpenseTransaction> _seedTransactions() {
     final now = DateTime.now();
     DateTime monthsAgo(int months, int day) => DateTime(now.year, now.month - months, day);
+    String id() => const Uuid().v4();
 
     return [
-      ExpenseTransaction(id: const Uuid().v4(), category: 'Belanja Bulanan', amount: 1850000, date: monthsAgo(5, 24)),
-      ExpenseTransaction(id: const Uuid().v4(), category: 'Transportasi', amount: 620000, date: monthsAgo(5, 12)),
-      ExpenseTransaction(id: const Uuid().v4(), category: 'Belanja Bulanan', amount: 1920000, date: monthsAgo(4, 22)),
-      ExpenseTransaction(id: const Uuid().v4(), category: 'Hiburan & Makan', date: monthsAgo(4, 10), amount: 850000),
-      ExpenseTransaction(id: const Uuid().v4(), category: 'Belanja Bulanan', amount: 1780000, date: monthsAgo(3, 23)),
-      ExpenseTransaction(id: const Uuid().v4(), category: 'Transportasi', amount: 580000, date: monthsAgo(3, 11)),
-      ExpenseTransaction(id: const Uuid().v4(), category: 'Belanja Bulanan', amount: 2100000, date: monthsAgo(2, 24)),
-      ExpenseTransaction(id: const Uuid().v4(), category: 'Hiburan & Makan', amount: 900000, date: monthsAgo(2, 9)),
-      ExpenseTransaction(id: const Uuid().v4(), category: 'Belanja Bulanan', amount: 1950000, date: monthsAgo(1, 24)),
-      ExpenseTransaction(id: const Uuid().v4(), category: 'Elektronik', amount: 12450000, date: monthsAgo(1, 15)),
-      ExpenseTransaction(id: const Uuid().v4(), category: 'Transportasi', amount: 610000, date: monthsAgo(1, 12)),
-      ExpenseTransaction(id: const Uuid().v4(), category: 'Hiburan & Makan', amount: 870000, date: monthsAgo(1, 10)),
-      ExpenseTransaction(id: const Uuid().v4(), category: 'Belanja Bulanan', amount: 1880000, date: monthsAgo(0, 24)),
-      ExpenseTransaction(id: const Uuid().v4(), category: 'Transportasi', amount: 595000, date: monthsAgo(0, 12)),
+      // Makanan: steady ~1.2jt/bulan, lalu melonjak ke 1.9jt bulan ini (+58% -> Anomali Tinggi)
+      ExpenseTransaction(id: id(), category: 'Makanan', amount: 1180000, date: monthsAgo(4, 5)),
+      ExpenseTransaction(id: id(), category: 'Makanan', amount: 1220000, date: monthsAgo(3, 6)),
+      ExpenseTransaction(id: id(), category: 'Makanan', amount: 1150000, date: monthsAgo(2, 4)),
+      ExpenseTransaction(id: id(), category: 'Makanan', amount: 1250000, date: monthsAgo(1, 5)),
+      ExpenseTransaction(id: id(), category: 'Makanan', amount: 1900000, date: monthsAgo(0, 6)),
+
+      // Transportasi: steady ~600rb/bulan, bulan ini 650rb (+8% -> Normal)
+      ExpenseTransaction(id: id(), category: 'Transportasi', amount: 610000, date: monthsAgo(4, 12)),
+      ExpenseTransaction(id: id(), category: 'Transportasi', amount: 590000, date: monthsAgo(3, 11)),
+      ExpenseTransaction(id: id(), category: 'Transportasi', amount: 605000, date: monthsAgo(2, 13)),
+      ExpenseTransaction(id: id(), category: 'Transportasi', amount: 595000, date: monthsAgo(1, 12)),
+      ExpenseTransaction(id: id(), category: 'Transportasi', amount: 650000, date: monthsAgo(0, 12)),
+
+      // Cicilan: tetap setiap bulan (0% -> Normal)
+      ExpenseTransaction(id: id(), category: 'Cicilan', amount: 1200000, date: monthsAgo(3, 1)),
+      ExpenseTransaction(id: id(), category: 'Cicilan', amount: 1200000, date: monthsAgo(2, 1)),
+      ExpenseTransaction(id: id(), category: 'Cicilan', amount: 1200000, date: monthsAgo(1, 1)),
+      ExpenseTransaction(id: id(), category: 'Cicilan', amount: 1200000, date: monthsAgo(0, 1)),
+
+      // Hiburan: steady ~400rb/bulan, bulan ini 540rb (+35% -> Anomali Ringan)
+      ExpenseTransaction(id: id(), category: 'Hiburan', amount: 380000, date: monthsAgo(3, 18)),
+      ExpenseTransaction(id: id(), category: 'Hiburan', amount: 420000, date: monthsAgo(2, 20)),
+      ExpenseTransaction(id: id(), category: 'Hiburan', amount: 400000, date: monthsAgo(1, 19)),
+      ExpenseTransaction(id: id(), category: 'Hiburan', amount: 540000, date: monthsAgo(0, 20), note: 'Nonton + makan di luar'),
+
+      // Belanja Rumah Tangga: steady ~900rb/bulan, bulan ini 950rb (+5.5% -> Normal)
+      ExpenseTransaction(id: id(), category: 'Belanja Rumah Tangga', amount: 880000, date: monthsAgo(2, 24)),
+      ExpenseTransaction(id: id(), category: 'Belanja Rumah Tangga', amount: 910000, date: monthsAgo(1, 23)),
+      ExpenseTransaction(id: id(), category: 'Belanja Rumah Tangga', amount: 950000, date: monthsAgo(0, 24)),
+
+      // Kesehatan: hanya muncul bulan ini, tanpa riwayat -> dianggap baseline (Normal)
+      ExpenseTransaction(id: id(), category: 'Kesehatan', amount: 250000, date: monthsAgo(0, 15)),
     ];
   }
 }

@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../domain/entities/anomaly_result.dart';
 import '../../domain/entities/expense_transaction.dart';
 import '../../domain/entities/monthly_expense_trend.dart';
 
@@ -14,13 +15,20 @@ class AnomalyLoading extends AnomalyState {}
 class AnomalyLoaded extends AnomalyState {
   final List<ExpenseTransaction> transactions;
   final List<MonthlyExpenseTrend> monthlyTrend;
+  final List<AnomalyResult> categoryResults;
 
-  const AnomalyLoaded({required this.transactions, required this.monthlyTrend});
+  const AnomalyLoaded({
+    required this.transactions,
+    required this.monthlyTrend,
+    required this.categoryResults,
+  });
 
-  int get anomalyCount => transactions.where((t) => t.isAnomaly).length + monthlyTrend.where((m) => m.isAnomaly).length;
+  List<AnomalyResult> get spikingCategories => categoryResults.where((r) => r.severity != AnomalySeverity.normal).toList();
+
+  int get anomalyCount => spikingCategories.length;
 
   @override
-  List<Object?> get props => [transactions, monthlyTrend];
+  List<Object?> get props => [transactions, monthlyTrend, categoryResults];
 }
 
 class AnomalyError extends AnomalyState {

@@ -81,7 +81,10 @@ class TransactionDetailView extends StatelessWidget {
                     children: [
                       const Icon(Icons.warning_amber_rounded, size: 16, color: AppColors.onErrorContainer),
                       const SizedBox(width: 6),
-                      Text('ANOMALI TERDETEKSI', style: AppTextStyles.label.copyWith(color: AppColors.onErrorContainer)),
+                      Text(
+                        '${_severityLabel(t.severity).toUpperCase()} (+${t.percentageIncrease.toStringAsFixed(0)}%)',
+                        style: AppTextStyles.label.copyWith(color: AppColors.onErrorContainer),
+                      ),
                     ],
                   ),
                 ),
@@ -100,6 +103,10 @@ class TransactionDetailView extends StatelessWidget {
               _detailRow('Metode', 'Input Manual'),
               const Divider(height: 20, color: AppColors.border),
               _detailRow('Status', _reviewStatusLabel(t.reviewStatus), valueColor: _reviewStatusColor(t.reviewStatus)),
+              if (t.note != null && t.note!.isNotEmpty) ...[
+                const Divider(height: 20, color: AppColors.border),
+                _detailRow('Catatan', t.note!),
+              ],
             ],
           ),
         ),
@@ -215,6 +222,17 @@ class TransactionDetailView extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+String _severityLabel(AnomalySeverity severity) {
+  switch (severity) {
+    case AnomalySeverity.tinggi:
+      return 'Anomali Tinggi';
+    case AnomalySeverity.ringan:
+      return 'Anomali Ringan';
+    case AnomalySeverity.normal:
+      return 'Normal';
   }
 }
 
