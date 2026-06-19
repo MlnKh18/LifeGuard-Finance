@@ -15,6 +15,7 @@ class EarlyWarningRuleChecker {
   static const double _staleProfileDays = 30;
 
   List<EarlyWarning> check({
+    required String familyId,
     required FamilyFinanceProfile profile,
     required FvsScore currentScore,
     FvsScore? previousScore,
@@ -28,13 +29,16 @@ class EarlyWarningRuleChecker {
     // 1. Skor FVS turun
     if (previousScore != null && currentScore.score < previousScore.score) {
       warnings.add(EarlyWarning(
-        id: uuid.v4(),
-        type: WarningType.fvsDropped,
-        severity: WarningSeverity.critical,
+        warningId: uuid.v4(),
+        familyId: familyId,
         title: 'Skor FVS Menurun',
         message:
             'Skor FVS turun dari ${previousScore.score.toStringAsFixed(0)} menjadi ${currentScore.score.toStringAsFixed(0)}. Lihat rekomendasi pemulihan.',
-        triggeredAt: now,
+        severity: EarlyWarningSeverity.high,
+        source: EarlyWarningSource.fvs,
+        sourceId: 'fvs_score_dropped',
+        isRead: false,
+        createdAt: now,
       ));
     }
 
@@ -42,13 +46,16 @@ class EarlyWarningRuleChecker {
     final monthsCovered = profile.routineExpenses > 0 ? profile.liquidSavings / profile.routineExpenses : 99.0;
     if (monthsCovered < 3.0) {
       warnings.add(EarlyWarning(
-        id: uuid.v4(),
-        type: WarningType.lowEmergencyFund,
-        severity: monthsCovered < 1.5 ? WarningSeverity.critical : WarningSeverity.warning,
+        warningId: uuid.v4(),
+        familyId: familyId,
         title: 'Dana Darurat Tidak Mencukupi',
         message:
             'Dana darurat Anda hanya cukup untuk ${monthsCovered.toStringAsFixed(1)} bulan. Perkuat cadangan keluarga mulai minggu ini.',
-        triggeredAt: now,
+        severity: monthsCovered < 1.5 ? EarlyWarningSeverity.high : EarlyWarningSeverity.medium,
+        source: EarlyWarningSource.fvs,
+        sourceId: 'low_emergency_fund',
+        isRead: false,
+        createdAt: now,
       ));
     }
 
@@ -57,26 +64,32 @@ class EarlyWarningRuleChecker {
     final debtRatio = totalIncome > 0 ? profile.debtPayments / totalIncome : 0.0;
     if (debtRatio > 0.35) {
       warnings.add(EarlyWarning(
-        id: uuid.v4(),
-        type: WarningType.highDebtRatio,
-        severity: WarningSeverity.warning,
+        warningId: uuid.v4(),
+        familyId: familyId,
         title: 'Rasio Cicilan Melewati Batas Aman',
         message:
             'Rasio cicilan melewati batas aman (${(debtRatio * 100).toStringAsFixed(0)}%). Pertimbangkan evaluasi ulang kewajiban bulanan.',
-        triggeredAt: now,
+        severity: EarlyWarningSeverity.medium,
+        source: EarlyWarningSource.fvs,
+        sourceId: 'high_debt_ratio',
+        isRead: false,
+        createdAt: now,
       ));
     }
 
     // 4. Ada anomali pengeluaran
     for (final result in anomalyResults.where((r) => r.severity != AnomalySeverity.normal)) {
       warnings.add(EarlyWarning(
-        id: uuid.v4(),
-        type: WarningType.expenseAnomaly,
-        severity: result.severity == AnomalySeverity.tinggi ? WarningSeverity.critical : WarningSeverity.warning,
+        warningId: uuid.v4(),
+        familyId: familyId,
         title: 'Anomali Pengeluaran: ${result.category}',
         message:
             'Pengeluaran kategori ${result.category} naik ${result.percentageIncrease.toStringAsFixed(0)}% dari pola biasanya.',
-        triggeredAt: now,
+        severity: result.severity == AnomalySeverity.tinggi ? EarlyWarningSeverity.high : EarlyWarningSeverity.medium,
+        source: EarlyWarningSource.anomaly,
+        sourceId: result.category,
+        isRead: false,
+        createdAt: now,
       ));
     }
 
@@ -85,12 +98,15 @@ class EarlyWarningRuleChecker {
       final daysSinceUpdate = now.difference(profile.updatedAt!).inDays;
       if (daysSinceUpdate > _staleProfileDays) {
         warnings.add(EarlyWarning(
-          id: uuid.v4(),
-          type: WarningType.staleProfile,
-          severity: WarningSeverity.info,
+          warningId: uuid.v4(),
+          familyId: familyId,
           title: 'Data Keuangan Belum Diperbarui',
           message: 'Anda belum memperbarui profil keuangan keluarga selama $daysSinceUpdate hari. Perbarui agar rekomendasi tetap akurat.',
-          triggeredAt: now,
+          severity: EarlyWarningSeverity.low,
+          source: EarlyWarningSource.fvs,
+          sourceId: 'stale_profile',
+          isRead: false,
+          createdAt: now,
         ));
       }
     }
@@ -100,13 +116,16 @@ class EarlyWarningRuleChecker {
         profile.routineExpenses > 0 &&
         latestSimulation.potentialDeficit > profile.routineExpenses) {
       warnings.add(EarlyWarning(
-        id: uuid.v4(),
-        type: WarningType.simulationDeficit,
-        severity: WarningSeverity.critical,
+        warningId: uuid.v4(),
+        familyId: familyId,
         title: 'Simulasi Menunjukkan Defisit Besar',
         message:
             'Simulasi krisis terakhir memproyeksikan defisit besar yang melebihi satu bulan pengeluaran rutin Anda. Tinjau kembali rencana mitigasi.',
-        triggeredAt: now,
+        severity: EarlyWarningSeverity.high,
+        source: EarlyWarningSource.simulation,
+        sourceId: 'simulation_deficit',
+        isRead: false,
+        createdAt: now,
       ));
     }
 

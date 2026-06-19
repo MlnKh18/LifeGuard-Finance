@@ -4,8 +4,8 @@ import 'package:uuid/uuid.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/primary_button.dart';
-import '../../../auth/presentation/bloc/auth_bloc.dart';
-import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../../core/di/injection.dart';
+import '../../../auth/domain/repositories/auth_repository.dart';
 import '../../domain/entities/finance_record_entity.dart';
 import '../bloc/daily_finance_cubit.dart';
 
@@ -55,31 +55,34 @@ class _AddFinanceRecordFormState extends State<AddFinanceRecordForm> {
     final amountText = _amountController.text.replaceAll(RegExp(r'[^0-9]'), '');
     final amount = double.tryParse(amountText) ?? 0.0;
 
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final cubit = context.read<DailyFinanceCubit>();
+    final navigator = Navigator.of(context);
+
     if (amount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.showSnackBar(
         const SnackBar(content: Text('Nominal harus lebih dari 0'), backgroundColor: AppColors.riskCritical),
       );
       return;
     }
 
     if (_selectedCategory == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.showSnackBar(
         const SnackBar(content: Text('Kategori wajib dipilih'), backgroundColor: AppColors.riskCritical),
       );
       return;
     }
 
-    final authState = context.read<AuthBloc>().state;
-    String familyId = '';
-    String userId = '';
-    String userEmail = '';
+    final authRepository = getIt<AuthRepository>();
+    final session = await authRepository.getCurrentSession();
+    final currentUser = await authRepository.getCurrentUser();
 
-    if (authState is AuthAuthenticated) {
-      familyId = authState.user.familyId;
-      userId = authState.user.userId;
-      userEmail = authState.user.email;
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
+    final familyId = session?.currentFamilyId ?? currentUser?.familyId ?? '';
+    final userId = currentUser?.userId ?? session?.currentUserId ?? '';
+    final userEmail = currentUser?.email ?? '';
+
+    if (familyId.isEmpty || userId.isEmpty) {
+      scaffoldMessenger.showSnackBar(
         const SnackBar(content: Text('Anda belum login'), backgroundColor: AppColors.riskCritical),
       );
       return;
@@ -99,11 +102,11 @@ class _AddFinanceRecordFormState extends State<AddFinanceRecordForm> {
       updatedAt: DateTime.now(),
     );
 
-    await context.read<DailyFinanceCubit>().addRecord(record);
+    await cubit.addRecord(record);
     
     if (mounted) {
       widget.onSuccess();
-      Navigator.pop(context);
+      navigator.pop();
     }
   }
 
@@ -154,7 +157,7 @@ class _AddFinanceRecordFormState extends State<AddFinanceRecordForm> {
               items: categories.map((cat) {
                 return DropdownMenuItem(
                   value: cat,
-                  child: Text(cat),
+                  child: Text(getCategoryLabel(cat)),
                 );
               }).toList(),
               onChanged: (val) {

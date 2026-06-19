@@ -147,8 +147,8 @@ class RecommendationGenerator {
     final weakestEntry = indicators.entries.reduce((a, b) => a.value <= b.value ? a : b);
     if (weakestEntry.value >= 80) return null;
 
-    final moduleId = 'edu-s${weakestEntry.key}-1';
-    final matches = mockLiteracyModules.where((m) => m.moduleId == moduleId);
+    final relatedIndicator = 'S${weakestEntry.key}';
+    final matches = seedLiteracyModules.where((m) => m.relatedIndicator == relatedIndicator);
     return matches.isEmpty ? null : matches.first;
   }
 }

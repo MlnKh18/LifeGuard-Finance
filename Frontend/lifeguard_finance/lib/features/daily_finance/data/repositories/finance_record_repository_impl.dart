@@ -94,21 +94,36 @@ class FinanceRecordRepositoryImpl implements FinanceRecordRepository {
 
   @override
   Future<List<FinanceRecord>> getExpenseRecords() async {
+    final session = await authRepository.getCurrentSession();
+    final currentUser = await authRepository.getCurrentUser();
+    final currentFamilyId = session?.currentFamilyId ?? currentUser?.familyId ?? '';
     final records = await getRecords();
-    return records.where((r) => r.type == FinanceRecordType.expense).toList();
+    return records
+        .where((r) => r.familyId == currentFamilyId && r.type == FinanceRecordType.expense)
+        .toList();
   }
 
   @override
   Future<List<FinanceRecord>> getIncomeRecords() async {
+    final session = await authRepository.getCurrentSession();
+    final currentUser = await authRepository.getCurrentUser();
+    final currentFamilyId = session?.currentFamilyId ?? currentUser?.familyId ?? '';
     final records = await getRecords();
-    return records.where((r) => r.type == FinanceRecordType.income).toList();
+    return records
+        .where((r) => r.familyId == currentFamilyId && r.type == FinanceRecordType.income)
+        .toList();
   }
 
   @override
   Future<List<FinanceRecord>> getMonthlyRecords(DateTime month) async {
+    final session = await authRepository.getCurrentSession();
+    final currentUser = await authRepository.getCurrentUser();
+    final currentFamilyId = session?.currentFamilyId ?? currentUser?.familyId ?? '';
     final records = await getRecords();
     return records.where((r) {
-      return r.recordDate.year == month.year && r.recordDate.month == month.month;
+      return r.familyId == currentFamilyId &&
+          r.recordDate.year == month.year &&
+          r.recordDate.month == month.month;
     }).toList();
   }
 }

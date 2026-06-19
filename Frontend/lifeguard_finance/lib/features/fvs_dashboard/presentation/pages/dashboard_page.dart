@@ -21,6 +21,9 @@ import '../widgets/metric_bento_card.dart';
 import '../../../savings_vault/presentation/bloc/vault_cubit.dart';
 import '../../../savings_vault/presentation/bloc/vault_state.dart';
 import '../../../savings_vault/domain/entities/savings_vault_entity.dart';
+import '../../../literacy/presentation/bloc/literacy_cubit.dart';
+import '../../../literacy/presentation/bloc/literacy_state.dart';
+import '../../../literacy/presentation/widgets/literacy_recommendation_card.dart';
 
 final _rupiahFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
@@ -100,6 +103,8 @@ class DashboardView extends StatelessWidget {
             style: AppTextStyles.bodyMedium,
             textAlign: TextAlign.center,
           ),
+          
+          const SizedBox(height: 32),
           const SizedBox(height: 32),
           PrimaryButton(
             text: 'Lengkapi Profil Sekarang',
@@ -214,6 +219,10 @@ class DashboardView extends StatelessWidget {
 
             // Savings Vault Summary
             _buildSavingsVaultSummary(context),
+            const SizedBox(height: 24),
+            
+            // Literacy Recommendation
+            _buildLiteracyRecommendation(context, state),
             const SizedBox(height: 24),
 
             // Action Button
@@ -459,6 +468,23 @@ class DashboardView extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildLiteracyRecommendation(BuildContext context, FvsLoaded state) {
+    return BlocProvider<LiteracyCubit>(
+      create: (context) => getIt<LiteracyCubit>()..loadModules(state.score.weakestIndicators),
+      child: BlocBuilder<LiteracyCubit, LiteracyState>(
+        builder: (context, litState) {
+          if (litState is LiteracyLoaded) {
+            final module = litState.summary.recommendedModule;
+            if (module != null) {
+              return LiteracyRecommendationCard(module: module);
+            }
+          }
+          return const SizedBox.shrink();
+        },
+      ),
     );
   }
 }

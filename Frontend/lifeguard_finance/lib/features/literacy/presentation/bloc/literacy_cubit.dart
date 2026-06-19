@@ -1,37 +1,51 @@
-import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../domain/repositories/literacy_repository.dart';
+import 'literacy_state.dart';
 
-class LiteracyProgressState extends Equatable {
-  final Set<String> readModuleIds;
+class LiteracyCubit extends Cubit<LiteracyState> {
+  final LiteracyRepository repository;
 
-  const LiteracyProgressState({this.readModuleIds = const {}});
+  LiteracyCubit({required this.repository}) : super(LiteracyInitial());
 
-  int get readCount => readModuleIds.length;
-
-  bool isRead(String moduleId) => readModuleIds.contains(moduleId);
-
-  LiteracyProgressState copyWith({Set<String>? readModuleIds}) {
-    return LiteracyProgressState(readModuleIds: readModuleIds ?? this.readModuleIds);
+  Future<void> loadModules(List<String> weakestIndicators) async {
+    emit(LiteracyLoading());
+    try {
+      final modules = await repository.getModules();
+      final summary = await repository.getLiteracySummary(weakestIndicators);
+      emit(LiteracyLoaded(modules, summary));
+    } catch (e) {
+      emit(LiteracyError(e.toString()));
+    }
   }
 
-  @override
-  List<Object?> get props => [readModuleIds];
-}
+  Future<void> loadDetail(String moduleId) async {
+    emit(LiteracyLoading());
+    try {
+      final module = await repository.getModuleById(moduleId);
+      if (module == null) {
+        emit(const LiteracyError('Modul tidak ditemukan'));
+        return;
+      }
+      
+      final progress = await repository.getUserProgress();
+      final isRead = progress.any((p) => p.moduleId == moduleId && p.isRead);
 
-class LiteracyCubit extends Cubit<LiteracyProgressState> {
-  final LiteracyRepository literacyRepository;
-
-  LiteracyCubit({required this.literacyRepository}) : super(const LiteracyProgressState());
-
-  Future<void> loadProgress() async {
-    final ids = await literacyRepository.getReadModuleIds();
-    emit(LiteracyProgressState(readModuleIds: ids));
+      emit(LiteracyDetailLoaded(module, isRead));
+    } catch (e) {
+      emit(LiteracyError(e.toString()));
+    }
   }
 
-  Future<void> markAsRead(String moduleId) async {
-    if (state.isRead(moduleId)) return;
-    await literacyRepository.markAsRead(moduleId);
-    emit(state.copyWith(readModuleIds: {...state.readModuleIds, moduleId}));
+  Future<void> markAsRead(String moduleId, List<String> weakestIndicators) async {
+    try {
+      await repository.markModuleAsRead(moduleId);
+      // Reload current state details or modules based on previous context if needed.
+      // Typically, after markAsRead, the user navigates back and triggers loadModules,
+      // or we can refresh the current detail.
+      loadDetail(moduleId);
+    } catch (e) {
+      emit(LiteracyError(e.toString()));
+    }
   }
 }

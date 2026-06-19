@@ -39,6 +39,6 @@ class NotificationService {
     );
     const iosDetails = DarwinNotificationDetails();
     const details = NotificationDetails(android: androidDetails, iOS: iosDetails, macOS: iosDetails);
-    await _plugin.show(warning.id.hashCode, warning.title, warning.message, details);
+    await _plugin.show(warning.warningId.hashCode, warning.title, warning.message, details);
   }
 }

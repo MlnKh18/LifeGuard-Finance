@@ -63,6 +63,11 @@ class ExpenseAnomalyView extends StatelessWidget {
         title: Text('Deteksi Anomali', style: AppTextStyles.heading3),
         actions: [
           IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            tooltip: 'Perbarui Data',
+            onPressed: () => context.read<AnomalyCubit>().loadTransactions(),
+          ),
+          IconButton(
             icon: const Icon(Icons.notifications_active_outlined, color: AppColors.textSecondary),
             tooltip: 'Peringatan Dini',
             onPressed: () => context.push('/early-warning'),
@@ -88,76 +93,82 @@ class ExpenseAnomalyView extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,
-        onPressed: () => _showAddTransactionDialog(context),
+        tooltip: 'Catatan Harian',
+        onPressed: () => context.push('/daily-finance'),
         child: const Icon(Icons.add_rounded, color: Colors.white),
       ),
     );
   }
 
   Widget _buildContent(BuildContext context, AnomalyLoaded state) {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-      children: [
-        const SectionTitle(
-          title: 'Deteksi Anomali',
-          subtitle: 'Tren & anomali pengeluaran bulanan keluarga.',
-        ),
-        const SizedBox(height: 8),
-        AppCard(
-          borderRadius: 12.0,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Volatilitas Pengeluaran', style: AppTextStyles.heading3),
-                        const SizedBox(height: 2),
-                        Text('6 Bulan Terakhir', style: AppTextStyles.bodySmall),
-                      ],
-                    ),
-                  ),
-                  if (state.anomalyCount > 0)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: AppColors.errorContainer,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
+    return RefreshIndicator(
+      color: AppColors.primary,
+      onRefresh: () => context.read<AnomalyCubit>().loadTransactions(),
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+        children: [
+          const SectionTitle(
+            title: 'Deteksi Anomali',
+            subtitle: 'Tren & anomali pengeluaran bulanan keluarga.',
+          ),
+          const SizedBox(height: 8),
+          AppCard(
+            borderRadius: 12.0,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.warning_amber_rounded, size: 14, color: AppColors.onErrorContainer),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${state.anomalyCount} Kategori Anomali',
-                            style: AppTextStyles.label.copyWith(color: AppColors.onErrorContainer),
-                          ),
+                          Text('Volatilitas Pengeluaran', style: AppTextStyles.heading3),
+                          const SizedBox(height: 2),
+                          Text('6 Bulan Terakhir', style: AppTextStyles.bodySmall),
                         ],
                       ),
                     ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              ExpenseTrendChart(trend: state.monthlyTrend),
-            ],
+                    if (state.anomalyCount > 0)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: AppColors.errorContainer,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.warning_amber_rounded, size: 14, color: AppColors.onErrorContainer),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${state.anomalyCount} Kategori Anomali',
+                              style: AppTextStyles.label.copyWith(color: AppColors.onErrorContainer),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                ExpenseTrendChart(trend: state.monthlyTrend),
+              ],
+            ),
           ),
-        ),
-        if (state.spikingCategories.isNotEmpty) ...[
+          if (state.spikingCategories.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            Text('Kategori yang Mengalami Lonjakan', style: AppTextStyles.heading2),
+            const SizedBox(height: 12),
+            ...state.spikingCategories.map((r) => _buildSpikeCard(r)),
+          ],
           const SizedBox(height: 24),
-          Text('Kategori yang Mengalami Lonjakan', style: AppTextStyles.heading2),
+          Text('Transaksi Terbaru', style: AppTextStyles.heading2),
           const SizedBox(height: 12),
-          ...state.spikingCategories.map((r) => _buildSpikeCard(r)),
+          ...state.transactions.map((t) => _buildTransactionTile(context, t)),
         ],
-        const SizedBox(height: 24),
-        Text('Transaksi Terbaru', style: AppTextStyles.heading2),
-        const SizedBox(height: 12),
-        ...state.transactions.map((t) => _buildTransactionTile(context, t)),
-      ],
+      ),
     );
   }
 
@@ -303,108 +314,34 @@ class ExpenseAnomalyView extends StatelessWidget {
     );
   }
 
-  void _showAddTransactionDialog(BuildContext context) {
-    final cubit = context.read<AnomalyCubit>();
-    final amountController = TextEditingController();
-    final noteController = TextEditingController();
-    String category = expenseCategories.first;
-    DateTime selectedDate = DateTime.now();
-    final formKey = GlobalKey<FormState>();
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (dialogContext, setDialogState) {
-            return AlertDialog(
-              title: const Text('Tambah Transaksi'),
-              content: Form(
-                key: formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      DropdownButtonFormField<String>(
-                        initialValue: category,
-                        decoration: const InputDecoration(labelText: 'Kategori'),
-                        items: expenseCategories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-                        onChanged: (val) => setDialogState(() => category = val ?? category),
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: amountController,
-                        decoration: const InputDecoration(labelText: 'Jumlah (Rp)'),
-                        keyboardType: TextInputType.number,
-                        validator: (val) {
-                          final amount = double.tryParse(val ?? '');
-                          if (amount == null || amount <= 0) return 'Masukkan jumlah yang valid';
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      InkWell(
-                        onTap: () async {
-                          final picked = await showDatePicker(
-                            context: dialogContext,
-                            initialDate: selectedDate,
-                            firstDate: DateTime(2020),
-                            lastDate: DateTime.now(),
-                          );
-                          if (picked != null) setDialogState(() => selectedDate = picked);
-                        },
-                        child: InputDecorator(
-                          decoration: const InputDecoration(labelText: 'Tanggal'),
-                          child: Text(_formatDate(selectedDate)),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: noteController,
-                        decoration: const InputDecoration(labelText: 'Catatan (opsional)'),
-                        maxLines: 2,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('Batal'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    if (!formKey.currentState!.validate()) return;
-                    cubit.addTransaction(
-                      category: category,
-                      amount: double.parse(amountController.text),
-                      date: selectedDate,
-                      note: noteController.text.trim().isEmpty ? null : noteController.text.trim(),
-                    );
-                    Navigator.of(dialogContext).pop();
-                  },
-                  child: const Text('Simpan'),
+  Widget _buildErrorView(BuildContext context, String message) {
+    return RefreshIndicator(
+      color: AppColors.primary,
+      onRefresh: () => context.read<AnomalyCubit>().loadTransactions(),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.6,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline_rounded, size: 80, color: AppColors.riskCritical),
+                const SizedBox(height: 16),
+                Text('Terjadi Kesalahan', style: AppTextStyles.heading2),
+                const SizedBox(height: 8),
+                Text(message, textAlign: TextAlign.center, style: AppTextStyles.bodyMedium),
+                const SizedBox(height: 24),
+                TextButton.icon(
+                  onPressed: () => context.read<AnomalyCubit>().loadTransactions(),
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: const Text('Coba Lagi'),
                 ),
               ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildErrorView(BuildContext context, String message) {
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.error_outline_rounded, size: 80, color: AppColors.riskCritical),
-          const SizedBox(height: 16),
-          Text('Terjadi Kesalahan', style: AppTextStyles.heading2),
-          const SizedBox(height: 8),
-          Text(message, textAlign: TextAlign.center, style: AppTextStyles.bodyMedium),
-        ],
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -14,6 +14,52 @@ String financeRecordTypeLabel(FinanceRecordType type) {
   }
 }
 
+String getCategoryLabel(String category) {
+  switch (category.toLowerCase()) {
+    case 'food':
+    case 'makanan':
+      return 'Makanan';
+    case 'transportation':
+    case 'transportasi':
+      return 'Transportasi';
+    case 'debt':
+    case 'cicilan':
+      return 'Cicilan';
+    case 'education':
+    case 'pendidikan':
+      return 'Pendidikan';
+    case 'health':
+    case 'kesehatan':
+      return 'Kesehatan';
+    case 'household':
+    case 'belanja rumah tangga':
+      return 'Belanja Rumah Tangga';
+    case 'entertainment':
+    case 'hiburan':
+      return 'Hiburan';
+    case 'utilities':
+    case 'tagihan & utilitas':
+      return 'Tagihan & Utilitas';
+    case 'salary':
+    case 'gaji':
+      return 'Gaji';
+    case 'business':
+    case 'bisnis':
+      return 'Bisnis';
+    case 'freelance':
+    case 'pekerjaan lepas':
+      return 'Pekerjaan Lepas';
+    case 'gift':
+    case 'hadiah':
+      return 'Hadiah';
+    case 'investment':
+    case 'investasi':
+      return 'Investasi';
+    default:
+      return 'Lainnya';
+  }
+}
+
 enum ExpenseCategory {
   food,
   transportation,

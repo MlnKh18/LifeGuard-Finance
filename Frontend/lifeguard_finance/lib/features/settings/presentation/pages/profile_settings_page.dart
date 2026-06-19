@@ -9,7 +9,6 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../../../core/widgets/section_title.dart';
-import '../../../../core/utils/url_launcher_helper.dart';
 import '../../../auth/domain/entities/user_role.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
@@ -21,6 +20,8 @@ import '../bloc/profile_state.dart';
 import '../widgets/profile_modals.dart';
 import '../widgets/vault_mini_card.dart';
 import '../../domain/entities/profile_summary.dart';
+import '../../../literacy/presentation/bloc/literacy_cubit.dart';
+import '../../../literacy/presentation/bloc/literacy_state.dart';
 
 class ProfileSettingsPage extends StatelessWidget {
   const ProfileSettingsPage({super.key});
@@ -632,86 +633,82 @@ class ProfileSettingsPage extends StatelessWidget {
   }
 
   Widget _buildLiteracySection(BuildContext context, ProfileSummary summary) {
-    final total = summary.literacyProgress.isNotEmpty ? summary.literacyProgress[1] as int : 5;
-    final read = summary.literacyProgress.isNotEmpty ? summary.literacyProgress[0] as int : 0;
-    final percent = total > 0 ? (read / total) : 0.0;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SectionTitle(
-          title: 'Perkembangan Literasi',
-          trailing: TextButton(
-            onPressed: () => context.push('/literacy'),
-            child: const Text('Mulai Belajar'),
-          ),
-        ),
-        AppCard(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
+    return BlocProvider<LiteracyCubit>(
+      create: (context) => getIt<LiteracyCubit>()..loadModules(summary.weakestIndicators),
+      child: BlocBuilder<LiteracyCubit, LiteracyState>(
+        builder: (context, state) {
+          if (state is LiteracyLoaded) {
+            final litSummary = state.summary;
+            return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Modul Dibaca ($read/$total)', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
-                    Text('${(percent * 100).toStringAsFixed(0)}%', style: AppTextStyles.bodySmall.copyWith(color: AppColors.primary)),
-                  ],
+                SectionTitle(
+                  title: 'Progress Edukasi Keuangan',
+                  trailing: TextButton(
+                    onPressed: () => context.push('/literacy'),
+                    child: const Text('Mulai Belajar'),
+                  ),
                 ),
-                const SizedBox(height: 8),
-                LinearProgressIndicator(
-                  value: percent,
-                  backgroundColor: AppColors.border,
-                  valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
-                ),
-                const SizedBox(height: 16),
-                Text('Rekomendasi Edukasi Keuangan:', style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                ...summary.recommendedLiteracyModules.take(2).map((mod) => InkWell(
-                      onTap: () {
-                        if (mod.externalUrl != null && mod.externalUrl!.isNotEmpty) {
-                          UrlLauncherHelper.openExternalUrl(mod.externalUrl!);
-                        } else {
-                          context.push('/literacy/${mod.moduleId}');
-                        }
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Row(
+                AppCard(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.1),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.menu_book_rounded,
-                                color: AppColors.primary,
-                                size: 20,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(mod.title, style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.bold)),
-                                  Text(mod.relatedIndicator, style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary, fontSize: 10)),
-                                ],
-                              ),
-                            ),
-                            const Icon(Icons.chevron_right_rounded, color: AppColors.border, size: 20),
+                            Text('Modul Dibaca (${litSummary.readModules}/${litSummary.totalModules})', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                            Text('${litSummary.progressPercentage.toStringAsFixed(0)}%', style: AppTextStyles.bodySmall.copyWith(color: AppColors.primary)),
                           ],
                         ),
-                      ),
-                    )),
+                        const SizedBox(height: 8),
+                        LinearProgressIndicator(
+                          value: litSummary.totalModules > 0 ? litSummary.readModules / litSummary.totalModules : 0,
+                          backgroundColor: AppColors.border,
+                          valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          litSummary.readModules > 0 ? 'Terakhir / Rekomendasi:' : 'Rekomendasi Edukasi Keuangan:', 
+                          style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8),
+                        
+                        ...[...litSummary.latestReadModules, ...litSummary.recommendedModules].take(3).map((mod) => InkWell(
+                              onTap: () => context.push('/literacy/${mod.moduleId}'),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.menu_book, size: 16, color: AppColors.textSecondary),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        mod.title,
+                                        style: AppTextStyles.bodyMedium,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const Icon(Icons.chevron_right, size: 16, color: AppColors.textSecondary),
+                                  ],
+                                ),
+                              ),
+                            )),
+                        
+                        if (litSummary.totalModules == 0)
+                          Text('Belum ada modul yang tersedia.', style: AppTextStyles.bodySmall),
+                      ],
+                    ),
+                  ),
+                ),
               ],
-            ),
-          ),
-        ),
-      ],
+            );
+          }
+          return const SizedBox.shrink();
+        },
+      ),
     );
   }
 

@@ -59,6 +59,30 @@ class FvsScore extends Equatable {
     };
   }
 
+  List<String> get weakestIndicators {
+    final scores = {
+      'S1': s1,
+      'S2': s2,
+      'S3': s3,
+      'S4': s4,
+      'S5': s5,
+      'S6': s6,
+      'S7': s7,
+    };
+    final List<String> weakest = [];
+    final sortedKeys = scores.keys.toList()
+      ..sort((a, b) => scores[a]!.compareTo(scores[b]!));
+    for (var key in sortedKeys) {
+      if (scores[key]! < 60) {
+        weakest.add(key);
+      }
+    }
+    if (weakest.isEmpty && sortedKeys.isNotEmpty) {
+      weakest.add(sortedKeys.first);
+    }
+    return weakest;
+  }
+
   @override
   List<Object?> get props => [
         score,

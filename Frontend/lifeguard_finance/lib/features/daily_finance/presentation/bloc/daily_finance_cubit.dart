@@ -170,8 +170,9 @@ class DailyFinanceCubit extends Cubit<DailyFinanceState> {
         }
       }
 
-      // Check negative cashflow
-      final allRecords = await repository.getRecords();
+      // Check negative cashflow — filter to current family only
+      final allRaw = await repository.getRecords();
+      final allRecords = allRaw.where((r) => r.familyId == record.familyId).toList();
       final now = DateTime.now();
       double totalIncomeThisMonth = 0;
       double totalExpenseThisMonth = 0;

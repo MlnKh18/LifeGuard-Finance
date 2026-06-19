@@ -4,6 +4,7 @@ import '../../../../core/data/local/hive_service.dart';
 import '../../../../core/data/local/local_keys.dart';
 import '../../../family_profile/domain/repositories/family_profile_repository.dart';
 import '../../data/datasources/fvs_calculator.dart';
+import '../../domain/entities/fvs_score_entity.dart';
 import 'fvs_event.dart';
 import 'fvs_state.dart';
 
@@ -35,6 +36,7 @@ class FvsBloc extends Bloc<FvsEvent, FvsState> {
   Future<void> _onLoadFvs(LoadFvs event, Emitter<FvsState> emit) async {
     emit(FvsLoading());
     try {
+      final cachedRaw = hiveService.getData(LocalKeys.fvsScore);
       final failureOrProfile = await familyProfileRepository.getFamilyProfile();
       await failureOrProfile.fold(
         (failure) async => emit(FvsError(failure.message)),
@@ -42,6 +44,15 @@ class FvsBloc extends Bloc<FvsEvent, FvsState> {
           if (profile == null) {
             emit(FvsNoProfile());
           } else {
+            if (cachedRaw != null && cachedRaw is Map) {
+              try {
+                final cachedScore = FvsScore.fromJson(Map<String, dynamic>.from(cachedRaw));
+                emit(FvsLoaded(cachedScore, profile));
+                return;
+              } catch (e) {
+                // fall back to calculation if parsing fails
+              }
+            }
             final calculatedScore = fvsCalculator.calculate(profile);
             await hiveService.saveData(LocalKeys.fvsScore, calculatedScore.toJson());
             emit(FvsLoaded(calculatedScore, profile));

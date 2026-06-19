@@ -26,6 +26,13 @@ import '../../features/literacy/data/repositories/literacy_repository_impl.dart'
 import '../../features/community/domain/repositories/community_repository.dart';
 import '../../features/community/data/repositories/community_repository_impl.dart';
 import '../../features/rewards/data/datasources/reward_service.dart';
+import '../../features/daily_finance/domain/repositories/finance_record_repository.dart';
+import '../../features/daily_finance/data/repositories/finance_record_repository_impl.dart';
+import '../../features/anomaly_detection/domain/repositories/anomaly_repository.dart';
+import '../../features/anomaly_detection/data/repositories/anomaly_repository_impl.dart';
+import '../../features/early_warning/domain/repositories/early_warning_repository.dart';
+import '../../features/early_warning/data/repositories/early_warning_repository_impl.dart';
+import '../../features/daily_finance/presentation/bloc/daily_finance_cubit.dart';
 
 // Import Use Cases
 import '../../features/family_profile/domain/usecases/get_family_profile.dart';
@@ -84,6 +91,25 @@ Future<void> setupInjection() async {
   );
   getIt.registerLazySingleton<CommunityRepository>(
     () => CommunityRepositoryImpl(hiveService: getIt<HiveService>()),
+  );
+  getIt.registerLazySingleton<FinanceRecordRepository>(
+    () => FinanceRecordRepositoryImpl(
+      hiveService: getIt<HiveService>(),
+      authRepository: getIt<AuthRepository>(),
+    ),
+  );
+  getIt.registerLazySingleton<AnomalyRepository>(
+    () => AnomalyRepositoryImpl(
+      hiveService: getIt<HiveService>(),
+      financeRecordRepository: getIt<FinanceRecordRepository>(),
+      authRepository: getIt<AuthRepository>(),
+    ),
+  );
+  getIt.registerLazySingleton<EarlyWarningRepository>(
+    () => EarlyWarningRepositoryImpl(
+      hiveService: getIt<HiveService>(),
+      authRepository: getIt<AuthRepository>(),
+    ),
   );
 
   // =========================================================================
@@ -170,6 +196,9 @@ Future<void> setupInjection() async {
     () => AnomalyCubit(
       hiveService: getIt<HiveService>(),
       anomalyDetectionService: getIt<AnomalyDetectionService>(),
+      financeRecordRepository: getIt<FinanceRecordRepository>(),
+      anomalyRepository: getIt<AnomalyRepository>(),
+      authRepository: getIt<AuthRepository>(),
     ),
   );
   getIt.registerFactory<NotificationCubit>(
@@ -183,7 +212,16 @@ Future<void> setupInjection() async {
     ),
   );
   getIt.registerFactory<LiteracyCubit>(
-    () => LiteracyCubit(literacyRepository: getIt<LiteracyRepository>()),
+    () => LiteracyCubit(repository: getIt<LiteracyRepository>()),
+  );
+  getIt.registerFactory<DailyFinanceCubit>(
+    () => DailyFinanceCubit(
+      repository: getIt<FinanceRecordRepository>(),
+      anomalyRepository: getIt<AnomalyRepository>(),
+      earlyWarningRepository: getIt<EarlyWarningRepository>(),
+      authRepository: getIt<AuthRepository>(),
+      hiveService: getIt<HiveService>(),
+    ),
   );
   getIt.registerLazySingleton<VaultCubit>(
     () => VaultCubit(

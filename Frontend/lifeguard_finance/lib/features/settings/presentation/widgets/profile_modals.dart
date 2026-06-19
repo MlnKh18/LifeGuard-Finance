@@ -165,7 +165,6 @@ class _AddVaultFormState extends State<AddVaultForm> {
     
     if (widget.prefillData != null) {
       _nameController.text = widget.prefillData!['name'] ?? '';
-      _categoryController.text = widget.prefillData!['purpose'] ?? '';
       if (widget.prefillData!['targetAmount'] != null) {
         _targetController.text = widget.prefillData!['targetAmount'].toString();
       }

@@ -39,6 +39,7 @@ void main() {
     // passthrough, Map<String, dynamic> for FvsScore.toJson()) need separate stubs.
     when(() => hiveService.saveData<dynamic>(any(), any())).thenAnswer((_) async {});
     when(() => hiveService.saveData<Map<String, dynamic>>(any(), any())).thenAnswer((_) async {});
+    when(() => hiveService.watchKey(any())).thenAnswer((_) => const Stream.empty());
   });
 
   FvsBloc buildBloc() => FvsBloc(

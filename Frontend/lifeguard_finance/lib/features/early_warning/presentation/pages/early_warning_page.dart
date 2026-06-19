@@ -11,24 +11,24 @@ import '../../domain/entities/early_warning.dart';
 import '../bloc/notification_cubit.dart';
 import '../bloc/notification_state.dart';
 
-Color _severityColor(WarningSeverity severity) {
+Color _severityColor(EarlyWarningSeverity severity) {
   switch (severity) {
-    case WarningSeverity.critical:
+    case EarlyWarningSeverity.high:
       return AppColors.riskCritical;
-    case WarningSeverity.warning:
+    case EarlyWarningSeverity.medium:
       return AppColors.riskWarning;
-    case WarningSeverity.info:
+    case EarlyWarningSeverity.low:
       return AppColors.secondary;
   }
 }
 
-IconData _severityIcon(WarningSeverity severity) {
+IconData _severityIcon(EarlyWarningSeverity severity) {
   switch (severity) {
-    case WarningSeverity.critical:
+    case EarlyWarningSeverity.high:
       return Icons.error_rounded;
-    case WarningSeverity.warning:
+    case EarlyWarningSeverity.medium:
       return Icons.warning_amber_rounded;
-    case WarningSeverity.info:
+    case EarlyWarningSeverity.low:
       return Icons.info_rounded;
   }
 }

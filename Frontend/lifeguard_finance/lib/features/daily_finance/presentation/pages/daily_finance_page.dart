@@ -52,6 +52,13 @@ class DailyFinanceView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Catatan Harian', style: AppTextStyles.heading3),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            tooltip: 'Perbarui Data',
+            onPressed: () => context.read<DailyFinanceCubit>().loadRecords(showLoading: false),
+          ),
+        ],
       ),
       body: BlocConsumer<DailyFinanceCubit, DailyFinanceState>(
         listener: (context, state) {
@@ -316,7 +323,7 @@ class DailyFinanceView extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(record.category, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                      Text(getCategoryLabel(record.category), style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
                       if (record.notes != null)
                         Text(record.notes!, style: AppTextStyles.dataLabel),
                       Text('${_dateFormat.format(record.recordDate)} • ${record.userEmail}', style: AppTextStyles.dataLabel.copyWith(fontSize: 10)),

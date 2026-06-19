@@ -119,8 +119,14 @@ class AnomalyRepositoryImpl implements AnomalyRepository {
   }
 
   Future<void> _checkAndSeed() async {
+    final session = await authRepository.getCurrentSession();
+    final currentUser = await authRepository.getCurrentUser();
+    final currentFamilyId = session?.currentFamilyId ?? currentUser?.familyId ?? '';
+
     final allExpenses = await financeRecordRepository.getExpenseRecords();
-    final hasDummy = allExpenses.any((r) => r.recordId.startsWith('dummy_'));
+    final hasDummy = allExpenses.any(
+      (r) => r.familyId == currentFamilyId && r.recordId.startsWith('dummy_'),
+    );
     if (!hasDummy) {
       await _seedDummyData();
     }

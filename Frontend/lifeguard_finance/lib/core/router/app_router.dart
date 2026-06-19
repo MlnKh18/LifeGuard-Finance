@@ -98,13 +98,13 @@ class AppRouter {
         builder: (context, state) => const SmartRoutingPage(),
       ),
       GoRoute(
-        path: '/expense-anomaly',
-        builder: (context, state) => const ExpenseAnomalyPage(),
+        path: '/recommendation',
+        builder: (context, state) => const RecommendationPage(),
         routes: [
           GoRoute(
-            path: ':transactionId',
-            builder: (context, state) => TransactionDetailPage(
-              transactionId: state.pathParameters['transactionId'] ?? '',
+            path: ':taskId',
+            builder: (context, state) => TaskDetailPage(
+              taskId: state.pathParameters['taskId'] ?? '',
             ),
           ),
         ],
@@ -112,6 +112,10 @@ class AppRouter {
       GoRoute(
         path: '/early-warning',
         builder: (context, state) => const EarlyWarningPage(),
+      ),
+      GoRoute(
+        path: '/daily-finance',
+        builder: (context, state) => const DailyFinancePage(),
       ),
       GoRoute(
         path: '/literacy',
@@ -177,13 +181,13 @@ class AppRouter {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/recommendation',
-                builder: (context, state) => const RecommendationPage(),
+                path: '/expense-anomaly',
+                builder: (context, state) => const ExpenseAnomalyPage(),
                 routes: [
                   GoRoute(
-                    path: ':taskId',
-                    builder: (context, state) => TaskDetailPage(
-                      taskId: state.pathParameters['taskId'] ?? '',
+                    path: ':transactionId',
+                    builder: (context, state) => TransactionDetailPage(
+                      transactionId: state.pathParameters['transactionId'] ?? '',
                     ),
                   ),
                 ],
