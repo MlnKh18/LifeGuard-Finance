@@ -1,11 +1,14 @@
 import { Router } from 'express';
 import { communityController } from './community.controller.js';
 import { authenticate } from '@shared/middleware/authenticate.js';
+import { authorize } from '@shared/middleware/authorize.js';
 import { validate } from '@shared/middleware/validate.js';
 import { createPostSchema, updatePostSchema, createCommentSchema, updateCommentSchema } from './community.schema.js';
+import { Role } from '@prisma/client';
 
 const router: Router = Router();
 router.use(authenticate);
+router.use(authorize(Role.HEAD_OF_FAMILY));
 
 router.get('/posts', (req, res, next) => communityController.listPosts(req, res, next));
 router.get('/posts/:id', (req, res, next) => communityController.getPostById(req, res, next));

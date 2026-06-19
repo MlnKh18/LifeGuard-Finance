@@ -2,6 +2,7 @@ import { prisma } from '@shared/prisma/client.js';
 import { AppError } from '@shared/utils/app-error.js';
 import type { CreatePostInput, UpdatePostInput, CreateCommentInput, UpdateCommentInput } from './community.schema.js';
 import type { PaginationParams } from '@shared/utils/pagination.js';
+import { rewardsService } from '../rewards/rewards.service.js';
 
 export class CommunityService {
   async listPosts(pagination: PaginationParams, filters?: { category?: string }) {
@@ -27,10 +28,14 @@ export class CommunityService {
   }
 
   async createPost(userId: string, data: CreatePostInput) {
-    return prisma.communityPost.create({
+    const post = await prisma.communityPost.create({
       data: { userId, ...data },
       include: { user: { select: { id: true, displayName: true, avatarUrl: true } } },
     });
+
+    await rewardsService.addRewardPoint(userId, 'COMMUNITY_POST', 10, post.id).catch(console.error);
+
+    return post;
   }
 
   async updatePost(id: string, userId: string, data: UpdatePostInput) {
@@ -59,10 +64,14 @@ export class CommunityService {
   async createComment(userId: string, data: CreateCommentInput) {
     const post = await prisma.communityPost.findUnique({ where: { id: data.postId } });
     if (!post) throw AppError.notFound('Post not found');
-    return prisma.communityComment.create({
+    const comment = await prisma.communityComment.create({
       data: { userId, postId: data.postId, content: data.content },
       include: { user: { select: { id: true, displayName: true, avatarUrl: true } } },
     });
+
+    await rewardsService.addRewardPoint(userId, 'COMMUNITY_COMMENT', 5, comment.id).catch(console.error);
+
+    return comment;
   }
 
   async updateComment(id: string, userId: string, data: UpdateCommentInput) {
