@@ -35,8 +35,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => getIt<AuthBloc>()..add(CheckAuthSession()),
+    return BlocProvider.value(
+      value: getIt<AuthBloc>()..add(CheckAuthSession()),
       child: MaterialApp.router(
         title: 'LifeGuard Finance',
         theme: AppTheme.lightTheme,

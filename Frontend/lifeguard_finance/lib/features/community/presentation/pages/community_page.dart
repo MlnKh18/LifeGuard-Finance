@@ -6,15 +6,14 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/primary_button.dart';
-import '../../domain/entities/community_challenge.dart';
 import '../../domain/entities/community_post.dart';
-import '../../domain/entities/community_progress.dart';
 import '../bloc/community_cubit.dart';
 import '../bloc/community_state.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../auth/core/permission_helper.dart';
 import '../../../auth/presentation/widgets/auth_widgets.dart';
+import '../../../auth/domain/repositories/auth_repository.dart';
 
 class CommunityPage extends StatelessWidget {
   const CommunityPage({super.key});
@@ -32,7 +31,7 @@ class CommunityPage extends StatelessWidget {
         }
         
         return BlocProvider<CommunityCubit>(
-          create: (context) => getIt<CommunityCubit>()..loadFeed(),
+          create: (context) => getIt<CommunityCubit>()..loadPosts(),
           child: const CommunityView(),
         );
       },
@@ -48,15 +47,26 @@ class CommunityView extends StatefulWidget {
 }
 
 class _CommunityViewState extends State<CommunityView> {
-  String? _categoryFilter;
-
   @override
   Widget build(BuildContext context) {
+    debugPrint('================ COMMUNITY PAGE OPENED ================');
     return Scaffold(
       appBar: AppBar(
-        title: Text('Komunitas', style: AppTextStyles.heading3),
+        title: Text('Community', style: AppTextStyles.heading3),
       ),
-      body: BlocBuilder<CommunityCubit, CommunityState>(
+      body: BlocConsumer<CommunityCubit, CommunityState>(
+        listener: (context, state) {
+          if (state is CommunityActionSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
+          } else if (state is CommunityError) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
+          } else if (state is CommunityAccessDenied) {
+            context.go('/access-denied');
+          }
+        },
+        buildWhen: (previous, current) {
+          return current is CommunityLoading || current is CommunityLoaded || current is CommunityError;
+        },
         builder: (context, state) {
           if (state is CommunityLoading) {
             return const Center(child: CircularProgressIndicator(color: AppColors.primary));
@@ -73,141 +83,124 @@ class _CommunityViewState extends State<CommunityView> {
           return const SizedBox.shrink();
         },
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         heroTag: null,
         backgroundColor: AppColors.primary,
         onPressed: () => _showAddPostDialog(context),
-        child: const Icon(Icons.add_rounded, color: Colors.white),
+        icon: const Icon(Icons.add_rounded, color: Colors.white),
+        label: const Text('Buat Post', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
     );
   }
 
   Widget _buildContent(BuildContext context, CommunityLoaded state) {
-    final visiblePosts = state.posts.where((p) {
-      if (p.status == PostStatus.removed) return false;
-      if (_categoryFilter != null && p.category != _categoryFilter) return false;
-      return true;
-    }).toList();
-
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-      children: [
-        Text('Komunitas', style: AppTextStyles.heading1.copyWith(fontSize: 32)),
-        const SizedBox(height: 4),
-        Text('Belajar bersama, tumbuh bersama.', style: AppTextStyles.bodyMedium),
-        const SizedBox(height: 16),
-        _buildProgressCard(state.progress),
-        const SizedBox(height: 24),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Diskusi Terbaru', style: AppTextStyles.heading2),
-            PopupMenuButton<String?>(
-              initialValue: _categoryFilter,
-              onSelected: (value) => setState(() => _categoryFilter = value),
-              itemBuilder: (context) => [
-                const PopupMenuItem(value: null, child: Text('Semua Topik')),
-                ...communityCategories.map((t) => PopupMenuItem(value: t, child: Text(t))),
-              ],
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    _categoryFilter ?? 'Filter',
-                    style: AppTextStyles.dataLabel.copyWith(color: AppColors.primary, fontWeight: FontWeight.w600),
-                  ),
-                  const Icon(Icons.filter_list_rounded, size: 18, color: AppColors.primary),
-                ],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        ...visiblePosts.map((post) => _buildPostCard(context, post)),
-        const SizedBox(height: 24),
-        Text('Tantangan Aktif', style: AppTextStyles.heading2),
-        const SizedBox(height: 12),
-        ...state.challenges.map((challenge) => _buildChallengeCard(context, challenge)),
-      ],
+    return RefreshIndicator(
+      onRefresh: () => context.read<CommunityCubit>().loadPosts(topic: state.selectedTopic),
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+        children: [
+          _buildHeaderCard(),
+          const SizedBox(height: 24),
+          _buildTopicChips(context, state),
+          const SizedBox(height: 16),
+          if (state.posts.isEmpty)
+            _buildEmptyState()
+          else
+            ...state.posts.map((post) => _buildPostCard(context, post)),
+        ],
+      ),
     );
   }
 
-  Widget _buildProgressCard(CommunityProgress progress) {
+  Widget _buildHeaderCard() {
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Status Perjalanan', style: AppTextStyles.heading3),
-          const SizedBox(height: 10),
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.insights_rounded, color: AppColors.primary, size: 20),
-              const SizedBox(width: 6),
-              Text(
-                '${progress.xp} XP',
-                style: AppTextStyles.dataDisplay.copyWith(fontSize: 22, color: AppColors.primary),
+              Expanded(
+                child: Text('Ruang diskusi Kepala Keluarga', style: AppTextStyles.heading2),
               ),
-              const SizedBox(width: 10),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppColors.primaryContainer,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  progress.badge,
+                  'Khusus Kepala Keluarga',
                   style: AppTextStyles.label.copyWith(color: AppColors.onPrimaryContainer),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Target Mingguan', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
-                    Text(
-                      '${progress.weeklyGoalCurrent}/${progress.weeklyGoalTotal}',
-                      style: AppTextStyles.dataLabel.copyWith(color: AppColors.primary),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: progress.weeklyGoalTotal > 0 ? progress.weeklyGoalCurrent / progress.weeklyGoalTotal : 0,
-                    minHeight: 6,
-                    backgroundColor: AppColors.border,
-                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Selesaikan ${(progress.weeklyGoalTotal - progress.weeklyGoalCurrent).clamp(0, progress.weeklyGoalTotal)} misi lagi untuk bonus XP.',
-                  style: AppTextStyles.bodySmall,
-                ),
-              ],
-            ),
+          const SizedBox(height: 12),
+          Text(
+            'Bagikan pengalaman, strategi, dan pertanyaan seputar pengelolaan keuangan keluarga.',
+            style: AppTextStyles.bodyMedium,
           ),
         ],
       ),
     );
   }
 
+  Widget _buildTopicChips(BuildContext context, CommunityLoaded state) {
+    final topics = ['Semua', ...communityCategories];
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: topics.map((topic) {
+          final isSelected = state.selectedTopic == topic;
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: FilterChip(
+              label: Text(topic),
+              selected: isSelected,
+              onSelected: (selected) {
+                if (selected) {
+                  context.read<CommunityCubit>().loadPosts(topic: topic);
+                }
+              },
+              backgroundColor: AppColors.surfaceContainerLow,
+              selectedColor: AppColors.primaryContainer,
+              labelStyle: AppTextStyles.bodySmall.copyWith(
+                color: isSelected ? AppColors.onPrimaryContainer : AppColors.textPrimary,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 40),
+      child: Center(
+        child: Column(
+          children: [
+            const Icon(Icons.forum_outlined, size: 64, color: AppColors.textSecondary),
+            const SizedBox(height: 16),
+            Text(
+              'Belum ada diskusi komunitas.',
+              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildPostCard(BuildContext context, CommunityPost post) {
+    if (post.status == CommunityPostStatus.removed) return const SizedBox.shrink();
+
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
-      onTap: () => context.push('/community/${post.id}'),
+      onTap: () => context.push('/community/${post.postId}'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -231,7 +224,7 @@ class _CommunityViewState extends State<CommunityView> {
                   children: [
                     Row(
                       children: [
-                        if (post.status == PostStatus.flagged) ...[
+                        if (post.status == CommunityPostStatus.flagged) ...[
                           const Icon(Icons.warning_amber_rounded, color: AppColors.riskCritical, size: 16),
                           const SizedBox(width: 4),
                         ],
@@ -243,13 +236,13 @@ class _CommunityViewState extends State<CommunityView> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: post.status == PostStatus.flagged ? AppColors.errorContainer : AppColors.secondaryContainer,
+                        color: post.status == CommunityPostStatus.flagged ? AppColors.errorContainer : AppColors.secondaryContainer,
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        post.category,
+                        post.topic,
                         style: AppTextStyles.bodySmall.copyWith(
-                          color: post.status == PostStatus.flagged ? AppColors.onErrorContainer : AppColors.onSecondaryContainer,
+                          color: post.status == CommunityPostStatus.flagged ? AppColors.onErrorContainer : AppColors.onSecondaryContainer,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -259,21 +252,37 @@ class _CommunityViewState extends State<CommunityView> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          Text(post.content, style: AppTextStyles.bodyMedium),
+          const SizedBox(height: 12),
+          Text(post.title, style: AppTextStyles.heading3),
+          const SizedBox(height: 4),
+          Text(
+            post.content,
+            style: AppTextStyles.bodyMedium,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+          ),
           const SizedBox(height: 10),
           const Divider(height: 1, color: AppColors.border),
           const SizedBox(height: 6),
           Row(
             children: [
               InkWell(
-                onTap: () => context.read<CommunityCubit>().toggleLike(post.id),
+                onTap: () {
+                  final session = getIt<AuthRepository>().getCachedSession();
+                  if (session != null) {
+                    if (post.likedByUserIds.contains(session.currentUserId)) {
+                      context.read<CommunityCubit>().unlikePost(post.postId);
+                    } else {
+                      context.read<CommunityCubit>().likePost(post.postId);
+                    }
+                  }
+                },
                 child: Row(
                   children: [
                     Icon(
-                      post.isLiked ? Icons.thumb_up_alt_rounded : Icons.thumb_up_alt_outlined,
+                      _isLikedByMe(post) ? Icons.thumb_up_alt_rounded : Icons.thumb_up_alt_outlined,
                       size: 16,
-                      color: post.isLiked ? AppColors.primary : AppColors.textSecondary,
+                      color: _isLikedByMe(post) ? AppColors.primary : AppColors.textSecondary,
                     ),
                     const SizedBox(width: 4),
                     Text('${post.likeCount} Suka', style: AppTextStyles.bodySmall),
@@ -295,148 +304,102 @@ class _CommunityViewState extends State<CommunityView> {
     );
   }
 
-  Widget _buildChallengeCard(BuildContext context, CommunityChallenge challenge) {
-    if (challenge.isPrimary) {
-      return Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.primary,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.flag_rounded, color: Colors.white, size: 18),
-                const SizedBox(width: 8),
-                Text(challenge.title, style: AppTextStyles.heading3.copyWith(color: Colors.white)),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(challenge.description, style: AppTextStyles.bodySmall.copyWith(color: Colors.white.withAlpha(220))),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Progres', style: AppTextStyles.label.copyWith(color: Colors.white.withAlpha(200))),
-                Text(
-                  'Hari ${challenge.progressCurrent}/${challenge.progressTotal}',
-                  style: AppTextStyles.label.copyWith(color: Colors.white),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: challenge.progress,
-                minHeight: 5,
-                backgroundColor: Colors.white.withAlpha(50),
-                valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: PrimaryButton(
-                text: challenge.isCompleted ? 'Selesai' : 'Check-in Hari Ini',
-                backgroundColor: Colors.white,
-                textColor: AppColors.primary,
-                onPressed: challenge.isCompleted
-                    ? null
-                    : () => context.read<CommunityCubit>().progressChallenge(challenge.id),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return AppCard(
-      margin: const EdgeInsets.only(bottom: 12),
-      borderRadius: 8.0,
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(challenge.title, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 2),
-                Text(
-                  challenge.isCompleted ? 'Selesai' : '+${challenge.xpReward} XP',
-                  style: AppTextStyles.bodySmall,
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            onPressed: challenge.isCompleted
-                ? null
-                : () => context.read<CommunityCubit>().progressChallenge(challenge.id),
-            icon: Icon(
-              challenge.isCompleted ? Icons.check_circle_rounded : Icons.arrow_forward_rounded,
-              color: AppColors.primary,
-            ),
-          ),
-        ],
-      ),
-    );
+  bool _isLikedByMe(CommunityPost post) {
+    final session = getIt<AuthRepository>().getCachedSession();
+    if (session == null) return false;
+    return post.likedByUserIds.contains(session.currentUserId);
   }
 
   void _showAddPostDialog(BuildContext context) {
     final cubit = context.read<CommunityCubit>();
+    final titleController = TextEditingController();
     final contentController = TextEditingController();
     String category = communityCategories.first;
     final formKey = GlobalKey<FormState>();
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (dialogContext, setDialogState) {
-            return AlertDialog(
-              title: const Text('Buat Diskusi Baru'),
-              content: Form(
-                key: formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TextFormField(
-                      controller: contentController,
-                      decoration: const InputDecoration(labelText: 'Apa yang ingin Anda bagikan?'),
-                      maxLines: 3,
-                      validator: (val) => (val == null || val.trim().isEmpty) ? 'Konten wajib diisi' : null,
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<String>(
-                      initialValue: category,
-                      decoration: const InputDecoration(labelText: 'Kategori'),
-                      items: communityCategories.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
-                      onChanged: (val) => setDialogState(() => category = val ?? category),
-                    ),
-                  ],
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(dialogContext).viewInsets.bottom,
+            left: 20,
+            right: 20,
+            top: 24,
+          ),
+          child: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Buat Post Community', style: AppTextStyles.heading2),
+                const SizedBox(height: 8),
+                Text('Bagikan pertanyaan atau pengalaman terkait pengelolaan keuangan keluarga.', style: AppTextStyles.bodyMedium),
+                const SizedBox(height: 20),
+                DropdownButtonFormField<String>(
+                  initialValue: category,
+                  decoration: const InputDecoration(
+                    labelText: 'Topik',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: communityCategories.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                  onChanged: (val) => category = val ?? category,
+                  validator: (val) => val == null ? 'Topik wajib dipilih' : null,
                 ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('Batal'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    if (!formKey.currentState!.validate()) return;
-                    cubit.addPost(content: contentController.text.trim(), category: category);
-                    Navigator.of(dialogContext).pop();
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: titleController,
+                  decoration: const InputDecoration(
+                    labelText: 'Judul',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (val) {
+                    if (val == null || val.trim().isEmpty) return 'Judul wajib diisi';
+                    if (val.trim().length < 5) return 'Judul minimal 5 karakter';
+                    return null;
                   },
-                  child: const Text('Posting'),
                 ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: contentController,
+                  decoration: const InputDecoration(
+                    labelText: 'Isi Post',
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 4,
+                  validator: (val) {
+                    if (val == null || val.trim().isEmpty) return 'Isi post wajib diisi';
+                    if (val.trim().length < 20) return 'Isi post minimal 20 karakter';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: PrimaryButton(
+                    text: 'Publikasikan',
+                    onPressed: () {
+                      if (!formKey.currentState!.validate()) return;
+                      debugPrint('================ CREATE COMMUNITY POST SUBMIT ================');
+                      debugPrint('title: ${titleController.text}');
+                      debugPrint('topic: $category');
+                      
+                      cubit.createPost(
+                        title: titleController.text.trim(),
+                        content: contentController.text.trim(),
+                        topic: category,
+                      );
+                      Navigator.of(dialogContext).pop();
+                    },
+                  ),
+                ),
+                const SizedBox(height: 24),
               ],
-            );
-          },
+            ),
+          ),
         );
       },
     );

@@ -51,12 +51,6 @@ class _RecommendationViewState extends State<RecommendationView> with SingleTick
     return Scaffold(
       appBar: AppBar(
         title: Text('Rencana Mitigasi', style: AppTextStyles.heading3),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.account_circle_outlined, color: AppColors.textSecondary),
-            onPressed: () => context.push('/profile-settings'),
-          ),
-        ],
       ),
       body: BlocBuilder<RecommendationCubit, RecommendationState>(
         builder: (context, state) {

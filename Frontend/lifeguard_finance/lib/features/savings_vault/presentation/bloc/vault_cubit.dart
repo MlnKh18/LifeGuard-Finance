@@ -103,7 +103,7 @@ class VaultCubit extends Cubit<VaultState> {
     await vaultRepository.updateVault(updatedVault);
 
     if (!vault.isCompleted && updatedVault.isCompleted) {
-      await rewardService.addPoints(RewardSource.vaultCompleted, 25);
+      await rewardService.addPoints(RewardSource.vaultCompleted, vaultId, 25);
     }
 
     emit(const VaultActionSuccess('Berhasil menambah setoran.'));

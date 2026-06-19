@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
-import 'community_comment.dart';
 
-enum PostStatus { published, flagged, removed }
+enum CommunityPostStatus { published, flagged, removed }
 
 const List<String> communityCategories = [
   'Utang dan Cicilan',
@@ -10,89 +9,141 @@ const List<String> communityCategories = [
   'Biaya Kesehatan',
   'Inflasi',
   'Generasi Sandwich',
+  'Lainnya',
 ];
 
 class CommunityPost extends Equatable {
-  final String id;
+  final String postId;
+  final String familyId;
+  final String authorUserId;
   final String authorName;
-  final String category;
+  final String authorEmail;
+  final String title;
   final String content;
+  final String topic;
+  final CommunityPostStatus status;
   final int likeCount;
-  final bool isLiked;
-  final PostStatus status;
+  final int commentCount;
+  final int reportCount;
+  final List<String> likedByUserIds;
   final DateTime createdAt;
-  final List<CommunityComment> comments;
+  final DateTime updatedAt;
 
   const CommunityPost({
-    required this.id,
+    required this.postId,
+    required this.familyId,
+    required this.authorUserId,
     required this.authorName,
-    required this.category,
+    required this.authorEmail,
+    required this.title,
     required this.content,
-    required this.likeCount,
+    required this.topic,
     required this.createdAt,
-    this.isLiked = false,
-    this.status = PostStatus.published,
-    this.comments = const [],
+    required this.updatedAt,
+    this.status = CommunityPostStatus.published,
+    this.likeCount = 0,
+    this.commentCount = 0,
+    this.reportCount = 0,
+    this.likedByUserIds = const [],
   });
 
-  int get commentCount => comments.length;
-
   CommunityPost copyWith({
+    String? familyId,
+    String? authorUserId,
+    String? authorName,
+    String? authorEmail,
+    String? title,
+    String? content,
+    String? topic,
+    CommunityPostStatus? status,
     int? likeCount,
-    bool? isLiked,
-    PostStatus? status,
-    List<CommunityComment>? comments,
+    int? commentCount,
+    int? reportCount,
+    List<String>? likedByUserIds,
+    DateTime? updatedAt,
   }) {
     return CommunityPost(
-      id: id,
-      authorName: authorName,
-      category: category,
-      content: content,
-      likeCount: likeCount ?? this.likeCount,
-      createdAt: createdAt,
-      isLiked: isLiked ?? this.isLiked,
+      postId: postId,
+      familyId: familyId ?? this.familyId,
+      authorUserId: authorUserId ?? this.authorUserId,
+      authorName: authorName ?? this.authorName,
+      authorEmail: authorEmail ?? this.authorEmail,
+      title: title ?? this.title,
+      content: content ?? this.content,
+      topic: topic ?? this.topic,
       status: status ?? this.status,
-      comments: comments ?? this.comments,
+      likeCount: likeCount ?? this.likeCount,
+      commentCount: commentCount ?? this.commentCount,
+      reportCount: reportCount ?? this.reportCount,
+      likedByUserIds: likedByUserIds ?? this.likedByUserIds,
+      createdAt: createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
-  static PostStatus parseStatus(dynamic value) {
+  static CommunityPostStatus parseStatus(dynamic value) {
     final raw = value?.toString().toLowerCase().trim();
-    if (raw == 'flagged') return PostStatus.flagged;
-    if (raw == 'removed') return PostStatus.removed;
-    return PostStatus.published;
+    if (raw == 'flagged') return CommunityPostStatus.flagged;
+    if (raw == 'removed') return CommunityPostStatus.removed;
+    return CommunityPostStatus.published;
   }
 
   factory CommunityPost.fromJson(Map<String, dynamic> json) {
     return CommunityPost(
-      id: json['id'] as String,
+      postId: json['postId'] as String? ?? json['id'] as String,
+      familyId: json['familyId'] as String? ?? '',
+      authorUserId: json['authorUserId'] as String? ?? '',
       authorName: json['authorName'] as String,
-      category: json['category'] as String? ?? communityCategories.first,
+      authorEmail: json['authorEmail'] as String? ?? '',
+      title: json['title'] as String? ?? '',
       content: json['content'] as String,
-      likeCount: json['likeCount'] as int,
+      topic: json['topic'] as String? ?? json['category'] as String? ?? communityCategories.first,
+      likeCount: json['likeCount'] as int? ?? 0,
+      commentCount: json['commentCount'] as int? ?? (json['comments'] as List?)?.length ?? 0,
+      reportCount: json['reportCount'] as int? ?? 0,
+      likedByUserIds: (json['likedByUserIds'] as List?)?.map((e) => e.toString()).toList() ?? [],
       createdAt: DateTime.parse(json['createdAt'] as String),
-      isLiked: json['isLiked'] as bool? ?? false,
+      updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt'] as String) : DateTime.parse(json['createdAt'] as String),
       status: parseStatus(json['status']),
-      comments: (json['comments'] as List? ?? [])
-          .map((e) => CommunityComment.fromJson(Map<String, dynamic>.from(e as Map)))
-          .toList(),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
+      'postId': postId,
+      'familyId': familyId,
+      'authorUserId': authorUserId,
       'authorName': authorName,
-      'category': category,
+      'authorEmail': authorEmail,
+      'title': title,
       'content': content,
+      'topic': topic,
       'likeCount': likeCount,
+      'commentCount': commentCount,
+      'reportCount': reportCount,
+      'likedByUserIds': likedByUserIds,
       'createdAt': createdAt.toIso8601String(),
-      'isLiked': isLiked,
+      'updatedAt': updatedAt.toIso8601String(),
       'status': status.name,
-      'comments': comments.map((c) => c.toJson()).toList(),
     };
   }
 
   @override
-  List<Object?> get props => [id, authorName, category, content, likeCount, isLiked, status, createdAt, comments];
+  List<Object?> get props => [
+        postId,
+        familyId,
+        authorUserId,
+        authorName,
+        authorEmail,
+        title,
+        content,
+        topic,
+        status,
+        likeCount,
+        commentCount,
+        reportCount,
+        likedByUserIds,
+        createdAt,
+        updatedAt,
+      ];
 }

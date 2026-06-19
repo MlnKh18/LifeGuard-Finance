@@ -3,10 +3,8 @@ import 'package:uuid/uuid.dart';
 import '../../../rewards/data/datasources/reward_service.dart';
 import '../../../rewards/domain/entities/reward_point.dart';
 import '../../domain/entities/community_comment.dart';
-import '../../domain/entities/community_feed.dart';
 import '../../domain/entities/community_post.dart';
-import '../../domain/entities/community_progress.dart';
-import '../../domain/entities/community_challenge.dart';
+import '../../domain/entities/community_report.dart';
 import '../../domain/repositories/community_repository.dart';
 import 'community_state.dart';
 
@@ -14,197 +12,188 @@ class CommunityCubit extends Cubit<CommunityState> {
   final CommunityRepository communityRepository;
   final RewardService rewardService;
 
-  CommunityCubit({required this.communityRepository, required this.rewardService}) : super(CommunityLoading());
+  CommunityCubit({
+    required this.communityRepository,
+    required this.rewardService,
+  }) : super(CommunityInitial());
 
-  Future<void> loadFeed() async {
+  Future<void> loadPosts({String topic = 'Semua'}) async {
     emit(CommunityLoading());
     try {
-      final existing = await communityRepository.getFeed();
-      if (existing != null) {
-        emit(CommunityLoaded(progress: existing.progress, posts: existing.posts, challenges: existing.challenges));
-      } else {
-        final seed = _seedFeed();
-        emit(CommunityLoaded(progress: seed.progress, posts: seed.posts, challenges: seed.challenges));
-        await communityRepository.saveFeed(seed);
-      }
+      final posts = await communityRepository.getPosts();
+      final filtered = topic == 'Semua' ? posts : posts.where((p) => p.topic == topic).toList();
+      emit(CommunityLoaded(posts: filtered, selectedTopic: topic));
     } catch (e) {
-      emit(CommunityError('Gagal memuat data komunitas: $e'));
+      if (e.toString().contains('Akses ditolak')) {
+        emit(CommunityAccessDenied());
+      } else {
+        emit(CommunityError(e.toString()));
+      }
     }
   }
 
-  Future<void> toggleLike(String postId) async {
-    final current = state;
-    if (current is! CommunityLoaded) return;
-
-    final updatedPosts = current.posts.map((post) {
-      if (post.id != postId) return post;
-      final liked = !post.isLiked;
-      return post.copyWith(isLiked: liked, likeCount: post.likeCount + (liked ? 1 : -1));
-    }).toList();
-
-    final updated = current.copyWith(posts: updatedPosts);
-    emit(updated);
-    await _persist(updated);
+  Future<void> loadPostDetail(String postId) async {
+    emit(CommunityLoading());
+    try {
+      final post = await communityRepository.getPostById(postId);
+      if (post == null) {
+        emit(const CommunityError('Post tidak ditemukan.'));
+        return;
+      }
+      final comments = await communityRepository.getCommentsByPostId(postId);
+      emit(CommunityPostDetailLoaded(post: post, comments: comments));
+    } catch (e) {
+      if (e.toString().contains('Akses ditolak')) {
+        emit(CommunityAccessDenied());
+      } else {
+        emit(CommunityError(e.toString()));
+      }
+    }
   }
 
-  Future<void> addPost({required String content, required String category}) async {
-    final current = state;
-    if (current is! CommunityLoaded) return;
-
-    final newPost = CommunityPost(
-      id: const Uuid().v4(),
-      authorName: 'Anda (Anonim)',
-      category: category,
-      content: content,
-      likeCount: 0,
-      createdAt: DateTime.now(),
-    );
-    final updated = current.copyWith(posts: [newPost, ...current.posts]);
-    emit(updated);
-    await _persist(updated);
-    await rewardService.addPoints(RewardSource.post, 10);
+  Future<void> createPost({
+    required String title,
+    required String content,
+    required String topic,
+  }) async {
+    final currentState = state;
+    String currentTopic = 'Semua';
+    if (currentState is CommunityLoaded) {
+      currentTopic = currentState.selectedTopic;
+    }
+    
+    emit(CommunityActionLoading());
+    try {
+      final newPost = CommunityPost(
+        postId: const Uuid().v4(),
+        familyId: '',
+        authorUserId: '',
+        authorName: '',
+        authorEmail: '',
+        title: title,
+        content: content,
+        topic: topic,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+      
+      await communityRepository.createPost(newPost);
+      await rewardService.grantRewardIfNotExists(
+        source: RewardSource.post,
+        sourceId: newPost.postId,
+        points: 10,
+      );
+      
+      emit(const CommunityActionSuccess('Post berhasil dipublikasikan.'));
+      await loadPosts(topic: currentTopic);
+    } catch (e) {
+      emit(CommunityError(e.toString()));
+      await loadPosts(topic: currentTopic);
+    }
   }
 
-  Future<void> addComment(String postId, {required String content}) async {
-    final current = state;
-    if (current is! CommunityLoaded) return;
+  Future<void> likePost(String postId) async {
+    final currentState = state;
+    try {
+      await communityRepository.likePost(postId);
+      if (currentState is CommunityLoaded) {
+        await loadPosts(topic: currentState.selectedTopic);
+      } else if (currentState is CommunityPostDetailLoaded) {
+        await loadPostDetail(postId);
+      }
+    } catch (e) {
+      emit(CommunityError(e.toString()));
+    }
+  }
 
-    final comment = CommunityComment(
-      id: const Uuid().v4(),
-      postId: postId,
-      authorName: 'Anda (Anonim)',
-      content: content,
-      createdAt: DateTime.now(),
-    );
-    final updatedPosts = current.posts.map((post) {
-      if (post.id != postId) return post;
-      return post.copyWith(comments: [...post.comments, comment]);
-    }).toList();
+  Future<void> unlikePost(String postId) async {
+    final currentState = state;
+    try {
+      await communityRepository.unlikePost(postId);
+      if (currentState is CommunityLoaded) {
+        await loadPosts(topic: currentState.selectedTopic);
+      } else if (currentState is CommunityPostDetailLoaded) {
+        await loadPostDetail(postId);
+      }
+    } catch (e) {
+      emit(CommunityError(e.toString()));
+    }
+  }
 
-    final updated = current.copyWith(posts: updatedPosts);
-    emit(updated);
-    await _persist(updated);
-    await rewardService.addPoints(RewardSource.comment, 5);
+  Future<void> createComment(String postId, {required String content}) async {
+    emit(CommunityActionLoading());
+    try {
+      final comment = CommunityComment(
+        commentId: const Uuid().v4(),
+        postId: postId,
+        familyId: '',
+        authorUserId: '',
+        authorName: '',
+        authorEmail: '',
+        content: content,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+      
+      await communityRepository.createComment(comment);
+      await rewardService.grantRewardIfNotExists(
+        source: RewardSource.comment,
+        sourceId: comment.commentId,
+        points: 5,
+      );
+      
+      emit(const CommunityActionSuccess('Komentar berhasil ditambahkan.'));
+      await loadPostDetail(postId);
+    } catch (e) {
+      emit(CommunityError(e.toString()));
+      await loadPostDetail(postId);
+    }
+  }
+
+  Future<void> likeComment(String postId, String commentId) async {
+    try {
+      await communityRepository.likeComment(commentId);
+      await loadPostDetail(postId);
+    } catch (e) {
+      emit(CommunityError(e.toString()));
+    }
+  }
+
+  Future<void> unlikeComment(String postId, String commentId) async {
+    try {
+      await communityRepository.unlikeComment(commentId);
+      await loadPostDetail(postId);
+    } catch (e) {
+      emit(CommunityError(e.toString()));
+    }
   }
 
   Future<void> markCommentHelpful(String postId, String commentId) async {
-    final current = state;
-    if (current is! CommunityLoaded) return;
-
-    final post = current.posts.firstWhere((p) => p.id == postId);
-    final comment = post.comments.firstWhere((c) => c.id == commentId);
-    if (comment.isHelpful) return;
-
-    final updatedPosts = current.posts.map((p) {
-      if (p.id != postId) return p;
-      final updatedComments = p.comments.map((c) => c.id == commentId ? c.copyWith(isHelpful: true) : c).toList();
-      return p.copyWith(comments: updatedComments);
-    }).toList();
-
-    final updated = current.copyWith(posts: updatedPosts);
-    emit(updated);
-    await _persist(updated);
-    await rewardService.addPoints(RewardSource.helpfulComment, 20);
+    try {
+      await communityRepository.markCommentHelpful(commentId);
+      await rewardService.grantRewardIfNotExists(
+        source: RewardSource.helpfulComment,
+        sourceId: commentId,
+        points: 20,
+      );
+      await loadPostDetail(postId);
+    } catch (e) {
+      emit(CommunityError(e.toString()));
+    }
   }
 
-  Future<void> reportPost(String postId) async {
-    final current = state;
-    if (current is! CommunityLoaded) return;
-
-    final updatedPosts = current.posts.map((post) {
-      if (post.id != postId) return post;
-      return post.copyWith(status: PostStatus.flagged);
-    }).toList();
-
-    final updated = current.copyWith(posts: updatedPosts);
-    emit(updated);
-    await _persist(updated);
-  }
-
-  Future<void> progressChallenge(String challengeId) async {
-    final current = state;
-    if (current is! CommunityLoaded) return;
-
-    final challenge = current.challenges.firstWhere((c) => c.id == challengeId);
-    if (challenge.isCompleted) return;
-
-    final updatedChallenges = current.challenges
-        .map((c) => c.id == challengeId ? c.copyWith(progressCurrent: c.progressCurrent + 1) : c)
-        .toList();
-    final justCompleted = updatedChallenges.firstWhere((c) => c.id == challengeId).isCompleted;
-
-    final updatedProgress = justCompleted
-        ? current.progress.copyWith(xp: current.progress.xp + challenge.xpReward)
-        : current.progress;
-
-    final updated = current.copyWith(challenges: updatedChallenges, progress: updatedProgress);
-    emit(updated);
-    await _persist(updated);
-  }
-
-  Future<void> _persist(CommunityLoaded state) async {
-    await communityRepository.saveFeed(CommunityFeed(progress: state.progress, posts: state.posts, challenges: state.challenges));
-  }
-
-  CommunityFeed _seedFeed() {
-    final now = DateTime.now();
-    final rezaPostId = const Uuid().v4();
-    return CommunityFeed(
-      progress: const CommunityProgress(
-        xp: 135,
-        badge: 'Financial Guardian',
-        weeklyGoalCurrent: 4,
-        weeklyGoalTotal: 5,
-      ),
-      posts: [
-        CommunityPost(
-          id: const Uuid().v4(),
-          authorName: 'Sarah L.',
-          category: 'Generasi Sandwich',
-          content:
-              'Bagaimana cara kalian mengatur porsi pendapatan untuk orang tua dan juga menabung untuk DP rumah secara bersamaan? Rasanya sulit sekali.',
-          likeCount: 24,
-          createdAt: now.subtract(const Duration(hours: 2)),
-        ),
-        CommunityPost(
-          id: rezaPostId,
-          authorName: 'Reza K.',
-          category: 'Dana Darurat',
-          content:
-              'Baru saja menggunakan dana darurat untuk biaya medis dadakan. Sedikit panik karena saldonya menipis, adakah tips untuk membangunnya kembali dengan cepat?',
-          likeCount: 45,
-          createdAt: now.subtract(const Duration(hours: 5)),
-          comments: [
-            CommunityComment(
-              id: const Uuid().v4(),
-              postId: rezaPostId,
-              authorName: 'Dimas P.',
-              content: 'Coba sisihkan otomatis 10% dari setiap pendapatan masuk ke vault dana darurat.',
-              createdAt: now.subtract(const Duration(hours: 4)),
-            ),
-          ],
-        ),
-      ],
-      challenges: const [
-        CommunityChallenge(
-          id: 'weekly-expense-log',
-          title: 'Fokus Minggu Ini',
-          description: 'Catat setiap pengeluaran selama 7 hari berturut-turut.',
-          progressCurrent: 4,
-          progressTotal: 7,
-          xpReward: 50,
-          isPrimary: true,
-        ),
-        CommunityChallenge(
-          id: 'read-one-article',
-          title: 'Baca 1 Artikel',
-          description: '+10 XP',
-          progressCurrent: 0,
-          progressTotal: 1,
-          xpReward: 10,
-          isPrimary: false,
-        ),
-      ],
-    );
+  Future<void> reportPost(String postId, CommunityReportReason reason, String description) async {
+    emit(CommunityActionLoading());
+    try {
+      await communityRepository.reportPost(
+        postId: postId,
+        reason: reason,
+        description: description,
+      );
+      emit(const CommunityActionSuccess('Laporan berhasil dikirim.'));
+      await loadPosts();
+    } catch (e) {
+      emit(CommunityError(e.toString()));
+    }
   }
 }

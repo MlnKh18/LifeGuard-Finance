@@ -5,12 +5,14 @@ enum RewardSource { post, comment, helpfulComment, literacyModule, vaultComplete
 class RewardPoint extends Equatable {
   final String id;
   final RewardSource source;
+  final String sourceId;
   final int points;
   final DateTime createdAt;
 
   const RewardPoint({
     required this.id,
     required this.source,
+    required this.sourceId,
     required this.points,
     required this.createdAt,
   });
@@ -35,6 +37,7 @@ class RewardPoint extends Equatable {
     return RewardPoint(
       id: json['id'] as String,
       source: parseSource(json['source']),
+      sourceId: json['sourceId'] as String? ?? '',
       points: json['points'] as int,
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
@@ -44,11 +47,12 @@ class RewardPoint extends Equatable {
     return {
       'id': id,
       'source': source.name,
+      'sourceId': sourceId,
       'points': points,
       'createdAt': createdAt.toIso8601String(),
     };
   }
 
   @override
-  List<Object?> get props => [id, source, points, createdAt];
+  List<Object?> get props => [id, source, sourceId, points, createdAt];
 }

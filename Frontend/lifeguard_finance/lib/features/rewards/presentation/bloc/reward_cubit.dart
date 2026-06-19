@@ -26,8 +26,8 @@ class RewardCubit extends Cubit<RewardState> {
     emit(RewardState(points: points, badge: rewardService.badgeForPoints(points), ledger: ledger));
   }
 
-  Future<void> addPoints(int amount, {RewardSource source = RewardSource.literacyModule}) async {
-    final ledger = await rewardService.addPoints(source, amount);
+  Future<void> addPoints(int amount, {RewardSource source = RewardSource.literacyModule, String sourceId = 'module'}) async {
+    final ledger = await rewardService.addPoints(source, sourceId, amount);
     final points = rewardService.totalPoints(ledger);
     emit(RewardState(points: points, badge: rewardService.badgeForPoints(points), ledger: ledger));
   }

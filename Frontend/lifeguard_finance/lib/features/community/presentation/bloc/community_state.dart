@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
-import '../../domain/entities/community_challenge.dart';
 import '../../domain/entities/community_post.dart';
-import '../../domain/entities/community_progress.dart';
+import '../../domain/entities/community_comment.dart';
 
 abstract class CommunityState extends Equatable {
   const CommunityState();
@@ -10,33 +9,61 @@ abstract class CommunityState extends Equatable {
   List<Object?> get props => [];
 }
 
+class CommunityInitial extends CommunityState {}
 class CommunityLoading extends CommunityState {}
+class CommunityActionLoading extends CommunityState {}
+
+class CommunityActionSuccess extends CommunityState {
+  final String message;
+  const CommunityActionSuccess(this.message);
+  @override
+  List<Object?> get props => [message];
+}
 
 class CommunityLoaded extends CommunityState {
-  final CommunityProgress progress;
   final List<CommunityPost> posts;
-  final List<CommunityChallenge> challenges;
+  final String selectedTopic;
 
   const CommunityLoaded({
-    required this.progress,
     required this.posts,
-    required this.challenges,
+    this.selectedTopic = 'Semua',
   });
 
   CommunityLoaded copyWith({
-    CommunityProgress? progress,
     List<CommunityPost>? posts,
-    List<CommunityChallenge>? challenges,
+    String? selectedTopic,
   }) {
     return CommunityLoaded(
-      progress: progress ?? this.progress,
       posts: posts ?? this.posts,
-      challenges: challenges ?? this.challenges,
+      selectedTopic: selectedTopic ?? this.selectedTopic,
     );
   }
 
   @override
-  List<Object?> get props => [progress, posts, challenges];
+  List<Object?> get props => [posts, selectedTopic];
+}
+
+class CommunityPostDetailLoaded extends CommunityState {
+  final CommunityPost post;
+  final List<CommunityComment> comments;
+
+  const CommunityPostDetailLoaded({
+    required this.post,
+    required this.comments,
+  });
+
+  CommunityPostDetailLoaded copyWith({
+    CommunityPost? post,
+    List<CommunityComment>? comments,
+  }) {
+    return CommunityPostDetailLoaded(
+      post: post ?? this.post,
+      comments: comments ?? this.comments,
+    );
+  }
+
+  @override
+  List<Object?> get props => [post, comments];
 }
 
 class CommunityError extends CommunityState {
@@ -47,3 +74,5 @@ class CommunityError extends CommunityState {
   @override
   List<Object?> get props => [message];
 }
+
+class CommunityAccessDenied extends CommunityState {}

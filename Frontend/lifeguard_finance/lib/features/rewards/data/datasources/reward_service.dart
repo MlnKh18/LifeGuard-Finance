@@ -25,13 +25,25 @@ class RewardService {
     return current;
   }
 
-  Future<List<RewardPoint>> addPoints(RewardSource source, int points) async {
+  Future<List<RewardPoint>> addPoints(RewardSource source, String sourceId, int points) async {
     final ledger = await getLedger();
-    final entry = RewardPoint(id: const Uuid().v4(), source: source, points: points, createdAt: DateTime.now());
+    final entry = RewardPoint(id: const Uuid().v4(), source: source, sourceId: sourceId, points: points, createdAt: DateTime.now());
     final updated = [...ledger, entry];
     await hiveService.saveData(LocalKeys.rewardPoints, {
       'ledger': updated.map((e) => e.toJson()).toList(),
     });
     return updated;
+  }
+
+  Future<List<RewardPoint>> grantRewardIfNotExists({
+    required RewardSource source,
+    required String sourceId,
+    required int points,
+  }) async {
+    final ledger = await getLedger();
+    final exists = ledger.any((r) => r.source == source && r.sourceId == sourceId);
+    if (exists) return ledger;
+    
+    return addPoints(source, sourceId, points);
   }
 }

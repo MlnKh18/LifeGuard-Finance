@@ -37,10 +37,18 @@ import '../widgets/main_shell.dart';
 class AppRouter {
   AppRouter._();
 
+  static final rootNavigatorKey = GlobalKey<NavigatorState>();
+  static final _shellNavigatorDashboardKey = GlobalKey<NavigatorState>(debugLabel: 'shellDashboard');
+  static final _shellNavigatorSimulationKey = GlobalKey<NavigatorState>(debugLabel: 'shellSimulation');
+  static final _shellNavigatorCommunityKey = GlobalKey<NavigatorState>(debugLabel: 'shellCommunity');
+  static final _shellNavigatorAnomalyKey = GlobalKey<NavigatorState>(debugLabel: 'shellAnomaly');
+  static final _shellNavigatorProfileKey = GlobalKey<NavigatorState>(debugLabel: 'shellProfile');
+
   static final router = GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: '/splash',
     redirect: (context, state) {
-      final isGoingToCommunity = state.uri.path == '/community';
+      final isGoingToCommunity = state.uri.path.startsWith('/community');
       if (isGoingToCommunity) {
         final session = getIt<AuthRepository>().getCachedSession();
         if (session == null || !session.isLoggedIn) {
@@ -149,6 +157,7 @@ class AppRouter {
             MainShell(navigationShell: navigationShell),
         branches: [
           StatefulShellBranch(
+            navigatorKey: _shellNavigatorDashboardKey,
             routes: [
               GoRoute(
                 path: '/dashboard',
@@ -157,6 +166,7 @@ class AppRouter {
             ],
           ),
           StatefulShellBranch(
+            navigatorKey: _shellNavigatorSimulationKey,
             routes: [
               GoRoute(
                 path: '/simulation',
@@ -165,6 +175,7 @@ class AppRouter {
             ],
           ),
           StatefulShellBranch(
+            navigatorKey: _shellNavigatorCommunityKey,
             routes: [
               GoRoute(
                 path: '/community',
@@ -179,6 +190,7 @@ class AppRouter {
             ],
           ),
           StatefulShellBranch(
+            navigatorKey: _shellNavigatorAnomalyKey,
             routes: [
               GoRoute(
                 path: '/expense-anomaly',
@@ -195,6 +207,7 @@ class AppRouter {
             ],
           ),
           StatefulShellBranch(
+            navigatorKey: _shellNavigatorProfileKey,
             routes: [
               GoRoute(
                 path: '/profile-settings',

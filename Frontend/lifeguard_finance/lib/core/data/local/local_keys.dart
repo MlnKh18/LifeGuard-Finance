@@ -15,6 +15,8 @@ class LocalKeys {
   static const String smartRoutingPlan = 'smart_routing_plan';
   static const String literacyProgress = 'literacy_progress';
   static const String communityPosts = 'community_posts';
+  static const String communityComments = 'community_comments';
+  static const String communityReports = 'community_reports';
   static const String rewardPoints = 'reward_points';
   static const String financeRecords = 'finance_records';
   static const String anomalyResults = 'anomaly_results';
