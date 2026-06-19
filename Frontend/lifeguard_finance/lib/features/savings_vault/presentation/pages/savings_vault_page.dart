@@ -15,6 +15,43 @@ import '../../../settings/presentation/widgets/profile_modals.dart';
 
 final _rupiahFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
+const Map<String, IconData> _vaultIcons = {
+  'savings': Icons.savings_rounded,
+  'home': Icons.home_rounded,
+  'school': Icons.school_rounded,
+  'medical': Icons.local_hospital_rounded,
+  'travel': Icons.flight_takeoff_rounded,
+  'car': Icons.directions_car_rounded,
+  'wedding': Icons.favorite_rounded,
+  'gift': Icons.card_giftcard_rounded,
+  'emergency': Icons.health_and_safety_rounded,
+  'other': Icons.category_rounded,
+};
+
+IconData _iconForVault(SavingsVault vault) => _vaultIcons[vault.iconName] ?? Icons.savings_rounded;
+
+Color _colorForPriority(VaultPriority priority) {
+  switch (priority) {
+    case VaultPriority.high:
+      return AppColors.riskCritical;
+    case VaultPriority.medium:
+      return AppColors.riskWarning;
+    case VaultPriority.low:
+      return AppColors.riskSafe;
+  }
+}
+
+String _labelForPriority(VaultPriority priority) {
+  switch (priority) {
+    case VaultPriority.high:
+      return 'Tinggi';
+    case VaultPriority.medium:
+      return 'Sedang';
+    case VaultPriority.low:
+      return 'Rendah';
+  }
+}
+
 class SavingsVaultPage extends StatelessWidget {
   final Map<String, dynamic>? prefillData;
   const SavingsVaultPage({super.key, this.prefillData});
@@ -269,6 +306,7 @@ class _VaultViewState extends State<VaultView> {
         floatingActionButton: FloatingActionButton(
           heroTag: null,
           backgroundColor: AppColors.primary,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           onPressed: () => _showCreateVaultDialog(context),
           child: const Icon(Icons.add_rounded, color: Colors.white),
         ),
@@ -373,6 +411,7 @@ class _VaultViewState extends State<VaultView> {
 
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
+      borderRadius: 12.0,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -393,17 +432,44 @@ class _VaultViewState extends State<VaultView> {
                   ),
                 ),
               ),
-              if (!isFamily && vault.ownerEmail != null)
-                Text(
-                  vault.ownerEmail!,
-                  style: AppTextStyles.dataLabel.copyWith(color: AppColors.textSecondary),
-                ),
+              Row(
+                children: [
+                  if (!isFamily && vault.ownerEmail != null)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Text(
+                        vault.ownerEmail!,
+                        style: AppTextStyles.dataLabel.copyWith(color: AppColors.textSecondary),
+                      ),
+                    ),
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(color: _colorForPriority(vault.priority), shape: BoxShape.circle),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    _labelForPriority(vault.priority),
+                    style: AppTextStyles.dataLabel.copyWith(color: _colorForPriority(vault.priority), fontSize: 11),
+                  ),
+                ],
+              ),
             ],
           ),
           const SizedBox(height: 12),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Container(
+                width: 36,
+                height: 36,
+                margin: const EdgeInsets.only(right: 10, top: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(_iconForVault(vault), color: AppColors.primary, size: 18),
+              ),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -434,7 +500,7 @@ class _VaultViewState extends State<VaultView> {
                       child: CircularProgressIndicator(
                         value: 1,
                         strokeWidth: 4,
-                        valueColor: const AlwaysStoppedAnimation<Color>(AppColors.background),
+                        valueColor: const AlwaysStoppedAnimation<Color>(AppColors.surfaceContainerHigh),
                       ),
                     ),
                     SizedBox(
@@ -488,42 +554,51 @@ class _VaultViewState extends State<VaultView> {
             ),
           ],
           const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              alignment: WrapAlignment.end,
-              children: [
-                OutlinedButton.icon(
-                  onPressed: () => _showVaultHistoryDialog(context, vault),
-                  icon: const Icon(Icons.history, size: 18),
-                  label: const Text('Riwayat'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.textSecondary,
-                    side: const BorderSide(color: AppColors.border),
+          Row(
+            children: [
+              Expanded(
+                child: vault.isCompleted
+                    ? OutlinedButton.icon(
+                        onPressed: null,
+                        icon: const Icon(Icons.check_circle, size: 18),
+                        label: const Text('Selesai'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.riskSafe,
+                          side: const BorderSide(color: AppColors.riskSafe),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                      )
+                    : ElevatedButton.icon(
+                        onPressed: () => _showAddDepositDialog(context, vault),
+                        icon: const Icon(Icons.add, size: 18),
+                        label: const Text('Tambah'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ),
+              ),
+              const SizedBox(width: 8),
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_horiz, color: AppColors.textSecondary),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                onSelected: (value) {
+                  if (value == 'history') _showVaultHistoryDialog(context, vault);
+                  if (value == 'subtract') _showSubtractBalanceDialog(context, vault);
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'history',
+                    child: ListTile(leading: Icon(Icons.history), title: Text('Riwayat'), contentPadding: EdgeInsets.zero),
                   ),
-                ),
-                OutlinedButton.icon(
-                  onPressed: () => _showSubtractBalanceDialog(context, vault),
-                  icon: const Icon(Icons.remove, size: 18),
-                  label: const Text('Kurangi'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.riskCritical,
-                    side: const BorderSide(color: AppColors.riskCritical),
+                  const PopupMenuItem(
+                    value: 'subtract',
+                    child: ListTile(leading: Icon(Icons.remove), title: Text('Kurangi'), contentPadding: EdgeInsets.zero),
                   ),
-                ),
-                ElevatedButton.icon(
-                  onPressed: vault.isCompleted ? null : () => _showAddDepositDialog(context, vault),
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Tambah'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-              ],
-            ),
+                ],
+              ),
+            ],
           ),
         ],
       ),

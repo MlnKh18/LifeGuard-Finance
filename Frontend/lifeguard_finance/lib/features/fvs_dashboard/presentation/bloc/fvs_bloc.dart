@@ -63,6 +63,10 @@ class FvsBloc extends Bloc<FvsEvent, FvsState> {
           emit(FvsNoProfile());
         } else {
           final calculatedScore = fvsCalculator.calculate(profile);
+          final previousRaw = hiveService.getData(LocalKeys.fvsScore);
+          if (previousRaw != null) {
+            await hiveService.saveData(LocalKeys.previousFvsScore, previousRaw);
+          }
           await hiveService.saveData(LocalKeys.fvsScore, calculatedScore.toJson());
           emit(FvsLoaded(calculatedScore, profile));
         }

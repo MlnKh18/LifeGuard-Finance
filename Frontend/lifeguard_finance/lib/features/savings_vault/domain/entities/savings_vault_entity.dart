@@ -4,6 +4,16 @@ enum SavingFrequency { weekly, monthly, yearly }
 
 enum SavingsVaultScope { family, personal }
 
+enum VaultPriority { high, medium, low }
+
+const List<String> vaultCategories = [
+  'Dana Darurat',
+  'Pendidikan Anak',
+  'Kesehatan',
+  'Pensiun',
+  'Kebutuhan Keluarga Lain',
+];
+
 class SavingsVault extends Equatable {
   final String id;
   final String? familyId;
@@ -23,6 +33,8 @@ class SavingsVault extends Equatable {
   final String? notes;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final VaultPriority priority;
+  final String? iconName;
 
   const SavingsVault({
     required this.id,
@@ -42,6 +54,8 @@ class SavingsVault extends Equatable {
     this.notes,
     this.createdAt,
     this.updatedAt,
+    this.priority = VaultPriority.medium,
+    this.iconName,
   });
 
   double get progress => targetAmount <= 0 ? 0.0 : (savedAmount / targetAmount).clamp(0.0, 1.0);
@@ -94,6 +108,8 @@ class SavingsVault extends Equatable {
     String? notes,
     DateTime? createdAt,
     DateTime? updatedAt,
+    VaultPriority? priority,
+    String? iconName,
   }) {
     return SavingsVault(
       id: id,
@@ -113,6 +129,8 @@ class SavingsVault extends Equatable {
       notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      priority: priority ?? this.priority,
+      iconName: iconName ?? this.iconName,
     );
   }
 
@@ -127,6 +145,13 @@ class SavingsVault extends Equatable {
     if (raw == 'weekly' || raw == 'mingguan') return SavingFrequency.weekly;
     if (raw == 'yearly' || raw == 'tahunan') return SavingFrequency.yearly;
     return SavingFrequency.monthly;
+  }
+
+  static VaultPriority parsePriority(dynamic value) {
+    final raw = value?.toString().toLowerCase().trim();
+    if (raw == 'high' || raw == 'tinggi') return VaultPriority.high;
+    if (raw == 'low' || raw == 'rendah') return VaultPriority.low;
+    return VaultPriority.medium;
   }
 
   factory SavingsVault.fromJson(Map<String, dynamic> json, {String? defaultOwnerId, String? defaultOwnerEmail, String? defaultFamilyId}) {
@@ -151,6 +176,8 @@ class SavingsVault extends Equatable {
       notes: json['notes'] as String?,
       createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt']) : null,
       updatedAt: json['updatedAt'] != null ? DateTime.tryParse(json['updatedAt']) : null,
+      priority: parsePriority(json['priority']),
+      iconName: json['iconName'] as String?,
     );
   }
 
@@ -173,6 +200,8 @@ class SavingsVault extends Equatable {
       'notes': notes,
       'createdAt': createdAt?.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
+      'priority': priority.name,
+      'iconName': iconName,
     };
   }
 
@@ -181,6 +210,6 @@ class SavingsVault extends Equatable {
     id, familyId, ownerUserId, ownerEmail, ownerName, scope,
     name, targetAmount, savedAmount, savingPurpose, category,
     savingFrequency, periodicTargetAmount, deadline, notes,
-    createdAt, updatedAt
+    createdAt, updatedAt, priority, iconName,
   ];
 }

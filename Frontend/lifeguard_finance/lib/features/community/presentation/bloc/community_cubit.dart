@@ -1,36 +1,31 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
-import '../../../../core/data/local/hive_service.dart';
-import '../../../../core/data/local/local_keys.dart';
-import '../../domain/entities/community_challenge.dart';
+import '../../../rewards/data/datasources/reward_service.dart';
+import '../../../rewards/domain/entities/reward_point.dart';
+import '../../domain/entities/community_comment.dart';
+import '../../domain/entities/community_feed.dart';
 import '../../domain/entities/community_post.dart';
 import '../../domain/entities/community_progress.dart';
+import '../../domain/entities/community_challenge.dart';
+import '../../domain/repositories/community_repository.dart';
 import 'community_state.dart';
 
 class CommunityCubit extends Cubit<CommunityState> {
-  final HiveService hiveService;
+  final CommunityRepository communityRepository;
+  final RewardService rewardService;
 
-  CommunityCubit({required this.hiveService}) : super(CommunityLoading());
+  CommunityCubit({required this.communityRepository, required this.rewardService}) : super(CommunityLoading());
 
   Future<void> loadFeed() async {
     emit(CommunityLoading());
     try {
-      final raw = hiveService.getData(LocalKeys.communityPosts);
-      if (raw != null) {
-        final map = Map<String, dynamic>.from(raw as Map);
-        emit(CommunityLoaded(
-          progress: CommunityProgress.fromJson(Map<String, dynamic>.from(map['progress'] as Map)),
-          posts: (map['posts'] as List)
-              .map((e) => CommunityPost.fromJson(Map<String, dynamic>.from(e as Map)))
-              .toList(),
-          challenges: (map['challenges'] as List)
-              .map((e) => CommunityChallenge.fromJson(Map<String, dynamic>.from(e as Map)))
-              .toList(),
-        ));
+      final existing = await communityRepository.getFeed();
+      if (existing != null) {
+        emit(CommunityLoaded(progress: existing.progress, posts: existing.posts, challenges: existing.challenges));
       } else {
-        final seed = _seedState();
-        emit(seed);
-        await _persist(seed);
+        final seed = _seedFeed();
+        emit(CommunityLoaded(progress: seed.progress, posts: seed.posts, challenges: seed.challenges));
+        await communityRepository.saveFeed(seed);
       }
     } catch (e) {
       emit(CommunityError('Gagal memuat data komunitas: $e'));
@@ -52,20 +47,76 @@ class CommunityCubit extends Cubit<CommunityState> {
     await _persist(updated);
   }
 
-  Future<void> addPost({required String content, required String tag}) async {
+  Future<void> addPost({required String content, required String category}) async {
     final current = state;
     if (current is! CommunityLoaded) return;
 
     final newPost = CommunityPost(
       id: const Uuid().v4(),
       authorName: 'Anda (Anonim)',
-      tag: tag,
+      category: category,
       content: content,
       likeCount: 0,
-      commentCount: 0,
       createdAt: DateTime.now(),
     );
     final updated = current.copyWith(posts: [newPost, ...current.posts]);
+    emit(updated);
+    await _persist(updated);
+    await rewardService.addPoints(RewardSource.post, 10);
+  }
+
+  Future<void> addComment(String postId, {required String content}) async {
+    final current = state;
+    if (current is! CommunityLoaded) return;
+
+    final comment = CommunityComment(
+      id: const Uuid().v4(),
+      postId: postId,
+      authorName: 'Anda (Anonim)',
+      content: content,
+      createdAt: DateTime.now(),
+    );
+    final updatedPosts = current.posts.map((post) {
+      if (post.id != postId) return post;
+      return post.copyWith(comments: [...post.comments, comment]);
+    }).toList();
+
+    final updated = current.copyWith(posts: updatedPosts);
+    emit(updated);
+    await _persist(updated);
+    await rewardService.addPoints(RewardSource.comment, 5);
+  }
+
+  Future<void> markCommentHelpful(String postId, String commentId) async {
+    final current = state;
+    if (current is! CommunityLoaded) return;
+
+    final post = current.posts.firstWhere((p) => p.id == postId);
+    final comment = post.comments.firstWhere((c) => c.id == commentId);
+    if (comment.isHelpful) return;
+
+    final updatedPosts = current.posts.map((p) {
+      if (p.id != postId) return p;
+      final updatedComments = p.comments.map((c) => c.id == commentId ? c.copyWith(isHelpful: true) : c).toList();
+      return p.copyWith(comments: updatedComments);
+    }).toList();
+
+    final updated = current.copyWith(posts: updatedPosts);
+    emit(updated);
+    await _persist(updated);
+    await rewardService.addPoints(RewardSource.helpfulComment, 20);
+  }
+
+  Future<void> reportPost(String postId) async {
+    final current = state;
+    if (current is! CommunityLoaded) return;
+
+    final updatedPosts = current.posts.map((post) {
+      if (post.id != postId) return post;
+      return post.copyWith(status: PostStatus.flagged);
+    }).toList();
+
+    final updated = current.copyWith(posts: updatedPosts);
     emit(updated);
     await _persist(updated);
   }
@@ -92,16 +143,13 @@ class CommunityCubit extends Cubit<CommunityState> {
   }
 
   Future<void> _persist(CommunityLoaded state) async {
-    await hiveService.saveData(LocalKeys.communityPosts, {
-      'progress': state.progress.toJson(),
-      'posts': state.posts.map((p) => p.toJson()).toList(),
-      'challenges': state.challenges.map((c) => c.toJson()).toList(),
-    });
+    await communityRepository.saveFeed(CommunityFeed(progress: state.progress, posts: state.posts, challenges: state.challenges));
   }
 
-  CommunityLoaded _seedState() {
+  CommunityFeed _seedFeed() {
     final now = DateTime.now();
-    return CommunityLoaded(
+    final rezaPostId = const Uuid().v4();
+    return CommunityFeed(
       progress: const CommunityProgress(
         xp: 135,
         badge: 'Financial Guardian',
@@ -112,23 +160,29 @@ class CommunityCubit extends Cubit<CommunityState> {
         CommunityPost(
           id: const Uuid().v4(),
           authorName: 'Sarah L.',
-          tag: '#SandwichGeneration',
+          category: 'Generasi Sandwich',
           content:
               'Bagaimana cara kalian mengatur porsi pendapatan untuk orang tua dan juga menabung untuk DP rumah secara bersamaan? Rasanya sulit sekali.',
           likeCount: 24,
-          commentCount: 12,
           createdAt: now.subtract(const Duration(hours: 2)),
         ),
         CommunityPost(
-          id: const Uuid().v4(),
+          id: rezaPostId,
           authorName: 'Reza K.',
-          tag: '#EmergencyFund',
+          category: 'Dana Darurat',
           content:
               'Baru saja menggunakan dana darurat untuk biaya medis dadakan. Sedikit panik karena saldonya menipis, adakah tips untuk membangunnya kembali dengan cepat?',
           likeCount: 45,
-          commentCount: 28,
-          isFlagged: true,
           createdAt: now.subtract(const Duration(hours: 5)),
+          comments: [
+            CommunityComment(
+              id: const Uuid().v4(),
+              postId: rezaPostId,
+              authorName: 'Dimas P.',
+              content: 'Coba sisihkan otomatis 10% dari setiap pendapatan masuk ke vault dana darurat.',
+              createdAt: now.subtract(const Duration(hours: 4)),
+            ),
+          ],
         ),
       ],
       challenges: const [

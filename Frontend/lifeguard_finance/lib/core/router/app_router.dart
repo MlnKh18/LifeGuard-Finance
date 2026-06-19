@@ -12,10 +12,10 @@ import '../../features/family_profile/presentation/pages/family_profile_page.dar
 import '../../features/fvs_dashboard/presentation/pages/dashboard_page.dart';
 import '../../features/emergency_simulation/presentation/pages/simulation_page.dart';
 import '../../features/recommendation/presentation/pages/recommendation_page.dart';
+import '../../features/recommendation/presentation/pages/task_detail_page.dart';
 import '../../features/smart_routing/presentation/pages/smart_routing_page.dart';
 import '../../features/anomaly_detection/presentation/pages/expense_anomaly_page.dart';
-import '../../features/anomaly_detection/presentation/pages/expense_anomaly_detail_page.dart';
-import '../../features/anomaly_detection/domain/entities/anomaly_combined_record.dart';
+import '../../features/anomaly_detection/presentation/pages/transaction_detail_page.dart';
 import '../../features/early_warning/presentation/pages/early_warning_page.dart';
 import '../../features/literacy/presentation/pages/literacy_page.dart';
 import '../../features/literacy/presentation/pages/literacy_detail_page.dart';
@@ -23,6 +23,7 @@ import '../../features/savings_vault/presentation/pages/savings_vault_page.dart'
 import '../../features/savings_vault/presentation/pages/vault_detail_page.dart';
 import '../../features/daily_finance/presentation/pages/daily_finance_page.dart';
 import '../../features/community/presentation/pages/community_page.dart';
+import '../../features/community/presentation/pages/community_detail_page.dart';
 import '../../features/rewards/presentation/pages/reward_page.dart';
 import '../../features/auth/presentation/pages/auth_entry_page.dart';
 import '../../features/auth/presentation/pages/register_head_of_family_page.dart';
@@ -96,7 +97,18 @@ class AppRouter {
         path: '/smart-routing',
         builder: (context, state) => const SmartRoutingPage(),
       ),
-
+      GoRoute(
+        path: '/expense-anomaly',
+        builder: (context, state) => const ExpenseAnomalyPage(),
+        routes: [
+          GoRoute(
+            path: ':transactionId',
+            builder: (context, state) => TransactionDetailPage(
+              transactionId: state.pathParameters['transactionId'] ?? '',
+            ),
+          ),
+        ],
+      ),
       GoRoute(
         path: '/early-warning',
         builder: (context, state) => const EarlyWarningPage(),
@@ -124,21 +136,6 @@ class AppRouter {
       GoRoute(
         path: '/reward',
         builder: (context, state) => const RewardPage(),
-      ),
-      GoRoute(
-        path: '/daily-finance',
-        builder: (context, state) => const DailyFinancePage(),
-      ),
-      GoRoute(
-        path: '/anomaly-detail',
-        builder: (context, state) {
-          final record = state.extra as AnomalyCombinedRecord;
-          return ExpenseAnomalyDetailPage(record: record);
-        },
-      ),
-      GoRoute(
-        path: '/recommendation',
-        builder: (context, state) => const RecommendationPage(),
       ),
       // 5 main tabs (Komunitas, Ringkasan, Sandbox, Mitigasi, Profil) share a
       // persistent bottom nav, matching the Stitch design system's canonical
@@ -168,14 +165,28 @@ class AppRouter {
               GoRoute(
                 path: '/community',
                 builder: (context, state) => const CommunityPage(),
+                routes: [
+                  GoRoute(
+                    path: ':postId',
+                    builder: (context, state) => CommunityDetailPage(postId: state.pathParameters['postId'] ?? ''),
+                  ),
+                ],
               ),
             ],
           ),
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/expense-anomaly',
-                builder: (context, state) => const ExpenseAnomalyPage(),
+                path: '/recommendation',
+                builder: (context, state) => const RecommendationPage(),
+                routes: [
+                  GoRoute(
+                    path: ':taskId',
+                    builder: (context, state) => TaskDetailPage(
+                      taskId: state.pathParameters['taskId'] ?? '',
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

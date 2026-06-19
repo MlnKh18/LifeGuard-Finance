@@ -1,183 +1,226 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_card.dart';
-import '../../../daily_finance/presentation/bloc/daily_finance_cubit.dart';
-import '../../../daily_finance/presentation/bloc/daily_finance_state.dart';
+import '../../../../core/widgets/primary_button.dart';
+import '../../../../core/widgets/section_title.dart';
 import '../../domain/entities/early_warning.dart';
+import '../bloc/notification_cubit.dart';
+import '../bloc/notification_state.dart';
 
-class EarlyWarningPage extends StatefulWidget {
+Color _severityColor(WarningSeverity severity) {
+  switch (severity) {
+    case WarningSeverity.critical:
+      return AppColors.riskCritical;
+    case WarningSeverity.warning:
+      return AppColors.riskWarning;
+    case WarningSeverity.info:
+      return AppColors.secondary;
+  }
+}
+
+IconData _severityIcon(WarningSeverity severity) {
+  switch (severity) {
+    case WarningSeverity.critical:
+      return Icons.error_rounded;
+    case WarningSeverity.warning:
+      return Icons.warning_amber_rounded;
+    case WarningSeverity.info:
+      return Icons.info_rounded;
+  }
+}
+
+class EarlyWarningPage extends StatelessWidget {
   const EarlyWarningPage({super.key});
 
   @override
-  State<EarlyWarningPage> createState() => _EarlyWarningPageState();
+  Widget build(BuildContext context) {
+    return BlocProvider<NotificationCubit>(
+      create: (context) => getIt<NotificationCubit>()..loadWarnings(),
+      child: const EarlyWarningView(),
+    );
+  }
 }
 
-class _EarlyWarningPageState extends State<EarlyWarningPage> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-    context.read<DailyFinanceCubit>().loadRecords();
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
+class EarlyWarningView extends StatelessWidget {
+  const EarlyWarningView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text('Peringatan Risiko', style: AppTextStyles.heading2),
-        backgroundColor: AppColors.surface,
-        surfaceTintColor: Colors.transparent,
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: AppColors.primary,
-          unselectedLabelColor: AppColors.textSecondary,
-          indicatorColor: AppColors.primary,
-          tabs: const [
-            Tab(text: 'Belum Dibaca'),
-            Tab(text: 'Semua Peringatan'),
-          ],
-        ),
-      ),
-      body: BlocBuilder<DailyFinanceCubit, DailyFinanceState>(
+      appBar: AppBar(title: Text('Sistem Peringatan Dini', style: AppTextStyles.heading3)),
+      body: BlocBuilder<NotificationCubit, NotificationState>(
         builder: (context, state) {
-          if (state is DailyFinanceLoading) {
-            return const Center(child: CircularProgressIndicator());
+          if (state is NotificationLoading) {
+            return const Center(child: CircularProgressIndicator(color: AppColors.primary));
           }
-
-          if (state is DailyFinanceLoaded) {
-            final unreadWarnings = state.latestWarnings;
-            // For now, let's display what we have.
-
-            return TabBarView(
-              controller: _tabController,
-              children: [
-                _buildWarningList(unreadWarnings, true),
-                _buildWarningList(state.allWarnings, false),
-              ],
-            );
+          if (state is NotificationNoProfile) {
+            return _buildNoProfileView(context);
           }
-
-          return const Center(child: Text('Gagal memuat peringatan.'));
+          if (state is NotificationError) {
+            return _buildErrorView(context, state.message);
+          }
+          if (state is NotificationLoaded) {
+            return _buildContent(context, state.warnings);
+          }
+          return const SizedBox.shrink();
         },
       ),
     );
   }
 
-  Widget _buildWarningList(List<EarlyWarning> warnings, bool isUnreadTab) {
-    if (warnings.isEmpty) {
-      return Center(
-        child: Text(
-          'Belum ada peringatan risiko.',
-          style: AppTextStyles.bodyMedium,
+  Widget _buildContent(BuildContext context, List<EarlyWarning> warnings) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      children: [
+        SectionTitle(
+          title: 'Peringatan Dini',
+          subtitle: warnings.isEmpty
+              ? 'Tidak ada peringatan aktif. Kondisi keuangan Anda terpantau baik.'
+              : '${warnings.length} peringatan aktif terdeteksi dari data keuangan Anda.',
         ),
-      );
-    }
-
-    // Sort newest first
-    warnings.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: warnings.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final warning = warnings[index];
-        return _WarningCard(
-          warning: warning,
-          onMarkRead: warning.isRead
-              ? null
-              : () {
-                  context.read<DailyFinanceCubit>().markWarningAsRead(warning.warningId);
-                },
-        );
-      },
+        const SizedBox(height: 16),
+        if (warnings.isEmpty)
+          AppCard(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: [
+                const Icon(Icons.verified_rounded, size: 56, color: AppColors.riskSafe),
+                const SizedBox(height: 12),
+                Text('Semua Aman', style: AppTextStyles.heading3),
+                const SizedBox(height: 4),
+                Text(
+                  'Tidak ada trigger peringatan yang aktif saat ini.',
+                  style: AppTextStyles.bodySmall,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          )
+        else
+          ...warnings.map((w) => _buildWarningCard(w)),
+        const SizedBox(height: 20),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () => _requestPermission(context),
+                icon: const Icon(Icons.notifications_active_outlined, size: 18),
+                label: const Text('Izinkan Notifikasi'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  side: const BorderSide(color: AppColors.primary),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: PrimaryButton(
+                text: 'Tes Notifikasi',
+                icon: const Icon(Icons.send_rounded, color: Colors.white, size: 18),
+                onPressed: warnings.isEmpty ? null : () => _sendTestNotifications(context),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
-}
 
-class _WarningCard extends StatelessWidget {
-  final EarlyWarning warning;
-  final VoidCallback? onMarkRead;
-
-  const _WarningCard({
-    required this.warning,
-    this.onMarkRead,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    Color severityColor;
-    IconData severityIcon;
-
-    switch (warning.severity) {
-      case EarlyWarningSeverity.high:
-        severityColor = AppColors.riskCritical;
-        severityIcon = Icons.error_rounded;
-        break;
-      case EarlyWarningSeverity.medium:
-        severityColor = AppColors.riskWarning;
-        severityIcon = Icons.warning_amber_rounded;
-        break;
-      case EarlyWarningSeverity.low:
-        severityColor = AppColors.secondary;
-        severityIcon = Icons.info_outline_rounded;
-        break;
-    }
-
+  Widget _buildWarningCard(EarlyWarning warning) {
+    final color = _severityColor(warning.severity);
     return AppCard(
-      child: Column(
+      margin: const EdgeInsets.only(bottom: 10),
+      borderRadius: 12.0,
+      color: color.withAlpha(15),
+      border: Border.all(color: color.withAlpha(100)),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: severityColor.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(severityIcon, color: severityColor, size: 20),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      warning.title,
-                      style: AppTextStyles.heading3.copyWith(color: AppColors.textPrimary),
-                    ),
-                    Text(
-                      DateFormat('dd MMM yyyy, HH:mm').format(warning.createdAt),
-                      style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
-                    ),
-                  ],
-                ),
-              ),
-              if (!warning.isRead && onMarkRead != null)
-                IconButton(
-                  icon: const Icon(Icons.check_circle_outline, color: AppColors.primary),
-                  onPressed: onMarkRead,
-                  tooltip: 'Tandai sudah dibaca',
-                )
-            ],
+          Icon(_severityIcon(warning.severity), color: color),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(warning.title, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 4),
+                Text(warning.message, style: AppTextStyles.bodySmall),
+              ],
+            ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _requestPermission(BuildContext context) async {
+    final cubit = context.read<NotificationCubit>();
+    final granted = await cubit.requestPermission();
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(granted ? 'Izin notifikasi diberikan.' : 'Izin notifikasi ditolak.'),
+        backgroundColor: granted ? AppColors.riskSafe : AppColors.riskCritical,
+      ),
+    );
+  }
+
+  Future<void> _sendTestNotifications(BuildContext context) async {
+    final cubit = context.read<NotificationCubit>();
+    await cubit.sendTestNotifications();
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Notifikasi peringatan telah dikirim.'), backgroundColor: AppColors.primary),
+    );
+  }
+
+  Widget _buildNoProfileView(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Icon(Icons.family_restroom_rounded, size: 100, color: AppColors.border),
+          const SizedBox(height: 24),
+          Text('Profil Keuangan Belum Lengkap', style: AppTextStyles.heading2, textAlign: TextAlign.center),
           const SizedBox(height: 12),
           Text(
-            warning.message,
+            'Lengkapi data profil keuangan keluarga terlebih dahulu untuk memantau peringatan dini.',
             style: AppTextStyles.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 32),
+          PrimaryButton(
+            text: 'Lengkapi Profil Sekarang',
+            onPressed: () => context.go('/family-profile'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorView(BuildContext context, String message) {
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.error_outline_rounded, size: 80, color: AppColors.riskCritical),
+          const SizedBox(height: 16),
+          Text('Terjadi Kesalahan', style: AppTextStyles.heading2),
+          const SizedBox(height: 8),
+          Text(message, textAlign: TextAlign.center, style: AppTextStyles.bodyMedium),
+          const SizedBox(height: 24),
+          PrimaryButton(
+            text: 'Coba Lagi',
+            onPressed: () => context.read<NotificationCubit>().loadWarnings(),
           ),
         ],
       ),

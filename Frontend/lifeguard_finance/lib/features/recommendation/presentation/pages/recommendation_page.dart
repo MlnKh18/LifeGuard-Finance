@@ -51,6 +51,12 @@ class _RecommendationViewState extends State<RecommendationView> with SingleTick
     return Scaffold(
       appBar: AppBar(
         title: Text('Rencana Mitigasi', style: AppTextStyles.heading3),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.account_circle_outlined, color: AppColors.textSecondary),
+            onPressed: () => context.push('/profile-settings'),
+          ),
+        ],
       ),
       body: BlocBuilder<RecommendationCubit, RecommendationState>(
         builder: (context, state) {
@@ -86,7 +92,8 @@ class _RecommendationViewState extends State<RecommendationView> with SingleTick
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
           child: AppCard(
-            color: AppColors.primary.withAlpha(13),
+            color: Color.alphaBlend(AppColors.primary.withAlpha(13), Colors.white),
+            showShadow: true,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -104,7 +111,7 @@ class _RecommendationViewState extends State<RecommendationView> with SingleTick
                     ),
                     Text(
                       '${(progress * 100).toStringAsFixed(0)}%',
-                      style: AppTextStyles.dataDisplay.copyWith(fontSize: 24, color: AppColors.primary),
+                      style: AppTextStyles.dataDisplay.copyWith(fontSize: 28, color: AppColors.primary),
                     ),
                   ],
                 ),
@@ -120,6 +127,30 @@ class _RecommendationViewState extends State<RecommendationView> with SingleTick
                 ),
               ],
             ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          child: Row(
+            children: [
+              Expanded(
+                child: _buildQuickActionCard(
+                  context: context,
+                  icon: Icons.alt_route_rounded,
+                  label: 'Smart Routing',
+                  onTap: () => context.push('/smart-routing'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildQuickActionCard(
+                  context: context,
+                  icon: Icons.savings_rounded,
+                  label: 'Savings Vault',
+                  onTap: () => context.push('/savings-vault'),
+                ),
+              ),
+            ],
           ),
         ),
         TabBar(
@@ -140,6 +171,27 @@ class _RecommendationViewState extends State<RecommendationView> with SingleTick
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildQuickActionCard({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return AppCard(
+      onTap: onTap,
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
+      borderRadius: 12.0,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 18, color: AppColors.primary),
+          const SizedBox(width: 8),
+          Text(label, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
+        ],
+      ),
     );
   }
 
@@ -189,7 +241,7 @@ class _RecommendationViewState extends State<RecommendationView> with SingleTick
     final priorityColor = _priorityColor(task.priority);
     return AppCard(
       margin: const EdgeInsets.only(bottom: 10),
-      onTap: () => context.read<RecommendationCubit>().toggleTask(task.id),
+      onTap: () => context.push('/recommendation/${task.id}'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -198,9 +250,12 @@ class _RecommendationViewState extends State<RecommendationView> with SingleTick
             children: [
               Padding(
                 padding: const EdgeInsets.only(top: 2),
-                child: Icon(
-                  task.isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
-                  color: AppColors.primary,
+                child: GestureDetector(
+                  onTap: () => context.read<RecommendationCubit>().toggleTask(task.id),
+                  child: Icon(
+                    task.isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                    color: AppColors.primary,
+                  ),
                 ),
               ),
               const SizedBox(width: 12),

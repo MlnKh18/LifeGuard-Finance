@@ -10,6 +10,7 @@ class FamilyFinanceProfileModel extends FamilyFinanceProfile {
     required super.totalDependents,
     required super.hasBpjs,
     required super.hasAdditionalInsurance,
+    super.updatedAt,
   });
 
   factory FamilyFinanceProfileModel.fromJson(Map<String, dynamic> json) {
@@ -22,6 +23,7 @@ class FamilyFinanceProfileModel extends FamilyFinanceProfile {
       totalDependents: json['totalDependents'] as int,
       hasBpjs: json['hasBpjs'] as bool,
       hasAdditionalInsurance: json['hasAdditionalInsurance'] as bool,
+      updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt'] as String) : null,
     );
   }
 
@@ -35,6 +37,7 @@ class FamilyFinanceProfileModel extends FamilyFinanceProfile {
       'totalDependents': totalDependents,
       'hasBpjs': hasBpjs,
       'hasAdditionalInsurance': hasAdditionalInsurance,
+      if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
     };
   }
 
@@ -48,6 +51,7 @@ class FamilyFinanceProfileModel extends FamilyFinanceProfile {
       totalDependents: entity.totalDependents,
       hasBpjs: entity.hasBpjs,
       hasAdditionalInsurance: entity.hasAdditionalInsurance,
+      updatedAt: entity.updatedAt ?? DateTime.now(),
     );
   }
 }

@@ -1,0 +1,240 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>LifeGuard Finance - Onboarding Step 3</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-bright": "#f5faf8",
+                        "secondary-fixed-dim": "#b7c8e1",
+                        "tertiary": "#545c72",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-container": "#008378",
+                        "surface-container-highest": "#dee4e1",
+                        "tertiary-fixed-dim": "#bec6e0",
+                        "primary-fixed": "#89f5e7",
+                        "on-tertiary-container": "#fefcff",
+                        "inverse-primary": "#6bd8cb",
+                        "on-secondary-fixed": "#0b1c30",
+                        "outline": "#6d7a77",
+                        "background": "#f5faf8",
+                        "secondary-fixed": "#d3e4fe",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "on-tertiary": "#ffffff",
+                        "secondary-container": "#d0e1fb",
+                        "secondary": "#505f76",
+                        "on-secondary-container": "#54647a",
+                        "on-primary-container": "#f4fffc",
+                        "surface-container-high": "#e4e9e7",
+                        "on-surface-variant": "#3d4947",
+                        "surface": "#f5faf8",
+                        "error": "#ba1a1a",
+                        "surface-variant": "#dee4e1",
+                        "inverse-surface": "#2c3130",
+                        "primary": "#00685f",
+                        "on-tertiary-fixed-variant": "#3f465c",
+                        "inverse-on-surface": "#edf2f0",
+                        "on-error-container": "#93000a",
+                        "error-container": "#ffdad6",
+                        "on-primary": "#ffffff",
+                        "on-primary-fixed": "#00201d",
+                        "surface-dim": "#d6dbd9",
+                        "surface-container": "#eaefed",
+                        "tertiary-fixed": "#dae2fd",
+                        "surface-container-low": "#f0f5f2",
+                        "surface-tint": "#006a61",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed-variant": "#005049",
+                        "tertiary-container": "#6c748b",
+                        "on-surface": "#171d1c",
+                        "on-background": "#171d1c",
+                        "primary-fixed-dim": "#6bd8cb",
+                        "outline-variant": "#bcc9c6",
+                        "on-tertiary-fixed": "#131b2e",
+                        "on-error": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "lg": "24px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "gutter": "16px",
+                        "base": "4px",
+                        "container-margin": "24px",
+                        "xl": "32px"
+                    },
+                    "fontFamily": {
+                        "data-tabular": ["Inter"],
+                        "title-md": ["Outfit"],
+                        "label-md": ["Inter"],
+                        "body-lg": ["Outfit"],
+                        "headline-lg": ["Outfit"],
+                        "headline-lg-mobile": ["Outfit"],
+                        "display-lg": ["Outfit"],
+                        "body-sm": ["Outfit"]
+                    },
+                    "fontSize": {
+                        "data-tabular": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "title-md": ["18px", {"lineHeight": "24px", "fontWeight": "500"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "fontWeight": "700"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #f5faf8;
+            color: #171d1c;
+        }
+        /* Custom scrollbar for better airy feel */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #bcc9c6; border-radius: 10px; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-body-lg text-body-lg">
+<!-- TopAppBar -->
+<header class="flex items-center justify-between px-container-margin w-full h-16 bg-surface border-b border-outline-variant sticky top-0 z-50">
+<div class="flex items-center gap-md">
+<img alt="LifeGuard Finance Logo" class="h-10 w-10 object-contain rounded-lg" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqIdB7nX3bCICP9j05Nusj9x6lAolFRJ92ocEPhgtivcDTP5mRKxAlU9vH_XFufmzQfWrhRiutb1IpEmTjszAs50lPuIHaOzerTG6pWGkQUpKmj9FHKhE8d8o8Kb1ro5VnY0VC2BuHXUXVOPCVXOZx9UCZ7KFkkpA1zVTn9CyVwnQP0_N79X_AhVANAHusvT12RphTio4TwtKKZkynehgc7Ks9AkjI308wgV6bkbMpd9IIMtVg1n09ARl33INnrDcOCn_ASxet-zav">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary">LifeGuard Finance</h1>
+</div>
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary">account_balance</span>
+<span class="hidden md:block font-label-md text-label-md text-secondary">Step 3 of 3</span>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-grow flex flex-col items-center py-xl px-container-margin">
+<div class="w-full max-w-2xl flex flex-col gap-xl">
+<!-- Header Section -->
+<div class="text-center space-y-sm">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Security &amp; Assets</h2>
+<p class="font-body-lg text-body-lg text-secondary">Tell us about your emergency funds and protection to complete your profile.</p>
+</div>
+<!-- Stepper Component -->
+<div class="flex items-center justify-between w-full max-w-md mx-auto px-md">
+<div class="flex flex-col items-center gap-xs">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<span class="font-label-md text-label-md text-primary">Identity</span>
+</div>
+<div class="flex-grow h-[2px] bg-primary mx-xs mt-[-20px]"></div>
+<div class="flex flex-col items-center gap-xs">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<span class="font-label-md text-label-md text-primary">Finance</span>
+</div>
+<div class="flex-grow h-[2px] bg-primary mx-xs mt-[-20px]"></div>
+<div class="flex flex-col items-center gap-xs">
+<div class="w-10 h-10 rounded-full ring-2 ring-primary ring-offset-4 bg-primary flex items-center justify-center text-white">
+<span class="font-title-md text-title-md">3</span>
+</div>
+<span class="font-label-md text-label-md text-primary font-bold">Security</span>
+</div>
+</div>
+<!-- Onboarding Form Sections -->
+<div class="flex flex-col gap-lg">
+<!-- Section 1: Liquid Assets -->
+<section class="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant space-y-md">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary">payments</span>
+<h3 class="font-title-md text-title-md text-on-surface">Liquid Assets</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-secondary ml-xs">Emergency Fund Balance</label>
+<div class="relative">
+<span class="absolute left-md top-1/2 -translate-y-1/2 text-secondary">$</span>
+<input class="w-full pl-lg pr-md py-md bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container focus:border-primary outline-none transition-all font-data-tabular" placeholder="0.00" type="number">
+</div>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-secondary ml-xs">Other Liquid Assets</label>
+<div class="relative">
+<span class="absolute left-md top-1/2 -translate-y-1/2 text-secondary">$</span>
+<input class="w-full pl-lg pr-md py-md bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container focus:border-primary outline-none transition-all font-data-tabular" placeholder="Savings, Mutual Funds" type="number">
+</div>
+</div>
+</div>
+</section>
+<!-- Section 2: Insurance & Protection -->
+<section class="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant space-y-md">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary">shield_with_heart</span>
+<h3 class="font-title-md text-title-md text-on-surface">Insurance &amp; Protection</h3>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-secondary ml-xs">Insurance Coverage</label>
+<div class="relative">
+<select class="w-full appearance-none px-md py-md bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container focus:border-primary outline-none transition-all cursor-pointer">
+<option disabled="" selected="" value="">Select level of coverage</option>
+<option value="full">Full Coverage (Life, Health, Asset)</option>
+<option value="partial">Partial Coverage (Basic Health/Life)</option>
+<option value="none">None / Currently Seeking</option>
+</select>
+<span class="material-symbols-outlined absolute right-md top-1/2 -translate-y-1/2 pointer-events-none text-secondary">expand_more</span>
+</div>
+</div>
+</section>
+<!-- Informational Note -->
+<div class="flex gap-md p-md bg-secondary-container/20 rounded-lg border border-secondary-container items-start">
+<span class="material-symbols-outlined text-secondary-container text-primary">info</span>
+<p class="font-body-sm text-body-sm text-secondary-container text-on-secondary-container">
+                        Your data is encrypted and used only to calculate your financial health score. We do not sell your personal information to third parties.
+                    </p>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer Navigation (BottomNavBar) -->
+<footer class="fixed bottom-0 w-full z-50 flex justify-between items-center px-lg py-md bg-surface border-t border-outline-variant">
+<button class="flex flex-col items-center justify-center text-secondary px-6 py-2 hover:bg-surface-variant transition-colors rounded-full active:scale-95 duration-150" onclick="window.history.back()">
+<span class="material-symbols-outlined">arrow_back</span>
+<span class="font-label-md text-label-md">Back</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-8 py-2 hover:brightness-110 transition-all active:scale-95 duration-150 shadow-md">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="font-label-md text-label-md">Complete</span>
+</button>
+</footer>
+<!-- Spacer for fixed footer -->
+<div class="h-24"></div>
+<script>
+        // Micro-interaction for input fields
+        document.querySelectorAll('input, select').forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.classList.add('scale-[1.01]');
+            });
+            input.addEventListener('blur', () => {
+                input.parentElement.classList.remove('scale-[1.01]');
+            });
+        });
+    </script>
+
+
+</body></html>

@@ -1,0 +1,313 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>FinFlow - Step 2: Financial Overview</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;family=Inter:wght@400;500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-tint": "#006a61",
+                      "secondary": "#505f76",
+                      "tertiary-fixed": "#dae2fd",
+                      "on-background": "#171d1c",
+                      "surface-variant": "#dee4e1",
+                      "primary-fixed": "#89f5e7",
+                      "secondary-fixed": "#d3e4fe",
+                      "primary-fixed-dim": "#6bd8cb",
+                      "surface-container": "#eaefed",
+                      "tertiary-fixed-dim": "#bec6e0",
+                      "primary-container": "#008378",
+                      "on-surface-variant": "#3d4947",
+                      "on-error-container": "#93000a",
+                      "surface": "#f5faf8",
+                      "on-primary-fixed": "#00201d",
+                      "surface-container-lowest": "#ffffff",
+                      "inverse-primary": "#6bd8cb",
+                      "secondary-fixed-dim": "#b7c8e1",
+                      "on-primary-fixed-variant": "#005049",
+                      "background": "#f5faf8",
+                      "on-primary-container": "#f4fffc",
+                      "on-secondary-fixed-variant": "#38485d",
+                      "tertiary-container": "#6c748b",
+                      "surface-container-highest": "#dee4e1",
+                      "outline-variant": "#bcc9c6",
+                      "error": "#ba1a1a",
+                      "surface-container-high": "#e4e9e7",
+                      "on-surface": "#171d1c",
+                      "inverse-on-surface": "#edf2f0",
+                      "surface-dim": "#d6dbd9",
+                      "error-container": "#ffdad6",
+                      "surface-container-low": "#f0f5f2",
+                      "primary": "#00685f",
+                      "secondary-container": "#d0e1fb",
+                      "on-primary": "#ffffff",
+                      "on-tertiary-container": "#fefcff",
+                      "on-error": "#ffffff",
+                      "on-tertiary-fixed-variant": "#3f465c",
+                      "on-tertiary-fixed": "#131b2e",
+                      "on-tertiary": "#ffffff",
+                      "tertiary": "#545c72",
+                      "on-secondary-container": "#54647a",
+                      "on-secondary-fixed": "#0b1c30",
+                      "on-secondary": "#ffffff",
+                      "surface-bright": "#f5faf8",
+                      "inverse-surface": "#2c3130",
+                      "outline": "#6d7a77"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "sm": "8px",
+                      "container-margin": "24px",
+                      "base": "4px",
+                      "xl": "32px",
+                      "gutter": "16px",
+                      "lg": "24px",
+                      "xs": "4px",
+                      "md": "16px"
+              },
+              "fontFamily": {
+                      "title-md": [
+                              "Outfit"
+                      ],
+                      "body-lg": [
+                              "Outfit"
+                      ],
+                      "display-lg": [
+                              "Outfit"
+                      ],
+                      "data-tabular": [
+                              "Inter"
+                      ],
+                      "body-sm": [
+                              "Outfit"
+                      ],
+                      "headline-lg": [
+                              "Outfit"
+                      ],
+                      "headline-lg-mobile": [
+                              "Outfit"
+                      ],
+                      "label-md": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "title-md": [
+                              "18px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "body-lg": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "56px",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "data-tabular": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-md": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.5px",
+                                      "fontWeight": "500"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body-lg">
+<!-- TopAppBar -->
+<header class="bg-surface dark:bg-surface border-b border-outline-variant dark:border-outline flat no shadows flex items-center justify-between px-container-margin w-full h-16 sticky top-0 z-40 transition-colors duration-200">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary dark:text-primary-fixed-dim" data-icon="account_balance">account_balance</span>
+<span class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary dark:text-primary-fixed-dim">LifeGuard Finance</span>
+</div>
+<div class="h-8 w-8 rounded-full overflow-hidden border border-outline-variant">
+<img alt="Lifeguard Logo" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqRLH1bGvM9gde91DDVpUqY8ljJLo_bBu4uPgjaFdRnVriOKhw78xdBEgkgxdebQfdKIlJ8zz78U-w5Gb-4PKEGaKziuwtk90TZI0oHT74Sy5YEps5o8uhChM71m0BlBLMUnhKcdSQ5-IFM-19GmmbnoWoqRG452lCi5tH1PBK0wgKQ8UjyID38PjtlpX_esGj1WV9F1lFRrz_PQrKURabVj9SrvW4hCYyxrIXO10678eXCrqTl_yiyzpz-gQ4vCIxlX3Ixf8MPjr8">
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow px-container-margin py-xl md:max-w-3xl md:mx-auto w-full pb-32">
+<!-- Stepper -->
+<div class="mb-lg flex items-center justify-between">
+<div class="flex-1 flex items-center">
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-title-md text-title-md">
+<span class="material-symbols-outlined text-sm" data-icon="check">check</span>
+</div>
+<div class="h-[2px] flex-1 mx-sm bg-primary-container"></div>
+</div>
+<div class="flex-1 flex items-center">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-title-md text-title-md shadow-sm border-2 border-primary-container ring-4 ring-primary-container/20">
+                    2
+                </div>
+<div class="h-[2px] flex-1 mx-sm bg-surface-container-high"></div>
+</div>
+<div class="flex items-center">
+<div class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant border border-outline-variant flex items-center justify-center font-title-md text-title-md">
+                    3
+                </div>
+</div>
+</div>
+<div class="mb-xl">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-on-surface mb-xs">Financial Overview</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Tell us about your regular expenses and any outstanding debts.</p>
+</div>
+<!-- Form Section -->
+<div class="space-y-xl bg-surface-container-lowest border border-outline-variant rounded-xl p-lg md:p-xl">
+<!-- Monthly Expenses -->
+<section>
+<h2 class="font-title-md text-title-md text-on-surface mb-md flex items-center gap-xs border-b border-outline-variant pb-xs">
+<span class="material-symbols-outlined text-secondary" data-icon="receipt_long">receipt_long</span>
+                    Monthly Expenses
+                </h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<div class="space-y-xs">
+<label class="font-label-md text-label-md text-on-surface-variant" for="rent">Housing (Rent/Mortgage)</label>
+<div class="relative">
+<span class="absolute inset-y-0 left-0 flex items-center pl-sm text-secondary material-symbols-outlined" data-icon="attach_money" style="font-size: 20px;">attach_money</span>
+<input class="block w-full pl-xl pr-sm py-sm bg-surface-container-lowest border border-outline-variant rounded-lg font-body-lg text-body-lg text-on-surface focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 outline-none" id="rent" name="rent" placeholder="0.00" type="number">
+</div>
+</div>
+<div class="space-y-xs">
+<label class="font-label-md text-label-md text-on-surface-variant" for="utilities">Utilities</label>
+<div class="relative">
+<span class="absolute inset-y-0 left-0 flex items-center pl-sm text-secondary material-symbols-outlined" data-icon="attach_money" style="font-size: 20px;">attach_money</span>
+<input class="block w-full pl-xl pr-sm py-sm bg-surface-container-lowest border border-outline-variant rounded-lg font-body-lg text-body-lg text-on-surface focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 outline-none" id="utilities" name="utilities" placeholder="0.00" type="number">
+</div>
+</div>
+<div class="space-y-xs">
+<label class="font-label-md text-label-md text-on-surface-variant" for="groceries">Groceries</label>
+<div class="relative">
+<span class="absolute inset-y-0 left-0 flex items-center pl-sm text-secondary material-symbols-outlined" data-icon="attach_money" style="font-size: 20px;">attach_money</span>
+<input class="block w-full pl-xl pr-sm py-sm bg-surface-container-lowest border border-outline-variant rounded-lg font-body-lg text-body-lg text-on-surface focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 outline-none" id="groceries" name="groceries" placeholder="0.00" type="number">
+</div>
+</div>
+<div class="space-y-xs">
+<label class="font-label-md text-label-md text-on-surface-variant" for="transport">Transportation</label>
+<div class="relative">
+<span class="absolute inset-y-0 left-0 flex items-center pl-sm text-secondary material-symbols-outlined" data-icon="attach_money" style="font-size: 20px;">attach_money</span>
+<input class="block w-full pl-xl pr-sm py-sm bg-surface-container-lowest border border-outline-variant rounded-lg font-body-lg text-body-lg text-on-surface focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 outline-none" id="transport" name="transport" placeholder="0.00" type="number">
+</div>
+</div>
+</div>
+</section>
+<!-- Active Debts -->
+<section>
+<h2 class="font-title-md text-title-md text-on-surface mb-md flex items-center gap-xs border-b border-outline-variant pb-xs">
+<span class="material-symbols-outlined text-secondary" data-icon="credit_card">credit_card</span>
+                    Active Debts
+                </h2>
+<div class="space-y-md">
+<!-- Debt Item 1 -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-md items-start bg-surface p-md rounded-lg border border-outline-variant border-dashed hover:bg-surface-container-low transition-colors duration-200">
+<div class="md:col-span-5 space-y-xs">
+<label class="font-label-md text-label-md text-on-surface-variant">Debt Type</label>
+<select class="block w-full px-sm py-sm bg-surface-container-lowest border border-outline-variant rounded-lg font-body-lg text-body-lg text-on-surface focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+<option>Credit Card</option>
+<option>Student Loan</option>
+<option>Auto Loan</option>
+<option>Personal Loan</option>
+</select>
+</div>
+<div class="md:col-span-3 space-y-xs">
+<label class="font-label-md text-label-md text-on-surface-variant">Balance</label>
+<div class="relative">
+<span class="absolute inset-y-0 left-0 flex items-center pl-sm text-secondary material-symbols-outlined" data-icon="attach_money" style="font-size: 20px;">attach_money</span>
+<input class="block w-full pl-xl pr-sm py-sm bg-surface-container-lowest border border-outline-variant rounded-lg font-body-lg text-body-lg text-on-surface focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 outline-none" placeholder="0.00" type="number">
+</div>
+</div>
+<div class="md:col-span-3 space-y-xs">
+<label class="font-label-md text-label-md text-on-surface-variant">Monthly Payment</label>
+<div class="relative">
+<span class="absolute inset-y-0 left-0 flex items-center pl-sm text-secondary material-symbols-outlined" data-icon="attach_money" style="font-size: 20px;">attach_money</span>
+<input class="block w-full pl-xl pr-sm py-sm bg-surface-container-lowest border border-outline-variant rounded-lg font-body-lg text-body-lg text-on-surface focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 outline-none" placeholder="0.00" type="number">
+</div>
+</div>
+<div class="md:col-span-1 flex items-end justify-end h-full pb-2 md:pb-0 md:justify-center">
+<button aria-label="Remove debt" class="text-error hover:bg-error-container rounded-full p-xs transition-colors duration-200" type="button">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+<!-- Add New Debt Button -->
+<button class="w-full py-sm border border-outline-variant border-dashed rounded-lg text-primary font-title-md text-title-md flex items-center justify-center gap-xs hover:bg-primary-container hover:text-on-primary-container transition-colors duration-200" type="button">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+                        Add Another Debt
+                    </button>
+</div>
+</section>
+</div>
+</main>
+<!-- BottomNavBar (Suppressed on Web, Visible on Mobile as per prompt requirements - usually we suppress on transactional but prompt explicitly asked for "Bottom navigation with 'Back' and 'Continue'") -->
+<!-- Note: Since this is a transactional flow, normally BottomNavBar is suppressed, but the prompt specifically requested "Bottom navigation with 'Back' and 'Continue' buttons" -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-between items-center px-lg py-md bg-surface dark:bg-surface border-t border-outline-variant dark:border-outline">
+<!-- Back Button -->
+<button class="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed-dim px-6 py-2 hover:bg-surface-variant dark:hover:bg-on-surface-variant rounded-lg transition-colors duration-200 group">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform duration-200" data-icon="arrow_back">arrow_back</span>
+<span class="font-label-md text-label-md mt-1">Back</span>
+</button>
+<!-- Continue Button -->
+<button class="flex flex-col items-center justify-center bg-primary-container dark:bg-primary text-on-primary-container dark:text-on-primary rounded-full px-6 py-2 hover:scale-95 transition-transform duration-150 shadow-sm">
+<span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+<span class="font-label-md text-label-md mt-1">Continue</span>
+</button>
+</nav>
+
+
+</body></html>

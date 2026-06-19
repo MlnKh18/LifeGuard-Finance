@@ -2,6 +2,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/data/local/hive_service.dart';
 import '../../../../core/data/local/local_keys.dart';
+import '../../../rewards/data/datasources/reward_service.dart';
+import '../../../rewards/domain/entities/reward_point.dart';
 import '../../domain/entities/savings_vault_entity.dart';
 import '../../domain/entities/vault_transaction.dart';
 import 'vault_state.dart';
@@ -14,10 +16,12 @@ import '../../../settings/presentation/bloc/profile_event.dart';
 class VaultCubit extends Cubit<VaultState> {
   final HiveService hiveService;
   final VaultRepository vaultRepository;
+  final RewardService rewardService;
 
   VaultCubit({
     required this.hiveService,
     required this.vaultRepository,
+    required this.rewardService,
   }) : super(VaultLoading());
 
   Future<void> loadVaults() async {
@@ -41,6 +45,7 @@ class VaultCubit extends Cubit<VaultState> {
     required double targetAmount,
     double initialAmount = 0.0,
     String? savingPurpose,
+    String? category,
     SavingFrequency savingFrequency = SavingFrequency.monthly,
     double? periodicTargetAmount,
     DateTime? deadline,
@@ -50,6 +55,8 @@ class VaultCubit extends Cubit<VaultState> {
     String? ownerUserId,
     String? ownerEmail,
     String? ownerName,
+    VaultPriority priority = VaultPriority.medium,
+    String? iconName,
   }) async {
     final newVault = SavingsVault(
       id: const Uuid().v4(),
@@ -57,6 +64,7 @@ class VaultCubit extends Cubit<VaultState> {
       targetAmount: targetAmount,
       savedAmount: initialAmount,
       savingPurpose: savingPurpose,
+      category: category,
       savingFrequency: savingFrequency,
       periodicTargetAmount: periodicTargetAmount,
       deadline: deadline,
@@ -68,6 +76,8 @@ class VaultCubit extends Cubit<VaultState> {
       ownerName: ownerName,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
+      priority: priority,
+      iconName: iconName,
     );
     await addVault(newVault);
   }
@@ -85,13 +95,17 @@ class VaultCubit extends Cubit<VaultState> {
 
     final vault = vaults[index];
     final newAmount = vault.savedAmount + amount;
-    
+
     // Create transaction
     await _saveTransaction(vaultId, VaultTransactionType.deposit, amount, note);
 
     final updatedVault = vault.copyWith(savedAmount: newAmount, updatedAt: DateTime.now());
     await vaultRepository.updateVault(updatedVault);
-    
+
+    if (!vault.isCompleted && updatedVault.isCompleted) {
+      await rewardService.addPoints(RewardSource.vaultCompleted, 25);
+    }
+
     emit(const VaultActionSuccess('Berhasil menambah setoran.'));
     loadVaults();
   }

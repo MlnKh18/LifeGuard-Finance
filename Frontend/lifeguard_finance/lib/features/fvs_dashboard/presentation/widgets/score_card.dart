@@ -29,7 +29,7 @@ class ScoreCard extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
         boxShadow: const [
           BoxShadow(
@@ -66,7 +66,7 @@ class ScoreCard extends StatelessWidget {
                   child: CircularProgressIndicator(
                     value: fvsScore.score / 100,
                     strokeWidth: 14,
-                    backgroundColor: AppColors.border,
+                    backgroundColor: AppColors.surfaceContainerHigh,
                     valueColor: AlwaysStoppedAnimation<Color>(scoreColor),
                   ),
                 ),
@@ -77,22 +77,21 @@ class ScoreCard extends StatelessWidget {
                       fvsScore.score.toStringAsFixed(0),
                       style: AppTextStyles.dataDisplay.copyWith(color: scoreColor),
                     ),
-                    Text('Skor FVS', style: AppTextStyles.bodySmall),
+                    Container(
+                      margin: const EdgeInsets.only(top: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: scoreColor.withAlpha(26),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        fvsScore.category,
+                        style: AppTextStyles.dataLabel.copyWith(color: scoreColor, fontSize: 12),
+                      ),
+                    ),
                   ],
                 ),
               ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            decoration: BoxDecoration(
-              color: scoreColor.withAlpha(26),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              fvsScore.category,
-              style: AppTextStyles.dataLabel.copyWith(color: scoreColor),
             ),
           ),
           const SizedBox(height: 12),

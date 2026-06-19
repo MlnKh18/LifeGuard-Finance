@@ -1,30 +1,57 @@
 import 'package:equatable/equatable.dart';
 
+enum TransactionReviewStatus { pending, confirmed, disputed }
+
+enum AnomalySeverity { normal, ringan, tinggi }
+
+const List<String> expenseCategories = [
+  'Makanan',
+  'Transportasi',
+  'Cicilan',
+  'Pendidikan',
+  'Kesehatan',
+  'Belanja Rumah Tangga',
+  'Hiburan',
+  'Lainnya',
+];
+
 class ExpenseTransaction extends Equatable {
   final String id;
   final String category;
   final double amount;
   final DateTime date;
-  final bool isAnomaly;
-  final double? zScore;
+  final String? note;
+  final AnomalySeverity severity;
+  final double percentageIncrease; // vs. historical average for the same category
+  final TransactionReviewStatus reviewStatus;
 
   const ExpenseTransaction({
     required this.id,
     required this.category,
     required this.amount,
     required this.date,
-    this.isAnomaly = false,
-    this.zScore,
+    this.note,
+    this.severity = AnomalySeverity.normal,
+    this.percentageIncrease = 0.0,
+    this.reviewStatus = TransactionReviewStatus.pending,
   });
 
-  ExpenseTransaction copyWith({bool? isAnomaly, double? zScore}) {
+  bool get isAnomaly => severity != AnomalySeverity.normal;
+
+  ExpenseTransaction copyWith({
+    AnomalySeverity? severity,
+    double? percentageIncrease,
+    TransactionReviewStatus? reviewStatus,
+  }) {
     return ExpenseTransaction(
       id: id,
       category: category,
       amount: amount,
       date: date,
-      isAnomaly: isAnomaly ?? this.isAnomaly,
-      zScore: zScore ?? this.zScore,
+      note: note,
+      severity: severity ?? this.severity,
+      percentageIncrease: percentageIncrease ?? this.percentageIncrease,
+      reviewStatus: reviewStatus ?? this.reviewStatus,
     );
   }
 
@@ -34,6 +61,11 @@ class ExpenseTransaction extends Equatable {
       category: json['category'] as String,
       amount: (json['amount'] as num).toDouble(),
       date: DateTime.parse(json['date'] as String),
+      note: json['note'] as String?,
+      reviewStatus: TransactionReviewStatus.values.firstWhere(
+        (s) => s.name == json['reviewStatus'],
+        orElse: () => TransactionReviewStatus.pending,
+      ),
     );
   }
 
@@ -43,9 +75,11 @@ class ExpenseTransaction extends Equatable {
       'category': category,
       'amount': amount,
       'date': date.toIso8601String(),
+      if (note != null) 'note': note,
+      'reviewStatus': reviewStatus.name,
     };
   }
 
   @override
-  List<Object?> get props => [id, category, amount, date, isAnomaly, zScore];
+  List<Object?> get props => [id, category, amount, date, note, severity, percentageIncrease, reviewStatus];
 }

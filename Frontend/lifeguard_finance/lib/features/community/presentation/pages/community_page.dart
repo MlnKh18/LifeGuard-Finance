@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/primary_button.dart';
-import '../../../../core/widgets/section_title.dart';
 import '../../domain/entities/community_challenge.dart';
 import '../../domain/entities/community_post.dart';
 import '../../domain/entities/community_progress.dart';
@@ -15,8 +15,6 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../auth/core/permission_helper.dart';
 import '../../../auth/presentation/widgets/auth_widgets.dart';
-
-const _availableTags = ['#SandwichGeneration', '#EmergencyFund', '#Menabung', '#Investasi'];
 
 class CommunityPage extends StatelessWidget {
   const CommunityPage({super.key});
@@ -42,8 +40,15 @@ class CommunityPage extends StatelessWidget {
   }
 }
 
-class CommunityView extends StatelessWidget {
+class CommunityView extends StatefulWidget {
   const CommunityView({super.key});
+
+  @override
+  State<CommunityView> createState() => _CommunityViewState();
+}
+
+class _CommunityViewState extends State<CommunityView> {
+  String? _categoryFilter;
 
   @override
   Widget build(BuildContext context) {
@@ -78,19 +83,47 @@ class CommunityView extends StatelessWidget {
   }
 
   Widget _buildContent(BuildContext context, CommunityLoaded state) {
+    final visiblePosts = state.posts.where((p) {
+      if (p.status == PostStatus.removed) return false;
+      if (_categoryFilter != null && p.category != _categoryFilter) return false;
+      return true;
+    }).toList();
+
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
       children: [
-        const SectionTitle(
-          title: 'Komunitas',
-          subtitle: 'Belajar bersama, tumbuh bersama.',
-        ),
-        const SizedBox(height: 8),
+        Text('Komunitas', style: AppTextStyles.heading1.copyWith(fontSize: 32)),
+        const SizedBox(height: 4),
+        Text('Belajar bersama, tumbuh bersama.', style: AppTextStyles.bodyMedium),
+        const SizedBox(height: 16),
         _buildProgressCard(state.progress),
         const SizedBox(height: 24),
-        Text('Diskusi Terbaru', style: AppTextStyles.heading2),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Diskusi Terbaru', style: AppTextStyles.heading2),
+            PopupMenuButton<String?>(
+              initialValue: _categoryFilter,
+              onSelected: (value) => setState(() => _categoryFilter = value),
+              itemBuilder: (context) => [
+                const PopupMenuItem(value: null, child: Text('Semua Topik')),
+                ...communityCategories.map((t) => PopupMenuItem(value: t, child: Text(t))),
+              ],
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _categoryFilter ?? 'Filter',
+                    style: AppTextStyles.dataLabel.copyWith(color: AppColors.primary, fontWeight: FontWeight.w600),
+                  ),
+                  const Icon(Icons.filter_list_rounded, size: 18, color: AppColors.primary),
+                ],
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 12),
-        ...state.posts.map((post) => _buildPostCard(context, post)),
+        ...visiblePosts.map((post) => _buildPostCard(context, post)),
         const SizedBox(height: 24),
         Text('Tantangan Aktif', style: AppTextStyles.heading2),
         const SizedBox(height: 12),
@@ -118,12 +151,12 @@ class CommunityView extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withAlpha(26),
+                  color: AppColors.primaryContainer,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   progress.badge,
-                  style: AppTextStyles.label.copyWith(color: AppColors.primary),
+                  style: AppTextStyles.label.copyWith(color: AppColors.onPrimaryContainer),
                 ),
               ),
             ],
@@ -132,7 +165,7 @@ class CommunityView extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.background,
+              color: AppColors.surfaceContainerLow,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -174,6 +207,7 @@ class CommunityView extends StatelessWidget {
   Widget _buildPostCard(BuildContext context, CommunityPost post) {
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
+      onTap: () => context.push('/community/${post.id}'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -182,10 +216,12 @@ class CommunityView extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 18,
-                backgroundColor: AppColors.primary.withAlpha(38),
+                backgroundColor: post.authorName.hashCode.isEven ? AppColors.primary.withAlpha(38) : AppColors.tertiaryContainer,
                 child: Text(
                   post.authorName.isNotEmpty ? post.authorName[0].toUpperCase() : '?',
-                  style: AppTextStyles.heading3.copyWith(color: AppColors.primary),
+                  style: AppTextStyles.heading3.copyWith(
+                    color: post.authorName.hashCode.isEven ? AppColors.primary : AppColors.onTertiaryContainer,
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -195,7 +231,7 @@ class CommunityView extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        if (post.isFlagged) ...[
+                        if (post.status == PostStatus.flagged) ...[
                           const Icon(Icons.warning_amber_rounded, color: AppColors.riskCritical, size: 16),
                           const SizedBox(width: 4),
                         ],
@@ -207,12 +243,15 @@ class CommunityView extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: AppColors.secondary.withAlpha(26),
+                        color: post.status == PostStatus.flagged ? AppColors.errorContainer : AppColors.secondaryContainer,
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        post.tag,
-                        style: AppTextStyles.bodySmall.copyWith(color: AppColors.secondary, fontWeight: FontWeight.w600),
+                        post.category,
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: post.status == PostStatus.flagged ? AppColors.onErrorContainer : AppColors.onSecondaryContainer,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
@@ -317,6 +356,7 @@ class CommunityView extends StatelessWidget {
 
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
+      borderRadius: 8.0,
       child: Row(
         children: [
           Expanded(
@@ -349,7 +389,7 @@ class CommunityView extends StatelessWidget {
   void _showAddPostDialog(BuildContext context) {
     final cubit = context.read<CommunityCubit>();
     final contentController = TextEditingController();
-    String tag = _availableTags.first;
+    String category = communityCategories.first;
     final formKey = GlobalKey<FormState>();
 
     showDialog(
@@ -373,10 +413,10 @@ class CommunityView extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
-                      initialValue: tag,
-                      decoration: const InputDecoration(labelText: 'Topik'),
-                      items: _availableTags.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
-                      onChanged: (val) => setDialogState(() => tag = val ?? tag),
+                      initialValue: category,
+                      decoration: const InputDecoration(labelText: 'Kategori'),
+                      items: communityCategories.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                      onChanged: (val) => setDialogState(() => category = val ?? category),
                     ),
                   ],
                 ),
@@ -389,7 +429,7 @@ class CommunityView extends StatelessWidget {
                 TextButton(
                   onPressed: () {
                     if (!formKey.currentState!.validate()) return;
-                    cubit.addPost(content: contentController.text.trim(), tag: tag);
+                    cubit.addPost(content: contentController.text.trim(), category: category);
                     Navigator.of(dialogContext).pop();
                   },
                   child: const Text('Posting'),
