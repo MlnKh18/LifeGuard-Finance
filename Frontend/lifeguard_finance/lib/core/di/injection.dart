@@ -25,7 +25,8 @@ import '../../features/literacy/domain/repositories/literacy_repository.dart';
 import '../../features/literacy/data/repositories/literacy_repository_impl.dart';
 import '../../features/community/domain/repositories/community_repository.dart';
 import '../../features/community/data/repositories/community_repository_impl.dart';
-import '../../features/rewards/data/datasources/reward_service.dart';
+import '../../features/rewards/domain/repositories/reward_repository.dart';
+import '../../features/rewards/data/repositories/reward_repository_impl.dart';
 import '../../features/daily_finance/domain/repositories/finance_record_repository.dart';
 import '../../features/daily_finance/data/repositories/finance_record_repository_impl.dart';
 import '../../features/anomaly_detection/domain/repositories/anomaly_repository.dart';
@@ -72,6 +73,7 @@ Future<void> setupInjection() async {
     () => ProfileRepositoryImpl(
       localDataSource: getIt<ProfileLocalDataSource>(),
       vaultRepository: getIt<VaultRepository>(),
+      rewardRepository: getIt<RewardRepository>(),
     ),
   );
   getIt.registerLazySingleton<VaultRepository>(
@@ -111,6 +113,12 @@ Future<void> setupInjection() async {
       authRepository: getIt<AuthRepository>(),
     ),
   );
+  getIt.registerLazySingleton<RewardRepository>(
+    () => RewardRepositoryImpl(
+      hiveService: getIt<HiveService>(),
+      authRepository: getIt<AuthRepository>(),
+    ),
+  );
 
   // =========================================================================
   // USE CASES
@@ -145,9 +153,6 @@ Future<void> setupInjection() async {
   );
   getIt.registerLazySingleton<EarlyWarningRuleChecker>(
     () => const EarlyWarningRuleChecker(),
-  );
-  getIt.registerLazySingleton<RewardService>(
-    () => RewardService(hiveService: getIt<HiveService>()),
   );
 
   // =========================================================================
@@ -212,7 +217,11 @@ Future<void> setupInjection() async {
     ),
   );
   getIt.registerFactory<LiteracyCubit>(
-    () => LiteracyCubit(repository: getIt<LiteracyRepository>()),
+    () => LiteracyCubit(
+      repository: getIt<LiteracyRepository>(),
+      rewardRepository: getIt<RewardRepository>(),
+      authRepository: getIt<AuthRepository>(),
+    ),
   );
   getIt.registerFactory<DailyFinanceCubit>(
     () => DailyFinanceCubit(
@@ -227,17 +236,18 @@ Future<void> setupInjection() async {
     () => VaultCubit(
       hiveService: getIt<HiveService>(),
       vaultRepository: getIt<VaultRepository>(),
-      rewardService: getIt<RewardService>(),
+      rewardRepository: getIt<RewardRepository>(),
     ),
   );
   getIt.registerFactory<CommunityCubit>(
     () => CommunityCubit(
       communityRepository: getIt<CommunityRepository>(),
-      rewardService: getIt<RewardService>(),
+      rewardRepository: getIt<RewardRepository>(),
+      authRepository: getIt<AuthRepository>(),
     ),
   );
   getIt.registerFactory<RewardCubit>(
-    () => RewardCubit(rewardService: getIt<RewardService>()),
+    () => RewardCubit(rewardRepository: getIt<RewardRepository>()),
   );
   getIt.registerLazySingleton<ProfileBloc>(
     () => ProfileBloc(repository: getIt<ProfileRepository>()),

@@ -14,14 +14,18 @@ import '../../../family_profile/domain/entities/family_profile_entity.dart';
 import '../../../literacy/domain/entities/literacy_module.dart';
 
 import '../../../savings_vault/domain/repositories/vault_repository.dart';
+import '../../../rewards/domain/repositories/reward_repository.dart';
+import '../../../rewards/domain/entities/reward_point.dart';
 
 class ProfileRepositoryImpl implements ProfileRepository {
   final ProfileLocalDataSource localDataSource;
   final VaultRepository vaultRepository;
+  final RewardRepository rewardRepository;
 
   ProfileRepositoryImpl({
     required this.localDataSource,
     required this.vaultRepository,
+    required this.rewardRepository,
   });
 
   @override
@@ -32,7 +36,6 @@ class ProfileRepositoryImpl implements ProfileRepository {
     final fvsScoreRaw = data['fvsScore'] as Map<dynamic, dynamic>? ?? {};
     final literacyData = data['literacyData'] as Map<dynamic, dynamic>? ?? {};
     final communityData = data['communityData'] as Map<dynamic, dynamic>? ?? {};
-    final rewardData = data['rewardData'] as Map<dynamic, dynamic>? ?? {};
     final mockUser = data['mockUser'] as Map<dynamic, dynamic>? ?? {};
 
     // Get Auth Session and active user data
@@ -300,25 +303,15 @@ class ProfileRepositoryImpl implements ProfileRepository {
         : [];
 
     // Map Rewards
-    final totalRewardPoints = (rewardData['points'] as num?)?.toInt() ?? 120;
-    final activeBadge = rewardData['badge'] as String? ?? 'Financial Guardian';
-    final List<Map<String, dynamic>> rewardTransactions = [
-      {
-        'type': 'Menyelesaikan FVS Kalkulator',
-        'points': 50,
-        'date': DateTime.now().subtract(const Duration(days: 1)),
-      },
-      {
-        'type': 'Membaca Modul Literasi Finansial',
-        'points': 20,
-        'date': DateTime.now().subtract(const Duration(days: 2)),
-      },
-      {
-        'type': 'Membuat Target Pos Dana Darurat',
-        'points': 50,
-        'date': DateTime.now().subtract(const Duration(days: 3)),
-      },
-    ];
+    final rewardSummary = await rewardRepository.getRewardSummary();
+    final totalRewardPoints = rewardSummary.totalPoints;
+    final activeBadge = rewardSummary.activeBadge?.badgeName ?? 'None';
+    
+    final List<Map<String, dynamic>> rewardTransactions = rewardSummary.transactions.map((t) => {
+      'type': rewardActivityTypeLabel(t.activityType),
+      'points': t.points,
+      'date': t.createdAt,
+    }).toList();
 
     // Map user roles & permissions
     final isHead = currentUser?.role == UserRole.headOfFamily;

@@ -225,20 +225,20 @@ class DashboardView extends StatelessWidget {
             _buildLiteracyRecommendation(context, state),
             const SizedBox(height: 24),
 
-            // Action Button
-            PrimaryButton(
-              text: 'Perbarui Target Keuangan',
-              icon: const Icon(Icons.add_task_rounded, color: Colors.white, size: 18),
-              onPressed: () => context.go('/family-profile'),
-            ),
-            const SizedBox(height: 28),
-
             Text('Breakdown Indikator (S1-S7)', style: AppTextStyles.heading2),
             const SizedBox(height: 12),
 
             // Indicator breakdown list widget
             IndicatorBreakdown(fvsScore: state.score),
             const SizedBox(height: 24),
+
+            // Action Button
+            PrimaryButton(
+              text: 'Perbarui Target Keuangan',
+              icon: const Icon(Icons.add_task_rounded, color: Colors.white, size: 18),
+              onPressed: () => context.push('/family-profile'),
+            ),
+            const SizedBox(height: 28),
           ],
         ),
       ),

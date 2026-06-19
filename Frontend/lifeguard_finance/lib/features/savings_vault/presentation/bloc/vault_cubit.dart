@@ -2,7 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/data/local/hive_service.dart';
 import '../../../../core/data/local/local_keys.dart';
-import '../../../rewards/data/datasources/reward_service.dart';
+import '../../../rewards/domain/repositories/reward_repository.dart';
 import '../../../rewards/domain/entities/reward_point.dart';
 import '../../domain/entities/savings_vault_entity.dart';
 import '../../domain/entities/vault_transaction.dart';
@@ -16,12 +16,12 @@ import '../../../settings/presentation/bloc/profile_event.dart';
 class VaultCubit extends Cubit<VaultState> {
   final HiveService hiveService;
   final VaultRepository vaultRepository;
-  final RewardService rewardService;
+  final RewardRepository rewardRepository;
 
   VaultCubit({
     required this.hiveService,
     required this.vaultRepository,
-    required this.rewardService,
+    required this.rewardRepository,
   }) : super(VaultLoading());
 
   Future<void> loadVaults() async {
@@ -103,7 +103,18 @@ class VaultCubit extends Cubit<VaultState> {
     await vaultRepository.updateVault(updatedVault);
 
     if (!vault.isCompleted && updatedVault.isCompleted) {
-      await rewardService.addPoints(RewardSource.vaultCompleted, vaultId, 25);
+      final ownerUserId = vault.ownerUserId ?? '';
+      if (ownerUserId.isNotEmpty) {
+        await rewardRepository.grantRewardIfNotExists(
+          userId: ownerUserId,
+          userEmail: vault.ownerEmail ?? '',
+          userName: vault.ownerName ?? '',
+          activityType: RewardActivityType.completeVault,
+          sourceId: vaultId,
+          points: 25,
+          description: 'Menyelesaikan target tabungan ${vault.name}.',
+        );
+      }
     }
 
     emit(const VaultActionSuccess('Berhasil menambah setoran.'));

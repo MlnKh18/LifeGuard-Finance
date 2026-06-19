@@ -1,28 +1,68 @@
 import 'package:equatable/equatable.dart';
 
 class RewardBadge extends Equatable {
-  final String name;
-  final int thresholdPoints;
-  final String iconName;
+  final String badgeId;
+  final String badgeName;
+  final String description;
+  final int minPoints;
+  final String iconKey;
 
   const RewardBadge({
-    required this.name,
-    required this.thresholdPoints,
-    required this.iconName,
+    required this.badgeId,
+    required this.badgeName,
+    required this.description,
+    required this.minPoints,
+    required this.iconKey,
   });
 
   @override
-  List<Object?> get props => [name, thresholdPoints, iconName];
+  List<Object?> get props => [badgeId, badgeName, description, minPoints, iconKey];
 }
 
-const RewardBadge starterSaverBadge = RewardBadge(name: 'Starter Saver', thresholdPoints: 0, iconName: 'savings');
-const RewardBadge emergencyBuilderBadge = RewardBadge(name: 'Emergency Builder', thresholdPoints: 50, iconName: 'shield');
-const RewardBadge helpfulFamilyBadge = RewardBadge(name: 'Helpful Family', thresholdPoints: 100, iconName: 'volunteer_activism');
-const RewardBadge financialGuardianBadge = RewardBadge(name: 'Financial Guardian', thresholdPoints: 200, iconName: 'military_tech');
+const RewardBadge starterLearnerBadge = RewardBadge(
+  badgeId: 'starter_learner',
+  badgeName: 'Starter Learner',
+  description: 'Mulai membangun kebiasaan finansial sehat.',
+  minPoints: 0,
+  iconKey: 'star_outline',
+);
+
+const RewardBadge smartSaverBadge = RewardBadge(
+  badgeId: 'smart_saver',
+  badgeName: 'Smart Saver',
+  description: 'Aktif menabung dan memantau target keuangan.',
+  minPoints: 25,
+  iconKey: 'savings',
+);
+
+const RewardBadge financialBuilderBadge = RewardBadge(
+  badgeId: 'financial_builder',
+  badgeName: 'Financial Builder',
+  description: 'Konsisten belajar dan menjalankan aksi keuangan.',
+  minPoints: 75,
+  iconKey: 'trending_up',
+);
+
+const RewardBadge familyGuardianBadge = RewardBadge(
+  badgeId: 'family_guardian',
+  badgeName: 'Family Guardian',
+  description: 'Berperan aktif menjaga ketahanan finansial keluarga.',
+  minPoints: 150,
+  iconKey: 'shield',
+);
+
+const RewardBadge financialChampionBadge = RewardBadge(
+  badgeId: 'financial_champion',
+  badgeName: 'Financial Champion',
+  description: 'Menjadi teladan dalam pengelolaan keuangan keluarga.',
+  minPoints: 300,
+  iconKey: 'military_tech',
+);
 
 const List<RewardBadge> rewardBadges = [
-  starterSaverBadge,
-  emergencyBuilderBadge,
-  helpfulFamilyBadge,
-  financialGuardianBadge,
+  starterLearnerBadge,
+  smartSaverBadge,
+  financialBuilderBadge,
+  familyGuardianBadge,
+  financialChampionBadge,
 ];

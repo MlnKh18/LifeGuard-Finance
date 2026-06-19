@@ -1,34 +1,49 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../data/datasources/reward_service.dart';
-import '../../domain/entities/reward_badge.dart';
-import '../../domain/entities/reward_point.dart';
+import '../../domain/repositories/reward_repository.dart';
+import '../../domain/entities/reward_summary.dart';
 
-class RewardState extends Equatable {
-  final int points;
-  final RewardBadge badge;
-  final List<RewardPoint> ledger;
-
-  const RewardState({this.points = 0, this.badge = starterSaverBadge, this.ledger = const []});
+abstract class RewardState extends Equatable {
+  const RewardState();
 
   @override
-  List<Object?> get props => [points, badge, ledger];
+  List<Object?> get props => [];
+}
+
+class RewardInitial extends RewardState {}
+
+class RewardLoading extends RewardState {}
+
+class RewardLoaded extends RewardState {
+  final RewardSummary summary;
+
+  const RewardLoaded({required this.summary});
+
+  @override
+  List<Object?> get props => [summary];
+}
+
+class RewardError extends RewardState {
+  final String message;
+
+  const RewardError(this.message);
+
+  @override
+  List<Object?> get props => [message];
 }
 
 class RewardCubit extends Cubit<RewardState> {
-  final RewardService rewardService;
+  final RewardRepository rewardRepository;
 
-  RewardCubit({required this.rewardService}) : super(const RewardState());
+  RewardCubit({required this.rewardRepository}) : super(RewardInitial());
 
-  Future<void> loadPoints() async {
-    final ledger = await rewardService.getLedger();
-    final points = rewardService.totalPoints(ledger);
-    emit(RewardState(points: points, badge: rewardService.badgeForPoints(points), ledger: ledger));
-  }
-
-  Future<void> addPoints(int amount, {RewardSource source = RewardSource.literacyModule, String sourceId = 'module'}) async {
-    final ledger = await rewardService.addPoints(source, sourceId, amount);
-    final points = rewardService.totalPoints(ledger);
-    emit(RewardState(points: points, badge: rewardService.badgeForPoints(points), ledger: ledger));
+  Future<void> loadRewardSummary() async {
+    emit(RewardLoading());
+    try {
+      final summary = await rewardRepository.getRewardSummary();
+      emit(RewardLoaded(summary: summary));
+    } catch (e) {
+      emit(RewardError(e.toString()));
+    }
   }
 }

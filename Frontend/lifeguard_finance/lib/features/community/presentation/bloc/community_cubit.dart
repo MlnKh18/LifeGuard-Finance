@@ -1,7 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
-import '../../../rewards/data/datasources/reward_service.dart';
+import '../../../rewards/domain/repositories/reward_repository.dart';
 import '../../../rewards/domain/entities/reward_point.dart';
+import '../../../auth/domain/repositories/auth_repository.dart';
 import '../../domain/entities/community_comment.dart';
 import '../../domain/entities/community_post.dart';
 import '../../domain/entities/community_report.dart';
@@ -10,11 +11,13 @@ import 'community_state.dart';
 
 class CommunityCubit extends Cubit<CommunityState> {
   final CommunityRepository communityRepository;
-  final RewardService rewardService;
+  final RewardRepository rewardRepository;
+  final AuthRepository authRepository;
 
   CommunityCubit({
     required this.communityRepository,
-    required this.rewardService,
+    required this.rewardRepository,
+    required this.authRepository,
   }) : super(CommunityInitial());
 
   Future<void> loadPosts({String topic = 'Semua'}) async {
@@ -78,11 +81,18 @@ class CommunityCubit extends Cubit<CommunityState> {
       );
       
       await communityRepository.createPost(newPost);
-      await rewardService.grantRewardIfNotExists(
-        source: RewardSource.post,
-        sourceId: newPost.postId,
-        points: 10,
-      );
+      final user = await authRepository.getCurrentUser();
+      if (user != null) {
+        await rewardRepository.grantRewardIfNotExists(
+          userId: user.userId,
+          userEmail: user.email,
+          userName: user.fullName,
+          activityType: RewardActivityType.createCommunityPost,
+          sourceId: newPost.postId,
+          points: 10,
+          description: 'Membuat post community.',
+        );
+      }
       
       emit(const CommunityActionSuccess('Post berhasil dipublikasikan.'));
       await loadPosts(topic: currentTopic);
@@ -136,11 +146,18 @@ class CommunityCubit extends Cubit<CommunityState> {
       );
       
       await communityRepository.createComment(comment);
-      await rewardService.grantRewardIfNotExists(
-        source: RewardSource.comment,
-        sourceId: comment.commentId,
-        points: 5,
-      );
+      final user = await authRepository.getCurrentUser();
+      if (user != null) {
+        await rewardRepository.grantRewardIfNotExists(
+          userId: user.userId,
+          userEmail: user.email,
+          userName: user.fullName,
+          activityType: RewardActivityType.createCommunityComment,
+          sourceId: comment.commentId,
+          points: 5,
+          description: 'Membuat komentar community.',
+        );
+      }
       
       emit(const CommunityActionSuccess('Komentar berhasil ditambahkan.'));
       await loadPostDetail(postId);
@@ -171,11 +188,20 @@ class CommunityCubit extends Cubit<CommunityState> {
   Future<void> markCommentHelpful(String postId, String commentId) async {
     try {
       await communityRepository.markCommentHelpful(commentId);
-      await rewardService.grantRewardIfNotExists(
-        source: RewardSource.helpfulComment,
-        sourceId: commentId,
-        points: 20,
-      );
+      final comments = await communityRepository.getCommentsByPostId(postId);
+      final comment = comments.where((c) => c.commentId == commentId).firstOrNull;
+      
+      if (comment != null && comment.authorUserId.isNotEmpty) {
+        await rewardRepository.grantRewardIfNotExists(
+          userId: comment.authorUserId,
+          userEmail: comment.authorEmail,
+          userName: comment.authorName,
+          activityType: RewardActivityType.helpfulComment,
+          sourceId: commentId,
+          points: 20,
+          description: 'Komentar ditandai bermanfaat.',
+        );
+      }
       await loadPostDetail(postId);
     } catch (e) {
       emit(CommunityError(e.toString()));
