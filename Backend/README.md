@@ -1,148 +1,177 @@
-# LifeGuard Finance Backend
+# ⚙️ LifeGuard Finance Backend
 
-Production-ready backend API for LifeGuard Finance — a mobile-first personal finance platform with AI-driven financial health monitoring.
+Production-ready, type-safe Backend API Gateway for the **LifeGuard Finance** platform. This server manages core business logic, database transactions, user profiles, notifications, and delegates financial intelligence requests to the Machine Learning service.
 
-## Tech Stack
+---
 
-- **Runtime**: Node.js 18+
-- **Language**: TypeScript
-- **Framework**: Express.js 5
-- **Database**: Supabase PostgreSQL
-- **ORM**: Prisma
-- **Auth**: Firebase Authentication (JWT)
-- **Validation**: Zod
-- **Docs**: Swagger UI / OpenAPI 3.1
-- **Deployment**: Vercel
+## 🛠️ Technology Stack
 
-## Architecture
+* **Runtime**: Node.js (v18+)
+* **Language**: TypeScript
+* **Web Framework**: Express.js 5
+* **Database**: PostgreSQL (hosted on Supabase)
+* **ORM**: Prisma Client
+* **Auth**: Firebase Admin SDK (JWT Validation)
+* **Validation**: Zod (Runtime Schema Validation)
+* **API Docs**: Swagger UI / OpenAPI 3.1
+* **Hosting**: Vercel
 
-- Modular Monolith
-- Clean Architecture (Controller → Service → Repository)
-- Adapter Pattern for ML integration
-- RBAC with Firebase JWT
+---
 
-## Quick Start
+## 🏛️ Architectural Design
 
+* **Clean Architecture**: Standardized dependency flow: **Controller** (HTTP routing) → **Service** (business logic validation) → **Repository** (database access layer).
+* **Modular Monolith**: Organized into domain-specific modules (`auth`, `users`, `profiles`, `incomes`, `expenses`, etc.).
+* **Adapter Pattern**: A clean adapter layer abstracts interaction with the FastAPI Machine Learning server.
+* **Security Middleware**: Role-Based Access Control (RBAC) and request rate limiting.
+
+---
+
+## 🚀 Dev Setup & Installation
+
+To run the backend gateway locally:
+
+### 1. Prerequisite Installations
+Ensure you have **Node.js** and **pnpm** installed:
+```bash
+npm install -g pnpm
+```
+
+### 2. Install Packages
 ```bash
 pnpm install
+```
+
+### 3. Configure Environment
+Create a copy of the env template and fill in the values:
+```bash
 cp .env.example .env
+```
+*(Refer to the [Environment Variables](#-environment-variables) section below).*
+
+### 4. Build database schema and seed data
+Generate the database client and execute database seeding:
+```bash
+# Generate Prisma types
 pnpm prisma:generate
+
+# Run DB migrations
 pnpm prisma:migrate
+
+# Populate with starter data
 pnpm prisma:seed
+```
+
+### 5. Launch Dev Server
+```bash
 pnpm dev
 ```
+* Dev server will start on `http://localhost:3000`.
+* Interactive OpenAPI/Swagger Documentation is available at `http://localhost:3000/api/docs`.
 
-API will be available at `http://localhost:3000`
-Swagger UI at `http://localhost:3000/api/docs`
+---
 
-## Environment Variables
+## 🔑 Environment Variables
+
+The backend relies on the following `.env` configuration:
 
 | Variable | Required | Description |
-|----------|----------|-------------|
-| `DATABASE_URL` | Yes | Supabase pooled connection string |
-| `DIRECT_URL` | Yes | Supabase direct connection string |
-| `FIREBASE_PROJECT_ID` | Yes | Firebase project ID |
-| `FIREBASE_CLIENT_EMAIL` | Yes | Firebase admin service account email |
-| `FIREBASE_PRIVATE_KEY` | Yes | Firebase admin private key |
-| `ML_SERVICE_URL` | Yes | ML service base URL |
-| `CORS_ORIGIN` | No | CORS origin (default: *) |
-| `PORT` | No | Server port (default: 3000) |
-| `RATE_LIMIT_WINDOW_MS` | No | Rate limit window (default: 900000) |
-| `RATE_LIMIT_MAX` | No | Rate limit max requests (default: 100) |
+|:---|:---:|:---|
+| `DATABASE_URL` | **Yes** | Transaction-pooled PostgreSQL connection string. |
+| `DIRECT_URL` | **Yes** | Direct connection string to PostgreSQL (used for migrations). |
+| `FIREBASE_PROJECT_ID` | **Yes** | Firebase project identifier. |
+| `FIREBASE_CLIENT_EMAIL`| **Yes** | Client email of the Firebase Admin service account. |
+| `FIREBASE_PRIVATE_KEY` | **Yes** | Private key of the Firebase Admin service account (use quotes for formatting). |
+| `ML_SERVICE_URL` | **Yes** | The base address of the ML service (e.g. `http://localhost:8000`). |
+| `CORS_ORIGIN` | No | CORS allowed origin list (Defaults to `*` if left blank). |
+| `PORT` | No | Target port for the server to listen on (Defaults to `3000`). |
+| `RATE_LIMIT_WINDOW_MS` | No | Time window size for rate limiter in ms (Default: 15 minutes). |
+| `RATE_LIMIT_MAX` | No | Maximum requests per client within the window (Default: 100). |
 
-## Project Structure
+---
 
-```
-backend/
-├── api/                    # Vercel entry point
-├── prisma/                 # Schema & migrations
+## 📂 Project Structure
+
+```text
+Backend/
+├── api/                    # Vercel serverless functions entrypoint
+├── prisma/                 # Prisma DB Schemas, Migrations, and Seeds
+│   ├── migrations/         # PostgreSQL migration history logs
+│   ├── schema.prisma       # Relational database models
+│   └── seed.ts             # Seeding script for test users & categories
 ├── src/
-│   ├── modules/
-│   │   ├── auth/           # Authentication
-│   │   ├── users/          # User management
-│   │   ├── profiles/       # Family profiles
-│   │   ├── incomes/        # Income records
-│   │   ├── expenses/       # Expense records
-│   │   ├── debts/          # Debt obligations
-│   │   ├── dependents/     # Dependents
-│   │   ├── protections/    # Insurance/protection
-│   │   ├── fvs/            # Financial Vulnerability Score
-│   │   ├── simulations/    # What-if simulations
-│   │   ├── recommendations/# ML recommendations
-│   │   ├── anomalies/      # Expense anomalies
-│   │   ├── notifications/  # Notifications
-│   │   ├── literacy/       # Financial literacy
-│   │   ├── vaults/         # Savings vaults
-│   │   ├── community/      # Community posts
-│   │   ├── rewards/        # Gamification
-│   │   └── ml/             # ML adapter layer
-│   ├── shared/
-│   │   ├── prisma/         # DB client
-│   │   ├── firebase/       # Firebase admin
-│   │   ├── middleware/      # Auth, validation, errors
-│   │   ├── swagger/        # OpenAPI spec
-│   │   ├── types/          # Shared types
-│   │   ├── utils/          # Utilities
-│   │   └── constants/      # Constants
-│   ├── app.ts              # Express app
-│   └── server.ts           # Dev server
-├── vercel.json
-├── package.json
-└── tsconfig.json
+│   ├── app.ts              # Express application configuration
+│   ├── server.ts           # Local development listener setup
+│   ├── modules/            # Domain-specific logic modules
+│   │   ├── auth/           # Firebase JWT Validation & synchronization
+│   │   ├── users/          # User information & profiles
+│   │   ├── profiles/       # Family budget structures
+│   │   ├── incomes/        # Income records management
+│   │   ├── expenses/       # Expense tracking
+│   │   ├── debts/          # Debt logs
+│   │   ├── dependents/     # Financial dependents detail
+│   │   ├── protections/    # Insurance and safety metrics
+│   │   ├── fvs/            # Financial Vulnerability Score triggers
+│   │   ├── simulations/    # What-if scenario execution
+│   │   ├── recommendations/# ML advisor suggestions
+│   │   ├── anomalies/      # Expense anomaly detectors
+│   │   ├── notifications/  # User trigger alerts
+│   │   ├── literacy/       # Reading materials and educational modules
+│   │   ├── vaults/         # Savings goals and vault structures
+│   │   ├── community/      # Forum posts & social comments
+│   │   ├── rewards/        # User loyalty points and achievements
+│   │   └── ml/             # External ML connection adapters
+│   └── shared/             # Shared classes, models, and helper middleware
+│       ├── prisma/         # Prisma client instances
+│       ├── firebase/       # Firebase admin initializer
+│       ├── middleware/     # Rate limiter, authorization checks, and error handlers
+│       ├── swagger/        # Swagger UI configuration specs
+│       ├── types/          # Core TypeScript interface files
+│       └── utils/          # General utility functions
+└── vercel.json             # Vercel deployment configuration
 ```
 
-## API Endpoints
+---
 
-All endpoints are prefixed with `/api/v1`.
+## ⚡ API Endpoint Reference
 
-| Module | Endpoints |
-|--------|-----------|
-| Auth | `GET /auth/me`, `POST /auth/sync-user` |
-| Users | `GET /users/me`, `PATCH /users/me` |
-| Profiles | CRUD `/profiles` |
-| Incomes | CRUD `/incomes` |
-| Expenses | CRUD `/expenses` |
-| Debts | CRUD `/debts` |
-| Dependents | CRUD `/dependents` |
-| Protections | CRUD `/protections` |
-| FVS | `POST /fvs/calculate`, `GET /fvs/history`, `GET /fvs/latest`, `GET /fvs/:id` |
-| Simulations | `POST /simulations`, `GET /simulations`, `GET /simulations/:id`, `DELETE /simulations/:id` |
-| Recommendations | `GET /recommendations`, `GET /recommendations/:id` |
-| Anomalies | `POST /anomalies/detect`, `GET /anomalies`, `GET /anomalies/:id` |
-| Notifications | `GET /notifications`, `PATCH /notifications/:id/read`, `PATCH /notifications/read-all` |
-| Literacy | `GET /literacy`, `GET /literacy/:id` |
-| Vaults | CRUD `/vaults` |
-| Community | CRUD `/community/posts`, CRUD `/community/comments` |
-| Rewards | `GET /rewards`, `GET /rewards/history` |
+All routes are versioned and prefixed with `/api/v1`. Detailed payloads are documented on the `/api/docs` Swagger page.
 
-## ML Integration
+| Category | Method | Endpoint | Description |
+|:---|:---|:---|:---|
+| **Auth** | `GET` | `/auth/me` | Retrieve authorized user info from token |
+| | `POST` | `/auth/sync-user` | Sync user state between Firebase & PostgreSQL |
+| **Users** | `GET` | `/users/me` | Fetch active user information |
+| | `PATCH` | `/users/me` | Edit user registration profile |
+| **Profiles** | `GET`/`POST`/`PATCH`/`DELETE` | `/profiles` | CRUD operations on Family profiles |
+| **Transactions**| `GET`/`POST`/`PATCH`/`DELETE` | `/incomes`, `/expenses` | Financial record tracking |
+| **Liabilities** | `GET`/`POST`/`PATCH`/`DELETE` | `/debts` | Track personal debts & interest rates |
+| **Intelligence**| `POST` | `/fvs/calculate` | Compute Financial Vulnerability Score (FVS) |
+| | `GET` | `/fvs/history`, `/fvs/latest` | Read historical vulnerability summaries |
+| | `POST` | `/simulations` | Simulate inflation and what-if cash-flow shocks |
+| | `GET` | `/recommendations` | Get personalized tips & actions generated by AI |
+| | `POST` | `/anomalies/detect` | Screen transactions for spending anomalies |
+| **Vaults** | `GET`/`POST`/`PATCH`/`DELETE` | `/vaults` | Manage custom target savings |
+| **Social** | `GET`/`POST`/`PATCH`/`DELETE` | `/community/posts` | Social discussions and feedback |
 
-The backend communicates with an external ML service (Python/FastAPI) via REST:
+---
 
-- `POST /fvs/calculate` → ML calculates Financial Vulnerability Score
-- `POST /recommendations/generate` → ML generates recommendations
-- `POST /anomalies/detect` → ML detects expense anomalies
-- `POST /simulations/run` → ML runs financial simulations
+## 🧠 ML Service Integration
 
-Backend never performs ML calculations directly.
+The backend does not compute machine learning metrics natively. Instead, it interacts with the FastAPI Python instance. 
 
-## Deployment (Vercel)
+* When a request like `/fvs/calculate` is triggered, the Express gateway converts user profiles into numerical vectors, sends them to `ML_SERVICE_URL/fvs/calculate`, and updates the database with the response results.
 
-```bash
-npm i -g vercel
-vercel --prod
-```
+---
 
-Set all environment variables in Vercel dashboard.
+## 🛠️ CLI Script Index
 
-## Scripts
+Useful command commands mapped in `package.json`:
 
-| Script | Description |
-|--------|-------------|
-| `pnpm dev` | Start dev server with hot reload |
-| `pnpm build` | Build for production |
-| `pnpm start` | Start production server |
-| `pnpm prisma:generate` | Generate Prisma client |
-| `pnpm prisma:migrate` | Run migrations |
-| `pnpm prisma:seed` | Seed database |
-| `pnpm prisma:studio` | Open Prisma Studio |
+* `pnpm dev`: Start Express development server with automatic file reload (`nodemon`).
+* `pnpm build`: Compile TypeScript codebase into production JS in the `dist` directory.
+* `pnpm start`: Run the compiled JS production server.
+* `pnpm prisma:generate`: Re-build local types for database client.
+* `pnpm prisma:migrate`: Sync local schema adjustments to the Supabase database.
+* `pnpm prisma:seed`: Wipe and insert baseline mock data.
+* `pnpm prisma:studio`: Launch a GUI in your browser to edit database rows directly.

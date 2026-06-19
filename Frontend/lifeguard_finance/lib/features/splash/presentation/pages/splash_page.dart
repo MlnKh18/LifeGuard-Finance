@@ -32,6 +32,14 @@ class _SplashPageState extends State<SplashPage>
       CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
     );
     _controller.forward();
+
+    // Dispatch CheckAuthSession after a slight delay to ensure listener is active
+    // and splash animation has time to start.
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        context.read<AuthBloc>().add(CheckAuthSession());
+      }
+    });
   }
 
   @override

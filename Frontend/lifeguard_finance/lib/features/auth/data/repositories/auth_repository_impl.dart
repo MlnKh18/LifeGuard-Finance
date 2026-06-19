@@ -98,14 +98,18 @@ class AuthRepositoryImpl implements AuthRepository {
         email: normalizedEmail,
         password: password,
       );
-      
-      // 2. Sync to Backend
+    } catch (e) {
+      debugPrint('Firebase Auth Error: $e');
+      throw Exception('Gagal registrasi dengan server: $e');
+    }
+
+    // 2. Sync to Backend (Fail-safe)
+    try {
       await apiClient.dio.post('/auth/sync-user', data: {
         'role': 'HEAD_OF_FAMILY',
       });
     } catch (e) {
-      debugPrint('Firebase/Backend Auth Error: $e');
-      throw Exception('Gagal registrasi dengan server: $e');
+      debugPrint('Backend Sync Error (Ignored for local fallback): $e');
     }
 
     await localDataSource.saveFamilyAccount(familyAccount);
@@ -157,7 +161,20 @@ class AuthRepositoryImpl implements AuthRepository {
         await localDataSource.saveUser(user);
       } catch (e) {
         debugPrint('Backend fetch users/me error: $e');
-        throw Exception('Gagal sinkronisasi data dengan server. $e');
+        debugPrint('FALLBACK: Membuat user lokal sementara karena backend tidak dapat diakses');
+        user = AppUser(
+          userId: _generateId(),
+          familyId: _generateId(),
+          fullName: normalizedEmail.split('@')[0],
+          email: normalizedEmail,
+          passwordHash: password,
+          role: UserRole.headOfFamily, // Default role for fallback
+          relation: 'head_of_family',
+          isActive: true,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+        await localDataSource.saveUser(user!);
       }
     }
 
@@ -364,15 +381,19 @@ class AuthRepositoryImpl implements AuthRepository {
         email: normalizedEmail,
         password: newPassword,
       );
-      
-      // 2. Sync to Backend
+    } catch (e) {
+      debugPrint('Firebase Auth Error: $e');
+      throw Exception('Gagal aktivasi anggota keluarga di server: $e');
+    }
+
+    // 2. Sync to Backend (Fail-safe)
+    try {
       await apiClient.dio.post('/auth/sync-user', data: {
         'role': 'FAMILY_MEMBER',
         'inviteCode': normalizedInviteCode,
       });
     } catch (e) {
-      debugPrint('Firebase/Backend Auth Error: $e');
-      throw Exception('Gagal aktivasi anggota keluarga di server: $e');
+      debugPrint('Backend Sync Error (Ignored for local fallback): $e');
     }
 
     await localDataSource.saveAuthSession(session);
