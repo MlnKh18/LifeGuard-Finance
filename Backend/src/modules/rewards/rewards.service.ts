@@ -1,7 +1,25 @@
 import { prisma } from '@shared/prisma/client.js';
 import type { PaginationParams } from '@shared/utils/pagination.js';
+import { RewardAction } from '@prisma/client';
 
 export class RewardsService {
+  async addRewardPoint(userId: string, action: RewardAction, points: number, sourceId?: string) {
+    if (sourceId) {
+      const existing = await prisma.rewardPoint.findFirst({
+        where: { userId, action, sourceId }
+      });
+      if (existing) return existing;
+    }
+
+    return prisma.rewardPoint.create({
+      data: {
+        userId,
+        action,
+        points,
+        sourceId
+      }
+    });
+  }
   async getSummary(userId: string) {
     const result = await prisma.rewardPoint.aggregate({
       where: { userId },

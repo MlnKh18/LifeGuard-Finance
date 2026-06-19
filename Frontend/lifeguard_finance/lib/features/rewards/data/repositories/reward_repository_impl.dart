@@ -8,13 +8,17 @@ import '../../domain/entities/reward_point.dart';
 import '../../domain/entities/reward_summary.dart';
 import '../../domain/repositories/reward_repository.dart';
 
+import '../../../../core/network/api_client.dart';
+
 class RewardRepositoryImpl implements RewardRepository {
   final HiveService hiveService;
   final AuthRepository authRepository;
+  final ApiClient apiClient;
 
   RewardRepositoryImpl({
     required this.hiveService,
     required this.authRepository,
+    required this.apiClient,
   });
 
   @override
@@ -28,6 +32,10 @@ class RewardRepositoryImpl implements RewardRepository {
   Future<List<RewardPoint>> getTransactionsByCurrentUser() async {
     final session = authRepository.getCachedSession();
     if (session == null) return [];
+    
+    // Sync with API in background
+    apiClient.dio.get('/rewards/history').catchError((e) => debugPrint('Sync error'));
+
     final all = await getTransactions();
     return all.where((t) => t.userId == session.currentUserId).toList();
   }

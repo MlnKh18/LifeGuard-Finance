@@ -12,62 +12,95 @@ class AnomalyDetectionService {
   /// >50% = Anomali Tinggi, otherwise Normal.
   List<AnomalyResult> analyzeCategories(List<ExpenseTransaction> transactions, {DateTime? referenceMonth}) {
     final now = referenceMonth ?? DateTime.now();
+    final currentWeekStart = now.subtract(const Duration(days: 7));
 
-    final byCategory = <String, List<ExpenseTransaction>>{};
+    final currentWeekTotals = <int, double>{}; 
+    final historicalTotals = <int, List<double>>{};
+
+    final dailyAmounts = <String, double>{};
+    final dailyDates = <String, DateTime>{};
+
     for (final t in transactions) {
-      byCategory.putIfAbsent(t.category, () => []).add(t);
+      final key = '${t.date.year}-${t.date.month}-${t.date.day}';
+      dailyAmounts[key] = (dailyAmounts[key] ?? 0) + t.amount;
+      dailyDates[key] = DateTime(t.date.year, t.date.month, t.date.day);
+    }
+
+    for (final entry in dailyAmounts.entries) {
+      final date = dailyDates[entry.key]!;
+      final amount = entry.value;
+      
+      if (date.isAfter(currentWeekStart) || date.isAtSameMomentAs(currentWeekStart)) {
+        currentWeekTotals[date.weekday] = amount;
+      } else {
+        historicalTotals.putIfAbsent(date.weekday, () => []).add(amount);
+      }
     }
 
     final results = <AnomalyResult>[];
-    for (final entry in byCategory.entries) {
-      final category = entry.key;
-      final currentMonthTxns = entry.value.where((t) => t.date.year == now.year && t.date.month == now.month);
-      final historicalTxns = entry.value.where((t) => !(t.date.year == now.year && t.date.month == now.month));
+    final dayNames = {
+      DateTime.monday: 'Senin',
+      DateTime.tuesday: 'Selasa',
+      DateTime.wednesday: 'Rabu',
+      DateTime.thursday: 'Kamis',
+      DateTime.friday: 'Jumat',
+      DateTime.saturday: 'Sabtu',
+      DateTime.sunday: 'Minggu',
+    };
 
-      final currentAmount = currentMonthTxns.fold<double>(0, (sum, t) => sum + t.amount);
-      if (currentAmount <= 0) continue; // nothing spent this month in this category
+    for (final entry in currentWeekTotals.entries) {
+      final weekday = entry.key;
+      final currentAmount = entry.value;
+      final historicals = historicalTotals[weekday] ?? [];
 
-      final historicalByMonth = <DateTime, double>{};
-      for (final t in historicalTxns) {
-        final key = DateTime(t.date.year, t.date.month);
-        historicalByMonth[key] = (historicalByMonth[key] ?? 0) + t.amount;
-      }
+      if (historicals.isEmpty) continue;
 
-      final historicalAverage = historicalByMonth.isEmpty
-          ? currentAmount
-          : historicalByMonth.values.reduce((a, b) => a + b) / historicalByMonth.length;
+      final historicalAverage = historicals.reduce((a, b) => a + b) / historicals.length;
+      if (historicalAverage == 0) continue;
 
-      final percentageIncrease =
-          historicalAverage == 0 ? 0.0 : ((currentAmount - historicalAverage) / historicalAverage) * 100;
-
+      final percentageIncrease = ((currentAmount - historicalAverage) / historicalAverage) * 100;
       final severity = _classify(percentageIncrease);
 
-      results.add(AnomalyResult(
-        category: category,
-        historicalAverage: historicalAverage,
-        currentAmount: currentAmount,
-        percentageIncrease: percentageIncrease,
-        severity: severity,
-        estimatedFvsImpact: _estimateFvsImpact(severity),
-        warningMessage: _warningMessage(category, severity, percentageIncrease),
-      ));
+      if (severity != AnomalySeverity.normal) {
+        final dayName = dayNames[weekday] ?? '';
+        results.add(AnomalyResult(
+          category: dayName,
+          historicalAverage: historicalAverage,
+          currentAmount: currentAmount,
+          percentageIncrease: percentageIncrease,
+          severity: severity,
+          estimatedFvsImpact: _estimateFvsImpact(severity),
+          warningMessage: 'Pengeluaran hari $dayName ini naik ${percentageIncrease.toStringAsFixed(0)}% dari rata-rata hari $dayName biasanya.',
+        ));
+      }
     }
 
     results.sort((a, b) => b.percentageIncrease.compareTo(a.percentageIncrease));
     return results;
   }
 
-  /// Stamps each transaction in the current month with the severity/percentage
-  /// of its category's [AnomalyResult], so individual transaction tiles can be
-  /// highlighted consistently with the category-level verdict.
   List<ExpenseTransaction> flagTransactions(List<ExpenseTransaction> transactions, List<AnomalyResult> categoryResults) {
     final now = DateTime.now();
-    final resultByCategory = {for (final r in categoryResults) r.category: r};
+    final currentWeekStart = now.subtract(const Duration(days: 7));
+    final resultByDay = {for (final r in categoryResults) r.category: r};
+    
+    final dayNames = {
+      DateTime.monday: 'Senin',
+      DateTime.tuesday: 'Selasa',
+      DateTime.wednesday: 'Rabu',
+      DateTime.thursday: 'Kamis',
+      DateTime.friday: 'Jumat',
+      DateTime.saturday: 'Sabtu',
+      DateTime.sunday: 'Minggu',
+    };
 
     final flagged = transactions.map((t) {
-      final isCurrentMonth = t.date.year == now.year && t.date.month == now.month;
-      final result = resultByCategory[t.category];
-      if (!isCurrentMonth || result == null) {
+      final date = DateTime(t.date.year, t.date.month, t.date.day);
+      final isCurrentWeek = date.isAfter(currentWeekStart) || date.isAtSameMomentAs(currentWeekStart);
+      final dayName = dayNames[t.date.weekday];
+      final result = resultByDay[dayName];
+      
+      if (!isCurrentWeek || result == null) {
         return t.copyWith(severity: AnomalySeverity.normal, percentageIncrease: 0.0);
       }
       return t.copyWith(severity: result.severity, percentageIncrease: result.percentageIncrease);
@@ -94,17 +127,7 @@ class AnomalyDetectionService {
     }
   }
 
-  String _warningMessage(String category, AnomalySeverity severity, double percentageIncrease) {
-    final pct = percentageIncrease.toStringAsFixed(0);
-    switch (severity) {
-      case AnomalySeverity.tinggi:
-        return 'Pengeluaran kategori $category naik $pct% dari rata-rata historis (Anomali Tinggi). Segera evaluasi pengeluaran ini.';
-      case AnomalySeverity.ringan:
-        return 'Pengeluaran kategori $category naik $pct% dari rata-rata historis (Anomali Ringan). Perlu diperhatikan.';
-      case AnomalySeverity.normal:
-        return 'Pengeluaran kategori $category masih dalam rentang normal.';
-    }
-  }
+
 
   /// Bonus visualization: aggregates transactions into monthly totals and flags
   /// any month whose total is a statistical outlier relative to other months.

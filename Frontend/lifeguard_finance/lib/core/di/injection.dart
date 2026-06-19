@@ -1,6 +1,7 @@
 import 'package:get_it/get_it.dart';
 
 // Import Core Services
+import '../network/api_client.dart';
 import '../data/local/hive_service.dart';
 
 // Import Services
@@ -61,10 +62,18 @@ final getIt = GetIt.instance;
 
 Future<void> setupInjection() async {
   // =========================================================================
+  // CORE SERVICES
+  // =========================================================================
+  getIt.registerLazySingleton<ApiClient>(() => ApiClient());
+
+  // =========================================================================
   // REPOSITORIES
   // =========================================================================
   getIt.registerLazySingleton<FamilyProfileRepository>(
-    () => FamilyProfileRepositoryImpl(getIt<HiveService>()),
+    () => FamilyProfileRepositoryImpl(
+      hiveService: getIt<HiveService>(),
+      apiClient: getIt<ApiClient>(),
+    ),
   );
   getIt.registerLazySingleton<ProfileLocalDataSource>(
     () => ProfileLocalDataSourceImpl(hiveService: getIt<HiveService>()),
@@ -74,30 +83,42 @@ Future<void> setupInjection() async {
       localDataSource: getIt<ProfileLocalDataSource>(),
       vaultRepository: getIt<VaultRepository>(),
       rewardRepository: getIt<RewardRepository>(),
+      apiClient: getIt<ApiClient>(),
     ),
   );
   getIt.registerLazySingleton<VaultRepository>(
     () => VaultRepositoryImpl(
       hiveService: getIt<HiveService>(),
       authRepository: getIt<AuthRepository>(),
+      apiClient: getIt<ApiClient>(),
     ),
   );
   getIt.registerLazySingleton<AuthLocalDataSource>(
     () => AuthLocalDataSourceImpl(hiveService: getIt<HiveService>()),
   );
   getIt.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(localDataSource: getIt<AuthLocalDataSource>()),
+    () => AuthRepositoryImpl(
+      localDataSource: getIt<AuthLocalDataSource>(),
+      apiClient: getIt<ApiClient>(),
+    ),
   );
   getIt.registerLazySingleton<LiteracyRepository>(
-    () => LiteracyRepositoryImpl(hiveService: getIt<HiveService>()),
+    () => LiteracyRepositoryImpl(
+      hiveService: getIt<HiveService>(),
+      apiClient: getIt<ApiClient>(),
+    ),
   );
   getIt.registerLazySingleton<CommunityRepository>(
-    () => CommunityRepositoryImpl(hiveService: getIt<HiveService>()),
+    () => CommunityRepositoryImpl(
+      hiveService: getIt<HiveService>(),
+      apiClient: getIt<ApiClient>(),
+    ),
   );
   getIt.registerLazySingleton<FinanceRecordRepository>(
     () => FinanceRecordRepositoryImpl(
       hiveService: getIt<HiveService>(),
       authRepository: getIt<AuthRepository>(),
+      apiClient: getIt<ApiClient>(),
     ),
   );
   getIt.registerLazySingleton<AnomalyRepository>(
@@ -105,6 +126,7 @@ Future<void> setupInjection() async {
       hiveService: getIt<HiveService>(),
       financeRecordRepository: getIt<FinanceRecordRepository>(),
       authRepository: getIt<AuthRepository>(),
+      apiClient: getIt<ApiClient>(),
     ),
   );
   getIt.registerLazySingleton<EarlyWarningRepository>(
@@ -117,6 +139,7 @@ Future<void> setupInjection() async {
     () => RewardRepositoryImpl(
       hiveService: getIt<HiveService>(),
       authRepository: getIt<AuthRepository>(),
+      apiClient: getIt<ApiClient>(),
     ),
   );
 

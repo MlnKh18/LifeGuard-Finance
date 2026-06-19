@@ -41,46 +41,46 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyATYdQ73S1jUR3Y_iuh85NZ3pSq_cpW_2w',
-    appId: '1:751325598222:web:62201c6771f288d712a25f',
-    messagingSenderId: '751325598222',
-    projectId: 'lifeguard-finance-f09c1',
-    authDomain: 'lifeguard-finance-f09c1.firebaseapp.com',
-    storageBucket: 'lifeguard-finance-f09c1.firebasestorage.app',
+    apiKey: 'AIzaSyAeewj6g7eZWd_g1W4WP7kiDYeItuopT4M',
+    appId: '1:318069364278:web:0920f1933542ec9b64aa97',
+    messagingSenderId: '318069364278',
+    projectId: 'lifeguard-finance',
+    authDomain: 'lifeguard-finance.firebaseapp.com',
+    storageBucket: 'lifeguard-finance.firebasestorage.app',
+    measurementId: 'G-MH681J71KX',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDE2urOJsZwk4hYo-EDex14grgKFArxI5U',
-    appId: '1:751325598222:android:e3fe7ac6a95ab8f912a25f',
-    messagingSenderId: '751325598222',
-    projectId: 'lifeguard-finance-f09c1',
-    storageBucket: 'lifeguard-finance-f09c1.firebasestorage.app',
+    apiKey: 'AIzaSyB7-8R4jpTsi6dFsLQn4tmZ0wRK3ru_o8c',
+    appId: '1:318069364278:android:58b19491fa3aac5a64aa97',
+    messagingSenderId: '318069364278',
+    projectId: 'lifeguard-finance',
+    storageBucket: 'lifeguard-finance.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDEnX8tbQgaf-RFSu9Y8GSvMHSDORhOBqA',
-    appId: '1:751325598222:ios:855f2a257af856b712a25f',
-    messagingSenderId: '751325598222',
-    projectId: 'lifeguard-finance-f09c1',
-    storageBucket: 'lifeguard-finance-f09c1.firebasestorage.app',
+    apiKey: 'AIzaSyDH--1INdV7TpeG1p4jNGY8cjKmn-7flqs',
+    appId: '1:318069364278:ios:3ae034b58e10d1d964aa97',
+    messagingSenderId: '318069364278',
+    projectId: 'lifeguard-finance',
+    storageBucket: 'lifeguard-finance.firebasestorage.app',
     iosBundleId: 'com.lifeguard.lifeguardFinance',
   );
-
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyDEnX8tbQgaf-RFSu9Y8GSvMHSDORhOBqA',
-    appId: '1:751325598222:ios:855f2a257af856b712a25f',
-    messagingSenderId: '751325598222',
-    projectId: 'lifeguard-finance-f09c1',
-    storageBucket: 'lifeguard-finance-f09c1.firebasestorage.app',
+    apiKey: 'AIzaSyDH--1INdV7TpeG1p4jNGY8cjKmn-7flqs',
+    appId: '1:318069364278:ios:3ae034b58e10d1d964aa97',
+    messagingSenderId: '318069364278',
+    projectId: 'lifeguard-finance',
+    storageBucket: 'lifeguard-finance.firebasestorage.app',
     iosBundleId: 'com.lifeguard.lifeguardFinance',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyATYdQ73S1jUR3Y_iuh85NZ3pSq_cpW_2w',
-    appId: '1:751325598222:web:a7906a1080c0681b12a25f',
-    messagingSenderId: '751325598222',
-    projectId: 'lifeguard-finance-f09c1',
-    authDomain: 'lifeguard-finance-f09c1.firebaseapp.com',
-    storageBucket: 'lifeguard-finance-f09c1.firebasestorage.app',
+    apiKey: 'AIzaSyAeewj6g7eZWd_g1W4WP7kiDYeItuopT4M',
+    appId: '1:318069364278:web:d704c29cdd9dd78764aa97',
+    messagingSenderId: '318069364278',
+    projectId: 'lifeguard-finance',
+    authDomain: 'lifeguard-finance.firebaseapp.com',
+    storageBucket: 'lifeguard-finance.firebasestorage.app',
+    measurementId: 'G-8E8GGPBNSQ',
   );
 }

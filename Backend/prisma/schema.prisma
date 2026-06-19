@@ -9,9 +9,32 @@ datasource db {
 }
 
 enum Role {
-  USER
+  HEAD_OF_FAMILY
+  FAMILY_MEMBER
   ADMIN
-  MODERATOR
+}
+
+enum VaultScope {
+  FAMILY
+  PERSONAL
+}
+
+enum VaultPriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum SavingFrequency {
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
 }
 
 enum IncomeFrequency {
@@ -151,6 +174,8 @@ model User {
   displayName String?   @map("display_name")
   avatarUrl   String?   @map("avatar_url")
   phoneNumber String?   @map("phone_number")
+  familyCode  String?   @map("family_code")
+  familyId    String?   @map("family_id") @db.Uuid
   isActive    Boolean   @default(true) @map("is_active")
   lastLoginAt DateTime? @map("last_login_at")
   deletedAt   DateTime? @map("deleted_at")
@@ -185,7 +210,7 @@ model User {
 model UserRole {
   id        String   @id @default(uuid()) @db.Uuid
   userId    String   @map("user_id") @db.Uuid
-  role      Role     @default(USER)
+  role      Role     @default(FAMILY_MEMBER)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -212,6 +237,21 @@ model FamilyProfile {
   @@index([userId])
   @@index([userId, deletedAt])
   @@map("family_profiles")
+}
+
+model FamilyInvitation {
+  id           String           @id @default(uuid()) @db.Uuid
+  familyCode   String           @map("family_code")
+  inviteCode   String           @unique @map("invite_code")
+  invitedEmail String           @map("invited_email")
+  relation     String
+  status       InvitationStatus @default(PENDING)
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+
+  @@index([familyCode])
+  @@index([inviteCode])
+  @@map("family_invitations")
 }
 
 model Income {
@@ -474,27 +514,32 @@ model LiteracyModule {
 }
 
 model SavingsVault {
-  id            String    @id @default(uuid()) @db.Uuid
-  userId        String    @map("user_id") @db.Uuid
-  name          String
-  description   String?
-  targetAmount  Decimal   @map("target_amount") @db.Decimal(15, 2)
-  currentAmount Decimal   @default(0) @map("current_amount") @db.Decimal(15, 2)
-  currency      String    @default("IDR")
-  deadline      DateTime?
-  iconUrl       String?   @map("icon_url")
-  color         String?
-  isCompleted   Boolean   @default(false) @map("is_completed")
-  completedAt   DateTime? @map("completed_at")
-  deletedAt     DateTime? @map("deleted_at")
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
+  id                   String          @id @default(uuid()) @db.Uuid
+  ownerUserId          String          @map("owner_user_id") @db.Uuid
+  ownerEmail           String?         @map("owner_email")
+  scope                VaultScope      @default(PERSONAL)
+  name                 String
+  description          String?
+  priority             VaultPriority   @default(MEDIUM)
+  savingFrequency      SavingFrequency @default(MONTHLY) @map("saving_frequency")
+  targetAmount         Decimal         @map("target_amount") @db.Decimal(15, 2)
+  periodicTargetAmount Decimal?        @map("periodic_target_amount") @db.Decimal(15, 2)
+  currentAmount        Decimal         @default(0) @map("current_amount") @db.Decimal(15, 2)
+  currency             String          @default("IDR")
+  deadline             DateTime?
+  iconName             String?         @map("icon_name")
+  color                String?
+  isCompleted          Boolean         @default(false) @map("is_completed")
+  completedAt          DateTime?       @map("completed_at")
+  deletedAt            DateTime?       @map("deleted_at")
+  createdAt            DateTime        @default(now()) @map("created_at")
+  updatedAt            DateTime        @updatedAt @map("updated_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
-  @@index([userId, deletedAt])
-  @@index([userId, isCompleted])
+  @@index([ownerUserId])
+  @@index([ownerUserId, deletedAt])
+  @@index([ownerUserId, isCompleted])
   @@map("savings_vaults")
 }
 
@@ -544,6 +589,7 @@ model RewardPoint {
   userId      String       @map("user_id") @db.Uuid
   action      RewardAction
   points      Int
+  sourceId    String?      @map("source_id")
   description String?
   metadata    Json?
   createdAt   DateTime     @default(now()) @map("created_at")

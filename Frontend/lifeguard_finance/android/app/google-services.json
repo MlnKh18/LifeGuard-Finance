@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "751325598222",
-    "project_id": "lifeguard-finance-f09c1",
-    "storage_bucket": "lifeguard-finance-f09c1.firebasestorage.app"
+    "project_number": "318069364278",
+    "project_id": "lifeguard-finance",
+    "storage_bucket": "lifeguard-finance.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:751325598222:android:e3fe7ac6a95ab8f912a25f",
+        "mobilesdk_app_id": "1:318069364278:android:58b19491fa3aac5a64aa97",
         "android_client_info": {
           "package_name": "com.lifeguard.lifeguard_finance"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDE2urOJsZwk4hYo-EDex14grgKFArxI5U"
+          "current_key": "AIzaSyB7-8R4jpTsi6dFsLQn4tmZ0wRK3ru_o8c"
         }
       ],
       "services": {

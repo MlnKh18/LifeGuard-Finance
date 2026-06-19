@@ -27,9 +27,11 @@ import literacyRouter from '@modules/literacy/literacy.router.js';
 import vaultsRouter from '@modules/vaults/vaults.router.js';
 import communityRouter from '@modules/community/community.router.js';
 import rewardsRouter from '@modules/rewards/rewards.router.js';
+import summaryRouter from '@modules/summary/summary.router.js';
 
 const app: any = express();
 
+app.set('trust proxy', 1);
 app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
 app.use(helmet());
 app.use(compression());
@@ -63,6 +65,7 @@ app.use(`${API_PREFIX}/literacy`, literacyRouter);
 app.use(`${API_PREFIX}/vaults`, vaultsRouter);
 app.use(`${API_PREFIX}/community`, communityRouter);
 app.use(`${API_PREFIX}/rewards`, rewardsRouter);
+app.use(`${API_PREFIX}`, summaryRouter); // routes are already /profile-summary/me and /dashboard-summary
 
 app.use((_req: any, res: any) => {
   sendError(res, 'Route not found', 404);

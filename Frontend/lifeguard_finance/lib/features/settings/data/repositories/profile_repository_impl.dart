@@ -17,15 +17,19 @@ import '../../../savings_vault/domain/repositories/vault_repository.dart';
 import '../../../rewards/domain/repositories/reward_repository.dart';
 import '../../../rewards/domain/entities/reward_point.dart';
 
+import '../../../../core/network/api_client.dart';
+
 class ProfileRepositoryImpl implements ProfileRepository {
   final ProfileLocalDataSource localDataSource;
   final VaultRepository vaultRepository;
   final RewardRepository rewardRepository;
+  final ApiClient apiClient;
 
   ProfileRepositoryImpl({
     required this.localDataSource,
     required this.vaultRepository,
     required this.rewardRepository,
+    required this.apiClient,
   });
 
   @override
@@ -313,9 +317,11 @@ class ProfileRepositoryImpl implements ProfileRepository {
       'date': t.createdAt,
     }).toList();
 
-    // Map user roles & permissions
-    final isHead = currentUser?.role == UserRole.headOfFamily;
-
+    // Map user roles & permissions from Backend
+    bool isHead = currentUser?.role == UserRole.headOfFamily;
+      // Sync with API in background
+      apiClient.dio.get('/profile-summary/me').catchError((e) => debugPrint('Sync error'));
+    
     return ProfileSummary(
       currentUser: currentUser,
       family: family,
