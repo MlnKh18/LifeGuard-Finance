@@ -74,6 +74,7 @@ class _CommunityViewState extends State<CommunityView> {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: null,
         backgroundColor: AppColors.primary,
         onPressed: () => _showAddPostDialog(context),
         child: const Icon(Icons.add_rounded, color: Colors.white),

@@ -160,6 +160,7 @@ class _FamilyMembersPageState extends State<FamilyMembersPage> {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: null,
         onPressed: () async {
           final result = await context.push<bool>('/invite-family-member');
           if (result == true && context.mounted) {

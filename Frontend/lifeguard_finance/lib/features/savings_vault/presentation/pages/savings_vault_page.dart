@@ -289,6 +289,7 @@ class _VaultViewState extends State<VaultView> {
         ],
       ),
         floatingActionButton: FloatingActionButton(
+          heroTag: null,
           backgroundColor: AppColors.primary,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           onPressed: () => _showCreateVaultDialog(context),

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/data/local/hive_service.dart';
@@ -13,16 +14,29 @@ class RecommendationCubit extends Cubit<RecommendationState> {
   final FvsCalculator fvsCalculator;
   final RecommendationGenerator recommendationGenerator;
   final HiveService hiveService;
+  StreamSubscription? _profileSubscription;
 
   RecommendationCubit({
     required this.familyProfileRepository,
     required this.fvsCalculator,
     required this.recommendationGenerator,
     required this.hiveService,
-  }) : super(RecommendationLoading());
+  }) : super(RecommendationLoading()) {
+    _profileSubscription = hiveService.watchKey(LocalKeys.familyProfile).listen((event) {
+      loadRecommendations(showLoading: false);
+    });
+  }
 
-  Future<void> loadRecommendations() async {
-    emit(RecommendationLoading());
+  @override
+  Future<void> close() {
+    _profileSubscription?.cancel();
+    return super.close();
+  }
+
+  Future<void> loadRecommendations({bool showLoading = true}) async {
+    if (showLoading) {
+      emit(RecommendationLoading());
+    }
     try {
       final failureOrProfile = await familyProfileRepository.getFamilyProfile();
       await failureOrProfile.fold(

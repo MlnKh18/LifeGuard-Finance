@@ -14,6 +14,12 @@ class FamilyProfileRepositoryImpl implements FamilyProfileRepository {
   @override
   Future<Either<Failure, void>> saveFamilyProfile(FamilyFinanceProfile profile) async {
     try {
+      // Invalidate dependent caches first to avoid race conditions with watchers
+      await hiveService.deleteData(LocalKeys.recommendations);
+      await hiveService.deleteData(LocalKeys.emergencySimulation);
+      await hiveService.deleteData('${LocalKeys.emergencySimulation}_input');
+      await hiveService.deleteData(LocalKeys.fvsScore);
+
       final model = FamilyFinanceProfileModel.fromEntity(profile);
       await hiveService.saveData(LocalKeys.familyProfile, model.toJson());
       return const Right(null);
