@@ -45,3 +45,13 @@ class VaultTransactionsLoaded extends VaultState {
   @override
   List<Object?> get props => [transactions];
 }
+
+class VaultDetailLoaded extends VaultState {
+  final SavingsVault vault;
+  final List<dynamic> transactions;
+
+  const VaultDetailLoaded({required this.vault, required this.transactions});
+
+  @override
+  List<Object?> get props => [vault, transactions];
+}

@@ -190,55 +190,82 @@ class _RecommendationViewState extends State<RecommendationView> with SingleTick
     return AppCard(
       margin: const EdgeInsets.only(bottom: 10),
       onTap: () => context.read<RecommendationCubit>().toggleTask(task.id),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Icon(
-              task.isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
-              color: AppColors.primary,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Opacity(
-              opacity: task.isCompleted ? 0.6 : 1.0,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Icon(
+                  task.isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Opacity(
+                  opacity: task.isCompleted ? 0.6 : 1.0,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          task.title,
-                          style: AppTextStyles.heading3.copyWith(
-                            fontSize: 14,
-                            decoration: task.isCompleted ? TextDecoration.lineThrough : null,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              task.title,
+                              style: AppTextStyles.heading3.copyWith(
+                                fontSize: 14,
+                                decoration: task.isCompleted ? TextDecoration.lineThrough : null,
+                              ),
+                            ),
                           ),
-                        ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: priorityColor.withAlpha(26),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: priorityColor.withAlpha(80)),
+                            ),
+                            child: Text(
+                              _priorityLabel(task.priority),
+                              style: AppTextStyles.bodySmall.copyWith(fontSize: 10, color: priorityColor, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: priorityColor.withAlpha(26),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: priorityColor.withAlpha(80)),
-                        ),
-                        child: Text(
-                          _priorityLabel(task.priority),
-                          style: AppTextStyles.bodySmall.copyWith(fontSize: 10, color: priorityColor, fontWeight: FontWeight.bold),
-                        ),
-                      ),
+                      const SizedBox(height: 4),
+                      Text(task.description, style: AppTextStyles.bodySmall),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(task.description, style: AppTextStyles.bodySmall),
-                ],
+                ),
+              ),
+            ],
+          ),
+          if (!task.isCompleted) ...[
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: () {
+                  context.push('/savings-vault', extra: {
+                    'name': task.title,
+                    'purpose': task.description,
+                  });
+                },
+                icon: const Icon(Icons.savings_rounded, size: 16),
+                label: const Text('Buat Target Tabungan'),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
               ),
             ),
-          ),
+          ],
         ],
       ),
     );

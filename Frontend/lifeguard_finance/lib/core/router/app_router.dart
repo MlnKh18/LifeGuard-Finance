@@ -20,6 +20,7 @@ import '../../features/early_warning/presentation/pages/early_warning_page.dart'
 import '../../features/literacy/presentation/pages/literacy_page.dart';
 import '../../features/literacy/presentation/pages/literacy_detail_page.dart';
 import '../../features/savings_vault/presentation/pages/savings_vault_page.dart';
+import '../../features/savings_vault/presentation/pages/vault_detail_page.dart';
 import '../../features/daily_finance/presentation/pages/daily_finance_page.dart';
 import '../../features/community/presentation/pages/community_page.dart';
 import '../../features/rewards/presentation/pages/reward_page.dart';
@@ -113,6 +114,12 @@ class AppRouter {
       GoRoute(
         path: '/savings-vault',
         builder: (context, state) => const SavingsVaultPage(),
+        routes: [
+          GoRoute(
+            path: ':vaultId',
+            builder: (context, state) => VaultDetailPage(vaultId: state.pathParameters['vaultId'] ?? ''),
+          ),
+        ],
       ),
       GoRoute(
         path: '/reward',

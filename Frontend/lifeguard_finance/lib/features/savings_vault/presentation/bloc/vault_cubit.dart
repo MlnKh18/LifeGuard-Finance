@@ -7,6 +7,9 @@ import '../../domain/entities/vault_transaction.dart';
 import 'vault_state.dart';
 
 import '../../domain/repositories/vault_repository.dart';
+import '../../../../core/di/injection.dart';
+import '../../../settings/presentation/bloc/profile_bloc.dart';
+import '../../../settings/presentation/bloc/profile_event.dart';
 
 class VaultCubit extends Cubit<VaultState> {
   final HiveService hiveService;
@@ -22,6 +25,7 @@ class VaultCubit extends Cubit<VaultState> {
     try {
       final vaults = await vaultRepository.getVaults();
       emit(VaultLoaded(vaults));
+      _syncProfile();
     } catch (e) {
       emit(VaultError('Gagal memuat data pos dana: $e'));
     }
@@ -166,15 +170,36 @@ class VaultCubit extends Cubit<VaultState> {
           .toList()
         ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
       
-      // We only emit the list. The UI can listen to it.
-      // Alternatively, we just emit a specific state. Let's not interrupt VaultLoaded unless necessary.
-      // But we will emit it!
       emit(VaultTransactionsLoaded(transactions));
-      // Re-emit loaded so UI doesn't break
-      loadVaults();
     } catch (e) {
       emit(VaultError('Gagal memuat riwayat transaksi: $e'));
       loadVaults();
+    }
+  }
+
+  Future<void> loadVaultDetail(String vaultId) async {
+    emit(VaultLoading());
+    try {
+      final vaults = await vaultRepository.getVaults();
+      final vault = vaults.firstWhere((v) => v.id == vaultId);
+      
+      final rawTx = hiveService.getData<List<dynamic>>('vaultTransactions') ?? [];
+      final transactions = rawTx
+          .map((e) => VaultTransaction.fromJson(Map<String, dynamic>.from(e as Map)))
+          .where((t) => t.vaultId == vaultId)
+          .toList()
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      
+      emit(VaultDetailLoaded(vault: vault, transactions: transactions));
+    } catch (e) {
+      emit(VaultError('Tabungan tidak ditemukan.'));
+      loadVaults();
+    }
+  }
+
+  void _syncProfile() {
+    if (getIt.isRegistered<ProfileBloc>()) {
+      getIt<ProfileBloc>().add(LoadProfileSummary());
     }
   }
 }

@@ -19,6 +19,7 @@ import '../bloc/profile_bloc.dart';
 import '../bloc/profile_event.dart';
 import '../bloc/profile_state.dart';
 import '../widgets/profile_modals.dart';
+import '../widgets/vault_mini_card.dart';
 import '../../domain/entities/profile_summary.dart';
 
 class ProfileSettingsPage extends StatelessWidget {
@@ -47,8 +48,8 @@ class ProfileSettingsPage extends StatelessWidget {
     // Shared root AuthBloc is used for logout / auth checks
     final authBloc = context.read<AuthBloc>();
 
-    return BlocProvider(
-      create: (context) => getIt<ProfileBloc>()..add(LoadProfileSummary()),
+    return BlocProvider.value(
+      value: getIt<ProfileBloc>()..add(LoadProfileSummary()),
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(
@@ -625,116 +626,7 @@ class ProfileSettingsPage extends StatelessWidget {
             ),
           )
         else
-          ...displayed.map((vault) => AppCard(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              vault.name,
-                              style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          Text(
-                            '${(vault.progress * 100).toStringAsFixed(0)}%',
-                            style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.bold, color: AppColors.primary),
-                          ),
-                        ],
-                      ),
-                      if (vault.scope == SavingsVaultScope.personal && vault.ownerEmail != null) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          vault.ownerEmail!,
-                          style: AppTextStyles.dataLabel.copyWith(color: AppColors.textSecondary),
-                        ),
-                      ],
-                      const SizedBox(height: 8),
-                      LinearProgressIndicator(
-                        value: vault.progress,
-                        backgroundColor: AppColors.border,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          vault.isCompleted ? AppColors.riskSafe : AppColors.primary,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            '${formatRupiah(vault.savedAmount)} / ${formatRupiah(vault.targetAmount)}',
-                            style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
-                          ),
-                          Row(
-                            children: [
-                              TextButton(
-                                style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: const Size(50, 30)),
-                                onPressed: () {
-                                  showModalBottomSheet(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    backgroundColor: Colors.transparent,
-                                    builder: (sheetContext) {
-                                      return AppFormBottomSheet(
-                                        title: 'Kurangi Saldo Tabungan',
-                                        description: 'Gunakan fitur ini jika ada dana yang diambil dari tabungan.',
-                                        child: BlocProvider<VaultCubit>.value(
-                                          value: getIt<VaultCubit>(),
-                                          child: SubtractVaultBalanceForm(
-                                            vault: vault,
-                                            onSuccess: () {
-                                              context.read<ProfileBloc>().add(LoadProfileSummary());
-                                            },
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                                child: const Text('Kurangi', style: TextStyle(color: AppColors.riskCritical)),
-                              ),
-                              const SizedBox(width: 8),
-                              TextButton(
-                                style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: const Size(50, 30)),
-                                onPressed: () {
-                                  showModalBottomSheet(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    backgroundColor: Colors.transparent,
-                                    builder: (sheetContext) {
-                                      return AppFormBottomSheet(
-                                        title: 'Tambah Setoran',
-                                        description: 'Masukkan nominal uang yang ingin ditambahkan ke tabungan ini.',
-                                        child: BlocProvider<VaultCubit>.value(
-                                          value: getIt<VaultCubit>(),
-                                          child: AddVaultDepositForm(
-                                            vault: vault,
-                                            onSuccess: () {
-                                              context.read<ProfileBloc>().add(LoadProfileSummary());
-                                            },
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                                child: const Text('Tambah'),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              )),
+          ...displayed.map((vault) => VaultMiniCard(vault: vault)),
       ],
     );
   }

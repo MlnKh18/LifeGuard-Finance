@@ -189,7 +189,7 @@ Future<void> setupInjection() async {
   getIt.registerFactory<LiteracyCubit>(
     () => LiteracyCubit(),
   );
-  getIt.registerFactory<VaultCubit>(
+  getIt.registerLazySingleton<VaultCubit>(
     () => VaultCubit(
       hiveService: getIt<HiveService>(),
       vaultRepository: getIt<VaultRepository>(),
@@ -201,7 +201,7 @@ Future<void> setupInjection() async {
   getIt.registerFactory<RewardCubit>(
     () => RewardCubit(),
   );
-  getIt.registerFactory<ProfileBloc>(
+  getIt.registerLazySingleton<ProfileBloc>(
     () => ProfileBloc(repository: getIt<ProfileRepository>()),
   );
 }

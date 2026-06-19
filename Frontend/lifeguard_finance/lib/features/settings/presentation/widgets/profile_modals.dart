@@ -116,8 +116,9 @@ class AppConfirmationDialog extends StatelessWidget {
 
 class AddVaultForm extends StatefulWidget {
   final VoidCallback onSuccess;
+  final Map<String, dynamic>? prefillData;
 
-  const AddVaultForm({super.key, required this.onSuccess});
+  const AddVaultForm({super.key, required this.onSuccess, this.prefillData});
 
   @override
   State<AddVaultForm> createState() => _AddVaultFormState();
@@ -144,6 +145,17 @@ class _AddVaultFormState extends State<AddVaultForm> {
     if (authState is AuthAuthenticated) {
       if (authState.user.role == UserRole.headOfFamily) {
         _scope = SavingsVaultScope.family;
+      }
+    }
+    
+    if (widget.prefillData != null) {
+      _nameController.text = widget.prefillData!['name'] ?? '';
+      _categoryController.text = widget.prefillData!['purpose'] ?? '';
+      if (widget.prefillData!['targetAmount'] != null) {
+        _targetController.text = widget.prefillData!['targetAmount'].toString();
+      }
+      if (widget.prefillData!['frequency'] != null) {
+        _frequency = widget.prefillData!['frequency'];
       }
     }
   }

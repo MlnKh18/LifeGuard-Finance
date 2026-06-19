@@ -18,6 +18,9 @@ import '../../../auth/core/permission_helper.dart';
 import '../widgets/score_card.dart';
 import '../widgets/indicator_breakdown.dart';
 import '../widgets/metric_bento_card.dart';
+import '../../../savings_vault/presentation/bloc/vault_cubit.dart';
+import '../../../savings_vault/presentation/bloc/vault_state.dart';
+import '../../../savings_vault/domain/entities/savings_vault_entity.dart';
 
 final _rupiahFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
@@ -26,8 +29,15 @@ class DashboardPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<FvsBloc>(
-      create: (context) => getIt<FvsBloc>()..add(LoadFvs()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<FvsBloc>(
+          create: (context) => getIt<FvsBloc>()..add(LoadFvs()),
+        ),
+        BlocProvider<VaultCubit>.value(
+          value: getIt<VaultCubit>()..loadVaults(),
+        ),
+      ],
       child: const DashboardView(),
     );
   }
@@ -191,6 +201,10 @@ class DashboardView extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
+            // Savings Vault Summary
+            _buildSavingsVaultSummary(context),
+            const SizedBox(height: 24),
+
             // Action Button
             PrimaryButton(
               text: 'Perbarui Target Keuangan',
@@ -308,6 +322,132 @@ class DashboardView extends StatelessWidget {
           const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
         ],
       ),
+    );
+  }
+  Widget _buildSavingsVaultSummary(BuildContext context) {
+    return BlocBuilder<VaultCubit, VaultState>(
+      builder: (context, state) {
+        if (state is! VaultLoaded) {
+          return const SizedBox.shrink();
+        }
+
+        final allVaults = state.vaults;
+        
+        final authState = context.read<AuthBloc>().state;
+        String currentUserId = '';
+        String currentFamilyId = '';
+        
+        if (authState is AuthAuthenticated) {
+          currentUserId = authState.user.userId;
+          currentFamilyId = authState.user.familyId;
+        }
+
+        final visibleVaults = allVaults.where((v) {
+          final isFamily = v.scope == SavingsVaultScope.family && v.familyId == currentFamilyId;
+          final isPersonal = v.scope == SavingsVaultScope.personal && v.ownerUserId == currentUserId;
+          return isFamily || isPersonal;
+        }).toList();
+
+        final familyVaults = visibleVaults.where((v) => v.scope == SavingsVaultScope.family).toList();
+        final personalVaults = visibleVaults.where((v) => v.scope == SavingsVaultScope.personal).toList();
+
+        final totalFamilyTarget = familyVaults.fold<double>(0, (s, v) => s + v.targetAmount);
+        final totalFamilySaved = familyVaults.fold<double>(0, (s, v) => s + v.savedAmount);
+
+        final totalPersonalTarget = personalVaults.fold<double>(0, (s, v) => s + v.targetAmount);
+        final totalPersonalSaved = personalVaults.fold<double>(0, (s, v) => s + v.savedAmount);
+        
+        final activeVaultCount = visibleVaults.where((v) => !v.isCompleted).length;
+
+        debugPrint('================ DASHBOARD VAULT SUMMARY ================');
+        debugPrint('visibleVaults count: ${visibleVaults.length}');
+        debugPrint('familyVaults count: ${familyVaults.length}');
+        debugPrint('personalVaults count: ${personalVaults.length}');
+        debugPrint('totalFamilyVaultSaved: $totalFamilySaved');
+        debugPrint('totalPersonalVaultSaved: $totalPersonalSaved');
+
+        if (visibleVaults.isEmpty) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SectionTitle(title: 'Aksi Tabungan', subtitle: 'Mulai bangun target finansial Anda.'),
+              AppCard(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  children: [
+                    const Icon(Icons.savings_outlined, size: 48, color: AppColors.border),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Belum ada target tabungan. Buat target pertama untuk mulai memantau progress keuangan keluarga.',
+                      style: AppTextStyles.bodyMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    PrimaryButton(
+                      text: 'Buat Tabungan',
+                      onPressed: () {
+                        debugPrint('Navigate to SavingsVaultPage from summary');
+                        context.push('/savings-vault');
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SectionTitle(title: 'Aksi Tabungan', subtitle: 'Pantau target tabungan keluarga dan pribadi.'),
+            AppCard(
+              onTap: () {
+                debugPrint('Navigate to SavingsVaultPage from summary/profile');
+                context.push('/savings-vault');
+              },
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (familyVaults.isNotEmpty) ...[
+                    Text('Tabungan Keluarga', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Terkumpul: ${_rupiahFormat.format(totalFamilySaved)} dari ${_rupiahFormat.format(totalFamilyTarget)}',
+                      style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  if (personalVaults.isNotEmpty) ...[
+                    Text('Tabungan Pribadi Saya', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Terkumpul: ${_rupiahFormat.format(totalPersonalSaved)} dari ${_rupiahFormat.format(totalPersonalTarget)}',
+                      style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('$activeVaultCount target aktif', style: AppTextStyles.bodySmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                      PrimaryButton(
+                        text: 'Buka Tabungan',
+                        width: 150,
+                        onPressed: () {
+                          debugPrint('Navigate to SavingsVaultPage from summary/profile');
+                          context.push('/savings-vault');
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

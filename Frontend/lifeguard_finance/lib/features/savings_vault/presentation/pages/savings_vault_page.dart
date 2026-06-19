@@ -16,19 +16,21 @@ import '../../../settings/presentation/widgets/profile_modals.dart';
 final _rupiahFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
 class SavingsVaultPage extends StatelessWidget {
-  const SavingsVaultPage({super.key});
+  final Map<String, dynamic>? prefillData;
+  const SavingsVaultPage({super.key, this.prefillData});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider<VaultCubit>.value(
       value: getIt<VaultCubit>()..loadVaults(),
-      child: const VaultView(),
+      child: VaultView(prefillData: prefillData),
     );
   }
 }
 
 class VaultView extends StatefulWidget {
-  const VaultView({super.key});
+  final Map<String, dynamic>? prefillData;
+  const VaultView({super.key, this.prefillData});
 
   @override
   State<VaultView> createState() => _VaultViewState();
@@ -36,8 +38,20 @@ class VaultView extends StatefulWidget {
 
 class _VaultViewState extends State<VaultView> {
   int _selectedTabIndex = 0; // 0: Semua, 1: Keluarga, 2: Pribadi
+  bool _hasOpenedPrefill = false;
 
-  void _showCreateVaultDialog(BuildContext context) {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.prefillData != null && !_hasOpenedPrefill) {
+        _hasOpenedPrefill = true;
+        _showCreateVaultDialog(context, prefillData: widget.prefillData);
+      }
+    });
+  }
+
+  void _showCreateVaultDialog(BuildContext context, {Map<String, dynamic>? prefillData}) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -49,6 +63,7 @@ class _VaultViewState extends State<VaultView> {
           child: AppFormBottomSheet(
             title: 'Tambah Pos Dana',
             child: AddVaultForm(
+              prefillData: prefillData,
               onSuccess: () {},
             ),
           ),
