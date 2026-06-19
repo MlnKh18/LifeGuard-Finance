@@ -164,10 +164,60 @@ class ExpenseAnomalyView extends StatelessWidget {
             ...state.spikingCategories.map((r) => _buildSpikeCard(r)),
           ],
           const SizedBox(height: 24),
-          Text('Transaksi Terbaru', style: AppTextStyles.heading2),
-          const SizedBox(height: 12),
-          ...state.transactions.map((t) => _buildTransactionTile(context, t)),
+          if (state.transactions.isEmpty) ...[
+            Text('Informasi Deteksi Anomali', style: AppTextStyles.heading2),
+            const SizedBox(height: 12),
+            _buildEmptyDataInfoCard(),
+          ] else ...[
+            Text('Transaksi Terbaru', style: AppTextStyles.heading2),
+            const SizedBox(height: 12),
+            ...state.transactions.map((t) => _buildTransactionTile(context, t)),
+          ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyDataInfoCard() {
+    return AppCard(
+      margin: const EdgeInsets.only(bottom: 10),
+      borderRadius: 12.0,
+      color: AppColors.primary.withAlpha(20),
+      border: Border.all(color: AppColors.primary.withAlpha(80)),
+      child: Padding(
+        padding: const EdgeInsets.all(4.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.info_outline_rounded, color: AppColors.primary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Belum Cukup Data Anomali',
+                    style: AppTextStyles.heading3.copyWith(color: AppColors.primary),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Model deteksi anomali kami membutuhkan setidaknya 3 riwayat transaksi pengeluaran pada "Hari yang Sama" (contoh: 3 transaksi di hari Rabu sebelumnya) untuk dapat membaca tren historis secara akurat.',
+              style: AppTextStyles.bodyMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Jika pengeluaran Anda di hari tersebut melonjak >30% (Ringan) atau >50% (Tinggi) dibandingkan rata-rata historisnya, sistem kami akan segera memberi Anda peringatan di halaman ini!',
+              style: AppTextStyles.bodyMedium,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Catat terus pengeluaran harian Anda agar sistem kami dapat melindungi keuangan keluarga Anda dengan lebih baik.',
+              style: AppTextStyles.bodySmall.copyWith(fontStyle: FontStyle.italic),
+            ),
+          ],
+        ),
       ),
     );
   }

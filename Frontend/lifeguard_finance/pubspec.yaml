@@ -57,6 +57,8 @@ dependencies:
   uuid: ^4.5.3
   firebase_core: ^4.10.0
   url_launcher: ^6.3.2
+  dio: ^5.9.2
+  firebase_auth: ^6.5.3
 
 dev_dependencies:
   flutter_test:

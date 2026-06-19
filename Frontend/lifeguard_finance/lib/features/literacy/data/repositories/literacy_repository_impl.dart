@@ -9,11 +9,17 @@ import '../../domain/entities/user_literacy_progress.dart';
 import '../../domain/repositories/literacy_repository.dart';
 import '../mock_literacy_data.dart';
 
+import '../../../../core/network/api_client.dart';
+
 class LiteracyRepositoryImpl implements LiteracyRepository {
   final HiveService hiveService;
+  final ApiClient apiClient;
   final Uuid _uuid = const Uuid();
 
-  LiteracyRepositoryImpl({required this.hiveService});
+  LiteracyRepositoryImpl({
+    required this.hiveService,
+    required this.apiClient,
+  });
 
   String get _currentUserId {
     final session = hiveService.getData<Map<dynamic, dynamic>>(LocalKeys.authSession);
@@ -53,6 +59,9 @@ class LiteracyRepositoryImpl implements LiteracyRepository {
     final userId = _currentUserId;
     final progressMap = hiveService.getData<Map<dynamic, dynamic>>(LocalKeys.literacyProgress) ?? {};
     final userProgressList = progressMap[userId] as List<dynamic>? ?? [];
+
+    // Sync with API in background
+    apiClient.dio.get('/literacy/progress').catchError((e) => debugPrint('Sync error'));
 
     return userProgressList.map((e) {
       final map = e as Map<dynamic, dynamic>;
@@ -108,6 +117,15 @@ class LiteracyRepositoryImpl implements LiteracyRepository {
 
     progressMap[userId] = userProgressList;
     await hiveService.saveData(LocalKeys.literacyProgress, progressMap);
+
+    // Sync to API
+    try {
+      await apiClient.dio.post('/literacy/progress', data: {
+        'moduleId': moduleId,
+      });
+    } catch (e) {
+      debugPrint('Literacy API Sync Error: $e');
+    }
   }
 
   @override

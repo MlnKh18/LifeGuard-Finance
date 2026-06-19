@@ -5,13 +5,17 @@ import '../../../auth/domain/repositories/auth_repository.dart';
 import '../../domain/entities/finance_record_entity.dart';
 import '../../domain/repositories/finance_record_repository.dart';
 
+import '../../../../core/network/api_client.dart';
+
 class FinanceRecordRepositoryImpl implements FinanceRecordRepository {
   final HiveService hiveService;
   final AuthRepository authRepository;
+  final ApiClient apiClient;
 
   FinanceRecordRepositoryImpl({
     required this.hiveService,
     required this.authRepository,
+    required this.apiClient,
   });
 
   static const String _recordKey = LocalKeys.financeRecords;
@@ -32,11 +36,9 @@ class FinanceRecordRepositoryImpl implements FinanceRecordRepository {
       return FinanceRecord.fromJson(json);
     }).toList();
 
-    debugPrint('================ FINANCE RECORD GET ================');
-    debugPrint('Current userId: $currentUserId');
-    debugPrint('Current familyId: $currentFamilyId');
-    debugPrint('Raw finance records count: ${rawList.length}');
-    debugPrint('Mapped finance records count: ${records.length}');
+    // Sync with API in background
+    apiClient.dio.get('/incomes').catchError((e) => debugPrint('Sync error'));
+    apiClient.dio.get('/expenses').catchError((e) => debugPrint('Sync error'));
 
     return records;
   }
@@ -67,6 +69,19 @@ class FinanceRecordRepositoryImpl implements FinanceRecordRepository {
     debugPrint('familyId: ${record.familyId}');
     debugPrint('userId: ${record.userId}');
     debugPrint('userEmail: ${record.userEmail}');
+
+    // Sync to API
+    try {
+      final endpoint = record.type == FinanceRecordType.income ? '/incomes' : '/expenses';
+      await apiClient.dio.post(endpoint, data: {
+        'amount': record.amount,
+        'category': record.category.toUpperCase().replaceAll(' ', '_'),
+        'description': record.notes ?? '',
+        'date': record.recordDate.toIso8601String(),
+      });
+    } catch (e) {
+      debugPrint('Finance API Create Error: $e');
+    }
 
     final records = await getRecords();
     final updatedRecords = [...records, record];

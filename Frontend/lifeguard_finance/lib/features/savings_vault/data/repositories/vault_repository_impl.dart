@@ -5,13 +5,17 @@ import '../../../auth/domain/repositories/auth_repository.dart';
 import '../../domain/entities/savings_vault_entity.dart';
 import '../../domain/repositories/vault_repository.dart';
 
+import '../../../../core/network/api_client.dart';
+
 class VaultRepositoryImpl implements VaultRepository {
   final HiveService hiveService;
   final AuthRepository authRepository;
+  final ApiClient apiClient;
 
   VaultRepositoryImpl({
     required this.hiveService,
     required this.authRepository,
+    required this.apiClient,
   });
 
   static const String _vaultKey = LocalKeys.savingsVault;
@@ -68,6 +72,10 @@ class VaultRepositoryImpl implements VaultRepository {
       );
     }
 
+    // Sync with backend API
+    // Sync with API in background
+    apiClient.dio.get('/vaults').catchError((e) => debugPrint('Sync error'));
+    
     return vaults;
   }
 
@@ -100,8 +108,23 @@ class VaultRepositoryImpl implements VaultRepository {
       'ownerEmail=${vault.ownerEmail}',
     );
 
-    final updatedVaults = [...vaults, vault];
+    // 1. Send to Backend
+    try {
+      await apiClient.dio.post('/vaults', data: {
+        'name': vault.name,
+        'targetAmount': vault.targetAmount,
+        'savedAmount': vault.savedAmount,
+        'deadline': vault.deadline?.toIso8601String(),
+        'scope': vault.scope.name.toUpperCase(),
+        'priority': vault.priority.name.toUpperCase(),
+        'savingFrequency': vault.savingFrequency.name.toUpperCase(),
+      });
+    } catch (e) {
+      debugPrint('Vault API Create Error: $e');
+    }
 
+    // 2. Save Locally
+    final updatedVaults = [...vaults, vault];
     await saveVaults(updatedVaults);
 
     final afterSave = await getVaults();

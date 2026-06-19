@@ -9,10 +9,17 @@ import '../../domain/entities/user_role.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_local_datasource.dart';
 
+import '../../../../core/network/api_client.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
+
 class AuthRepositoryImpl implements AuthRepository {
   final AuthLocalDataSource localDataSource;
+  final ApiClient apiClient;
 
-  AuthRepositoryImpl({required this.localDataSource});
+  AuthRepositoryImpl({
+    required this.localDataSource,
+    required this.apiClient,
+  });
 
   String _generateId() => DateTime.now().millisecondsSinceEpoch.toString() + Random().nextInt(1000).toString();
 
@@ -85,6 +92,22 @@ class AuthRepositoryImpl implements AuthRepository {
       loginAt: DateTime.now(),
     );
 
+    // 1. Firebase Auth Registration
+    try {
+      await fb_auth.FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: normalizedEmail,
+        password: password,
+      );
+      
+      // 2. Sync to Backend
+      await apiClient.dio.post('/auth/sync-user', data: {
+        'role': 'HEAD_OF_FAMILY',
+      });
+    } catch (e) {
+      debugPrint('Firebase/Backend Auth Error: $e');
+      throw Exception('Gagal registrasi dengan server: $e');
+    }
+
     await localDataSource.saveFamilyAccount(familyAccount);
     await localDataSource.saveUser(user);
     await localDataSource.saveAuthSession(session);
@@ -93,14 +116,49 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<AppUser> login(String email, String password) async {
     final normalizedEmail = normalizeEmail(email);
-    final user = await localDataSource.getUser(normalizedEmail);
-    if (user == null) {
-      throw Exception('Email tidak ditemukan');
-    }
     
-    // Prototype: Check password match
-    if (user.passwordHash != password) {
-      throw Exception('Kata sandi salah');
+    // 1. Firebase Auth Login FIRST
+    try {
+      await fb_auth.FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: normalizedEmail,
+        password: password,
+      );
+    } catch (e) {
+      debugPrint('Firebase Auth Login Error: $e');
+      throw Exception('Gagal login ke server. Pastikan email dan password benar.');
+    }
+
+    // 2. After Firebase succeeds, get user from local cache
+    var user = await localDataSource.getUser(normalizedEmail);
+    
+    if (user == null) {
+      // 3. If missing in local cache (e.g. cleared browser data), fetch from backend
+      try {
+        final response = await apiClient.dio.get('/users/me');
+        final userData = response.data['data'];
+        
+        final roles = userData['roles'] as List<dynamic>? ?? [];
+        final roleStr = roles.isNotEmpty ? roles[0].toString() : 'FAMILY_MEMBER';
+        final userRole = roleStr == 'HEAD_OF_FAMILY' ? UserRole.headOfFamily : UserRole.familyMember;
+        
+        user = AppUser(
+          userId: userData['id'],
+          familyId: userData['familyId'] ?? _generateId(),
+          fullName: userData['displayName'] ?? normalizedEmail.split('@')[0],
+          email: normalizedEmail,
+          passwordHash: password, // For local cache prototype
+          role: userRole,
+          relation: userRole == UserRole.headOfFamily ? 'head_of_family' : 'member',
+          isActive: userData['isActive'] ?? true,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+        
+        await localDataSource.saveUser(user);
+      } catch (e) {
+        debugPrint('Backend fetch users/me error: $e');
+        throw Exception('Gagal sinkronisasi data dengan server. $e');
+      }
     }
 
     if (!user.isActive) {
@@ -121,6 +179,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> logout() async {
+    await fb_auth.FirebaseAuth.instance.signOut();
     await localDataSource.clearAuthSession();
   }
 
@@ -298,6 +357,23 @@ class AuthRepositoryImpl implements AuthRepository {
       isLoggedIn: true,
       loginAt: DateTime.now(),
     );
+
+    // 1. Firebase Auth Registration
+    try {
+      await fb_auth.FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: normalizedEmail,
+        password: newPassword,
+      );
+      
+      // 2. Sync to Backend
+      await apiClient.dio.post('/auth/sync-user', data: {
+        'role': 'FAMILY_MEMBER',
+        'inviteCode': normalizedInviteCode,
+      });
+    } catch (e) {
+      debugPrint('Firebase/Backend Auth Error: $e');
+      throw Exception('Gagal aktivasi anggota keluarga di server: $e');
+    }
 
     await localDataSource.saveAuthSession(session);
   }

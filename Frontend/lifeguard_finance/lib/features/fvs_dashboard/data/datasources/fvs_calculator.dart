@@ -56,6 +56,8 @@ class FvsCalculator {
       } else {
         s4 = 10.0;
       }
+    } else if (totalIncome == 0 && profile.debtPayments > 0) {
+      s4 = 10.0;
     }
 
     // S5: Dependent Load Score (number of dependents)

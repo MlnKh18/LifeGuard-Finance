@@ -10,10 +10,16 @@ import '../../domain/entities/community_comment.dart';
 import '../../domain/entities/community_report.dart';
 import '../../domain/repositories/community_repository.dart';
 
+import '../../../../core/network/api_client.dart';
+
 class CommunityRepositoryImpl implements CommunityRepository {
   final HiveService hiveService;
+  final ApiClient apiClient;
 
-  CommunityRepositoryImpl({required this.hiveService});
+  CommunityRepositoryImpl({
+    required this.hiveService,
+    required this.apiClient,
+  });
 
   Future<void> _validateRoleAndGetAuth(Future<void> Function(String userId, String userEmail, String userName, String familyId) onValid) async {
     final authRepo = getIt<AuthRepository>();
@@ -43,7 +49,80 @@ class CommunityRepositoryImpl implements CommunityRepository {
     final raw = hiveService.getData<Map<dynamic, dynamic>>(LocalKeys.communityPosts);
     final rawPosts = (raw?['posts'] as List<dynamic>?) ?? [];
     
+    // Sync with API properly and merge with local cache
+    try {
+      final response = await apiClient.dio.get('/community/posts');
+      if (response.statusCode == 200 && response.data != null) {
+        final List<dynamic> data = response.data['data'] ?? [];
+        final apiPosts = data.map((json) {
+           return CommunityPost(
+             postId: json['id'] ?? const Uuid().v4(),
+             familyId: json['familyId'] ?? '',
+             authorUserId: json['authorId'] ?? '',
+             authorEmail: '', // Backend doesn't return email, can be empty
+             authorName: json['authorName'] ?? 'Anonim',
+             title: json['title'] ?? '',
+             content: json['content'] ?? '',
+             topic: json['topic'] ?? 'Umum',
+             likeCount: json['likeCount'] ?? 0,
+             commentCount: json['commentCount'] ?? 0,
+             reportCount: json['reportCount'] ?? 0,
+             status: CommunityPostStatus.values.firstWhere(
+               (e) => e.toString().split('.').last == json['status'],
+               orElse: () => CommunityPostStatus.published,
+             ),
+             likedByUserIds: [],
+             createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : DateTime.now(),
+             updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : DateTime.now(),
+           );
+        }).toList();
+
+        // Merge apiPosts with rawPosts based on postId, keeping local like/report logic if needed
+        final Map<String, CommunityPost> mergedMap = {};
+        for (var raw in rawPosts) {
+          final p = CommunityPost.fromJson(Map<String, dynamic>.from(raw as Map));
+          mergedMap[p.postId] = p;
+        }
+        for (var apiPost in apiPosts) {
+          // Remove local dummy posts that match the same title and author but have different UUIDs
+          final duplicateLocalId = mergedMap.keys.firstWhere(
+            (id) => id != apiPost.postId && 
+                    mergedMap[id]?.title == apiPost.title && 
+                    mergedMap[id]?.authorUserId == apiPost.authorUserId,
+            orElse: () => '',
+          );
+          
+          if (duplicateLocalId.isNotEmpty) {
+            // Inherit the likes from the local duplicate before removing it
+            final localDuplicate = mergedMap[duplicateLocalId]!;
+            apiPost = apiPost.copyWith(likedByUserIds: localDuplicate.likedByUserIds);
+            mergedMap.remove(duplicateLocalId);
+          }
+
+          if (mergedMap.containsKey(apiPost.postId)) {
+            // Keep local like count/arrays if they are not in API
+            final local = mergedMap[apiPost.postId]!;
+            mergedMap[apiPost.postId] = apiPost.copyWith(
+              likedByUserIds: local.likedByUserIds,
+            );
+          } else {
+            mergedMap[apiPost.postId] = apiPost;
+          }
+        }
+        final mergedPosts = mergedMap.values.toList();
+        
+        // Sort by newest first
+        mergedPosts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        
+        await _savePosts(mergedPosts);
+        return mergedPosts;
+      }
+    } catch (e) {
+      // debugPrint('Community API Get Error: $e');
+    }
+
     final posts = rawPosts.map((e) => CommunityPost.fromJson(Map<String, dynamic>.from(e as Map))).toList();
+    posts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
     debugPrint('================ COMMUNITY GET POSTS ================');
     debugPrint('currentUserId: $currentUserId');
@@ -96,8 +175,48 @@ class CommunityRepositoryImpl implements CommunityRepository {
     debugPrint('authorUserId: ${newPost.authorUserId}');
     debugPrint('authorEmail: ${newPost.authorEmail}');
 
+    CommunityPost finalPost = newPost;
+
+    // Sync to Backend first to get the real UUID
+    try {
+      final response = await apiClient.dio.post('/community/posts', data: {
+        'title': newPost.title,
+        'content': newPost.content,
+        'topic': newPost.topic,
+      });
+      if (response.statusCode == 201 && response.data != null) {
+         final data = response.data['data'];
+         if (data != null && data['id'] != null) {
+           finalPost = CommunityPost(
+             postId: data['id'],
+             familyId: newPost.familyId,
+             authorUserId: newPost.authorUserId,
+             authorName: newPost.authorName,
+             authorEmail: newPost.authorEmail,
+             title: newPost.title,
+             content: newPost.content,
+             topic: newPost.topic,
+             createdAt: newPost.createdAt,
+             updatedAt: newPost.updatedAt,
+             status: newPost.status,
+             likeCount: newPost.likeCount,
+             commentCount: newPost.commentCount,
+             reportCount: newPost.reportCount,
+             likedByUserIds: newPost.likedByUserIds,
+           );
+         }
+      }
+    } catch (e) {
+      debugPrint('Community API Create Error: $e');
+    }
+
     final posts = await getPosts();
-    posts.insert(0, newPost);
+    final existingIndex = posts.indexWhere((p) => p.postId == finalPost.postId);
+    if (existingIndex >= 0) {
+      posts[existingIndex] = finalPost;
+    } else {
+      posts.insert(0, finalPost);
+    }
     await _savePosts(posts);
   }
 
